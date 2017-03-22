@@ -7,13 +7,21 @@
 
 ###### Debian Main Repos";
 echo "\n";
-	echo "deb http://".$_POST["country"]." ".$_POST["release"]." main";
+  if(isset($_POST['debFast']))
+    echo "deb http://deb.debian.org ". $_POST["release"]." main";
+  else
+	  echo "deb http://".$_POST["country"]." ".$_POST["release"]." main";
+
 	if(isset($_POST["contrib"])) echo " contrib";
 	if(isset($_POST["non-free"])) echo " non-free";
 	if(isset($_POST["src"]))
 	{
 		echo "\n";
-		echo "deb-src http://".$_POST["country"]." ".$_POST["release"]." main";
+  if(isset($_POST['debFast']))
+    echo "deb-src http://deb.debian.org ". $_POST["release"]." main";
+  else
+	  echo "deb-src http://".$_POST["country"]." ".$_POST["release"]." main";
+
 		if(isset($_POST["contrib"])) echo " contrib";
 		if(isset($_POST["non-free"])) echo " non-free";		
 	}
@@ -21,13 +29,19 @@ echo "\n";
 	{	
 		echo "\n";
 		echo "\n";
-		echo "deb http://".$_POST["country"]." ".$_POST["release"]."-updates main";
+  if(isset($_POST['debFast']))
+    echo "deb http://deb.debian.org ". $_POST["release"]."-updates main";
+  else
+	  echo "deb http://".$_POST["country"]." ".$_POST["release"]."-updates main";
 		if(isset($_POST["contrib"])) echo " contrib";
 		if(isset($_POST["non-free"])) echo " non-free";
 		if(isset($_POST["src"]))
 		{
 			echo "\n";
-			echo "deb-src http://".$_POST["country"]." ".$_POST["release"]."-updates main";
+  if(isset($_POST['debFast']))
+    echo "deb-src http://deb.debian.org ". $_POST["release"]."-updates main";
+  else
+	  echo "deb-src http://".$_POST["country"]." ".$_POST["release"]."-updates main";
 			if(isset($_POST["contrib"])) echo " contrib";
 			if(isset($_POST["non-free"])) echo " non-free";		
 		}
@@ -36,10 +50,16 @@ echo "\n";
 	{	
 		echo "\n";
 		echo "\n";
+  if(isset($_POST['debFast']))
+    echo "deb http://deb.debian.org/debian-secruity ". $_POST["release"]."/updates main";
+  else
 		echo "deb http://security.debian.org/ ".$_POST["release"]."/updates main";
 		if(isset($_POST["src"]))
 		{
 			echo "\n";
+  if(isset($_POST['debFast']))
+    echo "deb-src http://deb.debian.org/debian-secruity ". $_POST["release"]."/updates main";
+  else
 			echo "deb-src http://security.debian.org/ ".$_POST["release"]."/updates main";
 		}
 	}

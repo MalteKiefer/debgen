@@ -1,8 +1,14 @@
-				<form action="index.php?generate" method="post" name="generate">
+  
+    We add the source code to GitHub. Please take a look: <!-- Place this tag where you want the button to render. -->
+<!-- Place this tag where you want the button to render. -->
+<a class="github-button" href="https://github.com/beli3ver/debgen/subscription" data-count-href="/beli3ver/debgen/watchers" data-count-api="/repos/beli3ver/debgen#subscribers_count" data-count-aria-label="# watchers on GitHub" aria-label="Watch beli3ver/debgen on GitHub">Watch</a>
+
+    <form action="index.php?generate" method="post" name="generate">
+        <p><label><input name="debFast" id="debFast" type="checkbox" checked /> Use <a href="https://deb.debian.org" target="_blank">deb.debian.org</a> (Fast Server Select) service?</label><br></p>
 				<div class="elemnts--inline">
 					<div class="footerdiv">
 						<p><label>Mirror<br>
-						<select name="country">
+						<select name="country" id="country" disabled>
 						<?php
 							foreach($main_deb_server as $country => $server )
 							{
@@ -32,6 +38,14 @@
 					</div>
 					<p><label>3rd Parties Repos</label></p><br />
 					<script>
+              $("#debFast").on('click', function(){
+                if ( $(this).is(':checked') ) {
+                  $('#country').prop('disabled', true);
+                } 
+                else {
+                  $('#country').prop('disabled',false);
+                }
+              });
 					$("#release").change(function(){
 						if($("#release").val() == "unstable")
 						{

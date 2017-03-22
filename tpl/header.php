@@ -18,6 +18,7 @@
 		<meta name="Revisit-after" content="31 Days">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Code+Pro">
 		<script src="js/jquery.js"></script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 		<link rel="stylesheet" href="css/ionicons.min.css">
 		<link rel="stylesheet" href="css/styles.css">
 	</head>
@@ -46,6 +47,8 @@
 						<a href="https://repogen.simplylinux.ch/" class="link">RepoGen (Ubuntu)</a>
 						|
 						<a href="https://stats.simplylinux.ch/index.php?module=CoreHome&action=index&idSite=3&period=day&date=yesterday#/module=Dashboard&action=embeddedIndex&idSite=3&period=day&date=yesterday?idSite=3&period=day&date=yesterday&category=Dashboard_Dashboard&subcategory=1" class="link">Collected Stats</a>
+            |
+            <a class="github-button" href="https://github.com/beli3ver/debgen" data-count-href="/beli3ver/debgen/stargazers" data-count-api="/repos/beli3ver/debgen#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star beli3ver/debgen on GitHub">Star</a> 
 					</div>
 				</div>
 			</div>
