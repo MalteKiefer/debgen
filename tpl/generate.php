@@ -8,7 +8,7 @@
 ###### Debian Main Repos";
 echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb http://deb.debian.org ". $_POST["release"]." main";
+    echo "deb http://deb.debian.org/debian/ ". $_POST["release"]." main";
   else
 	  echo "deb http://".$_POST["country"]." ".$_POST["release"]." main";
 
@@ -18,7 +18,7 @@ echo "\n";
 	{
 		echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb-src http://deb.debian.org ". $_POST["release"]." main";
+    echo "deb-src http://deb.debian.org/debian/ ". $_POST["release"]." main";
   else
 	  echo "deb-src http://".$_POST["country"]." ".$_POST["release"]." main";
 
@@ -30,7 +30,7 @@ echo "\n";
 		echo "\n";
 		echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb http://deb.debian.org ". $_POST["release"]."-updates main";
+    echo "deb http://deb.debian.org/debian/ ". $_POST["release"]."-updates main";
   else
 	  echo "deb http://".$_POST["country"]." ".$_POST["release"]."-updates main";
 		if(isset($_POST["contrib"])) echo " contrib";
@@ -39,7 +39,7 @@ echo "\n";
 		{
 			echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb-src http://deb.debian.org ". $_POST["release"]."-updates main";
+    echo "deb-src http://deb.debian.org/debian/ ". $_POST["release"]."-updates main";
   else
 	  echo "deb-src http://".$_POST["country"]." ".$_POST["release"]."-updates main";
 			if(isset($_POST["contrib"])) echo " contrib";
@@ -128,4 +128,3 @@ if(isset($_POST["3rdparties"]))
 <script>
 	$(".button").click(function(){window.location.href = ".";});
 </script>
-
