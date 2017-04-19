@@ -51,14 +51,14 @@ echo "\n";
 		echo "\n";
 		echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb http://deb.debian.org/debian-secruity ". $_POST["release"]."/updates main";
+    echo "deb http://deb.debian.org/debian-security ". $_POST["release"]."/updates main";
   else
 		echo "deb http://security.debian.org/ ".$_POST["release"]."/updates main";
 		if(isset($_POST["src"]))
 		{
 			echo "\n";
   if(isset($_POST['debFast']))
-    echo "deb-src http://deb.debian.org/debian-secruity ". $_POST["release"]."/updates main";
+    echo "deb-src http://deb.debian.org/debian-security ". $_POST["release"]."/updates main";
   else
 			echo "deb-src http://security.debian.org/ ".$_POST["release"]."/updates main";
 		}
