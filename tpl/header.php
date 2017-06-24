@@ -24,18 +24,18 @@
 	</head>
 	<body>
 		<script>
-			function brokenRepo(id, name)
+			function brokenRepo(id)
 			{
 				if(confirm("Would you like to report this repo as broken?"))
 				{
 					if(confirm("Is the key broken?"))
 					{
-						$.post( "api.php?brokenRepo", { id: id , name: name, key: "yes"} );
+						$.post( "api.php?brokenRepo", { id: id , key: "1"} );
 						alert("Thank you! We will fix the problem as soon as possible!");
 					}
 					else
 					{
-						$.post( "api.php?brokenRepo", { id: id , name: name, key: "no"} );
+						$.post( "api.php?brokenRepo", { id: id , key: "0"} );
 						alert("Thank you! We will fix the problem as soon as possible!");
 					}
 				}

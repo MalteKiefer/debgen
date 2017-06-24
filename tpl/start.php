@@ -88,7 +88,7 @@
 							$.each(result, function(k, v){
 								$( ".repos" ).append('<div class="repo"></div><p><label><input name="3rdparties[]" type="checkbox" value="'+v.repo_id+'"> '+v.repo_name+'</label>&nbsp;&nbsp;<a href="'+v.repo_homepage+'" target="_blank"  class="link"><i class="icon ion-earth"> Homepage</i></a>&nbsp;&nbsp;<a href="'+v.repo_documentation+'"  target="_blank" class="link"><i class="icon ion-university"> Documentation</i></a>');
 								$( ".repos" ).append('<div class="inside">'+v.repo_desc+'');
-								$( ".repos" ).append('<a href="#" onClick="brokenRepo(\'' + v.repo_id + '\', \''+v.repo_name+'\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />');								
+								$( ".repos" ).append('<a href="#" onClick="brokenRepo(\'' + v.repo_id + '\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />');								
 							});
 						});
 

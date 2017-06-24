@@ -50,13 +50,20 @@ class Repo
 		}
 	}
 	
-    public function setRepoBroken($id, $name, $key) {
-		$to = "malte.kiefer@mailgermania.de";
-		$subject = "Broken Repo";
-		$txt = "This repo is broken: $id \n\nName: $name\n\nKey: $key";
-		$headers = "From: webmaster@debgen.simplylinux.ch";
+    public function setRepoBroken($id, $key) {
+		try {
 
-		mail($to,$subject,$txt,$headers);
+		  $stmt = $this->db->prepare('UPDATE repos SET issue = 1 , issue_key = ? WHERE repo_id = ?');
+		  $stmt->bindParam('1', $key);
+		  $stmt->bindParam('2', $id);
+		  $stmt->execute();
+
+		  return true;
+
+		} catch(PDOException $e) {
+		  echo $e->getMessage();
+
+		}
 	}
 	
     public function feedback($mail, $subject, $message) {
