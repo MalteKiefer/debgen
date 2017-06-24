@@ -8,7 +8,7 @@ require_once('../tpl/header.admin.php');
 
 if(isset($_POST['loginUser']))
 {
-    if($user->loginUser($_POST['username'], $_POST['pasword']) === false)
+    if($user->loginUser($_POST['username'], $_POST['password']) === false)
     {
         require_once('../tpl/error.login.php');
     }

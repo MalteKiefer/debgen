@@ -14,9 +14,9 @@
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav">
-                <li><a href="./?addRepo">Add Repo</a></li>
-                <li><a href="./?password">Password</a></li>
-                <li><a href="./?settings">Settings</a></li>
+                <li><a href="./?addRepo"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Repo</a></li>
+                <li><a href="./?password"><span class="glyphicon glyphicon-lock" aria-hidden="true"></span> Password</a></li>
+                <li><a href="./?settings"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Settings</a></li>
               </ul>
 
             </div><!-- /.navbar-collapse -->
