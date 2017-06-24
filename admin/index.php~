@@ -8,10 +8,11 @@
 
     if(isset($_POST['loginUser']))
     {
+        echo $user->loginUser($_POST['username'], $_POST['pasword']);
         if($user->loginUser($_POST['username'], $_POST['pasword']) === false)
         {
             require_once('../tpl/error.login.php');
-        }
+        } require_once('../tpl/error.login.php');
     }
 
     if(isset($_SESSION['userid']) AND  $_SESSION['userid'] != '')
