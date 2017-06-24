@@ -18,15 +18,15 @@ if(isset($_SESSION['userid']) AND  $_SESSION['userid'] != '')
 {
     if(isset($_GET['addRepo']))
     {
-        require_once('addRepo.php');)  
+        require_once('addRepo.php');
     }
     elseif(isset($_GET['password']))
     {
-        require_once('password.php');)   
+        require_once('password.php');  
     }
     elseif(isset($_GET['settings']))
     {
-        require_once('settings.php');)    
+        require_once('settings.php');   
     }
     else
     {

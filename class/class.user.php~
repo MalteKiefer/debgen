@@ -1,12 +1,6 @@
 <?php
 
 class User {
-
-    public function __construct($db)
-    {
-        $this->db = $db;
-    }
-    
     public function createHash($value)
     {
         return password_hash($value, PASSWORD_DEFAULT);
