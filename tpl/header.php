@@ -6,8 +6,8 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Sources List Generator for Debian</title>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
-		<meta name="author" content="Stephan Jau">
-		<meta name="Publisher" content="Stephan Jau">
+		<meta name="author" content="Malte Kiefer">
+		<meta name="Publisher" content="Malte Kiefer">
 		<meta name="keywords" content="Debian, Server, Repository, Generator, Sources, Sources List, deb, deb-src, Linux, distro, distribution">
 		<meta name="description" content="Sources List Generator for Debian. It features the official Debian repositories as well as other 3rd party repos.">
 		<meta name="Content-Language" content="en">
@@ -24,12 +24,20 @@
 	</head>
 	<body>
 		<script>
-			function brokenRepo(id)
+			function brokenRepo(id, name)
 			{
 				if(confirm("Would you like to report this repo as broken?"))
 				{
-						$.post( "api.php?brokenRepo", { id: id } );
+					if(confirm("Is the key broken?"))
+					{
+						$.post( "api.php?brokenRepo", { id: id , name: name, key: "yes"} );
 						alert("Thank you! We will fix the problem as soon as possible!");
+					}
+					else
+					{
+						$.post( "api.php?brokenRepo", { id: id , name: name, key: "no"} );
+						alert("Thank you! We will fix the problem as soon as possible!");
+					}
 				}
 			}
 		</script>

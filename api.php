@@ -28,7 +28,7 @@ if(isset($_GET['brokenRepo']))
 
     $repo = new Repo($db);
 
-    $repoAll = $repo->setRepoBroken($_POST['id']);	
+    $repoAll = $repo->setRepoBroken($_POST['id'], $_POST['name'], $_POST['key']);	
  
 }
 

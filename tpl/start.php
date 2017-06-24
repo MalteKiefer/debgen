@@ -4,11 +4,17 @@
 <a class="github-button" href="https://github.com/beli3ver/debgen/subscription" data-count-href="/beli3ver/debgen/watchers" data-count-api="/repos/beli3ver/debgen#subscribers_count" data-count-aria-label="# watchers on GitHub" aria-label="Watch beli3ver/debgen on GitHub">Watch</a>
 
     <form action="index.php?generate" method="post" name="generate">
-        <p><label><input name="debFast" id="debFast" type="checkbox" checked /> Use <a href="https://deb.debian.org" target="_blank">deb.debian.org</a> (Fast Server Select) service?</label><br></p>
+		<div style="border:1px solid #cecece;background-color:#efefef;text-align:center;">
+			<h4>Debian Fast Server Select</h4>
+			Do you want Debian to automatically choose the fastest download server? Then simply leave this box selected.<br />
+			You can not make a selection in the mirror list, if you prefer to select a mirror, please deactivate this box.<br /><br />
+        	<label><input name="debFast" id="debFast" type="checkbox" checked /> Use <a href="https://deb.debian.org" target="_blank">deb.debian.org</a> (Fast Server Select) service?</label><br /><br />
+
+		</div>
 				<div class="elemnts--inline">
 					<div class="footerdiv">
 						<p><label>Mirror<br>
-						<select name="country" id="country" disabled>
+						<select name="country" id="country" disabled class="dis">
 						<?php
 							foreach($main_deb_server as $country => $server )
 							{
@@ -41,10 +47,12 @@
               $("#debFast").on('click', function(){
                 if ( $(this).is(':checked') ) {
                   $('#country').prop('disabled', true);
+				  $('#country').addClass( "dis" );
                 } 
                 else {
                   $('#country').prop('disabled',false);
-                }
+				  $('#country').removeClass( "dis" );
+				}
               });
 					$("#release").change(function(){
 						if($("#release").val() == "unstable")
@@ -80,7 +88,7 @@
 							$.each(result, function(k, v){
 								$( ".repos" ).append('<div class="repo"></div><p><label><input name="3rdparties[]" type="checkbox" value="'+v.repo_id+'"> '+v.repo_name+'</label>&nbsp;&nbsp;<a href="'+v.repo_homepage+'" target="_blank"  class="link"><i class="icon ion-earth"> Homepage</i></a>&nbsp;&nbsp;<a href="'+v.repo_documentation+'"  target="_blank" class="link"><i class="icon ion-university"> Documentation</i></a>');
 								$( ".repos" ).append('<div class="inside">'+v.repo_desc+'');
-								$( ".repos" ).append('<a href="#" onClick="brokenRepo(' + v.repo_id + ');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />');								
+								$( ".repos" ).append('<a href="#" onClick="brokenRepo(\'' + v.repo_id + '\', \''+v.repo_name+'\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />');								
 							});
 						});
 

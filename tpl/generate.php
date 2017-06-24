@@ -1,3 +1,12 @@
+<br />
+<div style="border:1px solid #cecece;background-color:#efefef;text-align:center;">
+
+<h3 style="color: #c7254e">Attention!!!</h3>
+Before you start install this packages first:<br /><br />
+
+<code>apt install curl wget apt-transport-https dirmngr</code>
+
+</div><br />
 <h4 class="header">Sources List</h4>
 <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="list" rows="10" cols="100">
 <?php

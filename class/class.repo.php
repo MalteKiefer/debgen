@@ -50,10 +50,10 @@ class Repo
 		}
 	}
 	
-    public function setRepoBroken($id) {
+    public function setRepoBroken($id, $name, $key) {
 		$to = "malte.kiefer@mailgermania.de";
 		$subject = "Broken Repo";
-		$txt = "This repo is broken: $id";
+		$txt = "This repo is broken: $id \n\nName: $name\n\nKey: $key";
 		$headers = "From: webmaster@debgen.simplylinux.ch";
 
 		mail($to,$subject,$txt,$headers);
