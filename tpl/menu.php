@@ -16,6 +16,7 @@
               <ul class="nav navbar-nav">
                 <li><a href="./?addRepo"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Repo</a></li>
                 <li><a href="./?password"><span class="glyphicon glyphicon-lock" aria-hidden="true"></span> Password</a></li>
+                <li><a href="./?mail"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> Mail</a></li>
                 <li><a href="./?settings"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Settings</a></li>
               </ul>
 

@@ -28,6 +28,37 @@ class User {
         }
 
     }
+    
+    public function changeMail($mail)
+    {
+    
+        try {
+            $stmt = $this->db->prepare('UPDATE users SET email = ? WHERE uid = ?');
+            $stmt->bindParam('1', $mail);
+            $stmt->bindParam('2', $_SESSION['userid']);
+            $stmt->execute();
+
+            return true;
+        } catch (PDOException $e) {
+            $$e->getMessage();
+        }
+
+    }
+    
+    public function getMail()
+    {
+    
+        try {
+            $stmt = $this->db->prepare('SELECT email FROM users WHERE uid = ?');
+            $stmt->bindParam('1', $_SESSION['userid']);
+            $stmt->execute();
+
+            return $stmt->fetchObject();
+        } catch (PDOException $e) {
+            $$e->getMessage();
+        }
+
+    }
 
     public function loginUser($username, $password)
     {

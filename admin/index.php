@@ -26,6 +26,10 @@ if(isset($_SESSION['userid']) AND  $_SESSION['userid'] != '')
     {
         require_once('password.php');  
     }
+    elseif(isset($_GET['mail']))
+    {
+        require_once('mail.php');   
+    }
     elseif(isset($_GET['settings']))
     {
         require_once('settings.php');   
