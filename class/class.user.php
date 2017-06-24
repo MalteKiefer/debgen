@@ -12,6 +12,23 @@ class User {
         return password_hash($value, PASSWORD_DEFAULT);
     }
 
+    public function changePassword($password)
+    {
+    
+        $pwd = $this->createHash($password);
+        try {
+            $stmt = $this->db->prepare('UPDATE users SET password = ? WHERE uid = ?');
+            $stmt->bindParam('1', $pwd);
+            $stmt->bindParam('2', $_SESSION['userid']);
+            $stmt->execute();
+
+            return true;
+        } catch (PDOException $e) {
+            $$e->getMessage();
+        }
+
+    }
+
     public function loginUser($username, $password)
     {
         try {
