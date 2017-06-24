@@ -45,11 +45,42 @@ class User {
 
     }
     
+    public function changeNotify($notify)
+    {
+    
+        try {
+            $stmt = $this->db->prepare('UPDATE users SET notify = ? WHERE uid = ?');
+            $stmt->bindParam('1', $notify);
+            $stmt->bindParam('2', $_SESSION['userid']);
+            $stmt->execute();
+
+            return true;
+        } catch (PDOException $e) {
+            $$e->getMessage();
+        }
+
+    }
+    
     public function getMail()
     {
     
         try {
             $stmt = $this->db->prepare('SELECT email FROM users WHERE uid = ?');
+            $stmt->bindParam('1', $_SESSION['userid']);
+            $stmt->execute();
+
+            return $stmt->fetchObject();
+        } catch (PDOException $e) {
+            $$e->getMessage();
+        }
+
+    }
+    
+    public function getNotify()
+    {
+    
+        try {
+            $stmt = $this->db->prepare('SELECT notify FROM users WHERE uid = ?');
             $stmt->bindParam('1', $_SESSION['userid']);
             $stmt->execute();
 
