@@ -3,6 +3,7 @@
 require_once('../config/config.php');
 
 $user = new User($db);
+$release = new Repo($db);
 
 require_once('../tpl/header.admin.php');
 
