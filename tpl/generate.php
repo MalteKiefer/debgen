@@ -1,8 +1,8 @@
 <br />
 <div style="border:1px solid #cecece;background-color:#efefef;text-align:center;">
 
-<h3 style="color: #c7254e">Attention!!!</h3>
-Before you start install this packages first:<br /><br />
+<h3 style="color: #c7254e">Attention!</h3>
+Before you start install these packages first:<br /><br />
 
 <code>apt install curl wget apt-transport-https dirmngr</code>
 
@@ -76,7 +76,7 @@ echo "\n";
 	if(isset($_POST["backports"]))
 	{	
 		
-		$releaseBackports = ($_POST["release"] == "stable") ? "jessie" : "wheezy";
+		$releaseBackports = ($_POST["release"] == "stable") ? "stretch" : "jessie";
 		
 		echo "\n";
 		echo "\n";
