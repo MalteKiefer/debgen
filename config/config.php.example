@@ -1,0 +1,33 @@
+<?php
+ob_start();
+session_start();
+
+//database credentials
+define('DBHOST','127.0.0.1');
+define('DBPORT','3306');
+define('DBUSER','');
+define('DBPASS','');
+define('DBNAME','');
+
+$db = new PDO("mysql:host=".DBHOST.";port=".DBPORT.";dbname=".DBNAME, DBUSER, DBPASS);
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+function __autoload($class)
+{
+    $class = strtolower($class);
+
+    $classpath = 'class/class.'.$class.'.php';
+    if (file_exists($classpath)) {
+        require_once $classpath;
+    }
+
+    $classpath = '../class/class.'.$class.'.php';
+    if (file_exists($classpath)) {
+        require_once $classpath;
+    }
+
+    $classpath = '../../class/class.'.$class.'.php';
+    if (file_exists($classpath)) {
+        require_once $classpath;
+    }
+}
