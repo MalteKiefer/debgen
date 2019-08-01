@@ -55,7 +55,7 @@
 					|
 					<a href="./?changes" class="link">Last Changes</a>
 					|
-					<a href="./?feedback" class="link">New Repo / Feedback</a>
+					<a href="https://github.com/beli3ver/debgen/issues" class="link">New Repo / Feedback</a>
 					|
 					<a href="https://repogen.simplylinux.ch/" class="link">RepoGen (Ubuntu)</a>
 					|
