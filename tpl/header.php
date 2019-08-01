@@ -59,9 +59,6 @@
 					|
 					<a href="https://repogen.simplylinux.ch/" class="link">RepoGen (Ubuntu)</a>
 					|
-					<a href="https://stats.simplylinux.ch/index.php?module=CoreHome&action=index&idSite=3&period=day&date=yesterday#/module=Dashboard&action=embeddedIndex&idSite=3&period=day&date=yesterday?idSite=3&period=day&date=yesterday&category=Dashboard_Dashboard&subcategory=1"
-						class="link">Collected Stats</a>
-					|
 					<a class="github-button" href="https://github.com/beli3ver/debgen"
 						data-count-href="/beli3ver/debgen/stargazers"
 						data-count-api="/repos/beli3ver/debgen#stargazers_count"
