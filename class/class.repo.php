@@ -20,7 +20,21 @@ class Repo
 
 		}
 	}
-	
+
+	public function getCat() {
+		try {
+
+		  $stmt = $this->db->prepare('SELECT cat_id, cat_name FROM cat');
+		  $stmt->execute();
+
+		  return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+		} catch(PDOException $e) {
+		  echo $e->getMessage();
+
+		}
+	}
+
     public function getRepos() {
 		try {
 
