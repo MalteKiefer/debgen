@@ -1,5 +1,26 @@
 <?php
 
+if(isset($_GET['get_cat']))
+{
+    require_once 'config/config.php';
+
+    $repo = new Repo($db);
+
+    $cat = $repo->getCat();
+    $cat2 = array();
+
+    foreach ($cat as $catOut) {
+
+            $temT = array('cat_id' => $catOut['cat_id'], 'cat_name' => $catOut['cat_name']);
+            array_push($cat2, $temT);
+    }
+    header('Content-Type: application/javascript');
+    echo json_encode($cat2);	
+
+ 
+}
+
+
 if(isset($_GET['get_repos']))
 {
     require_once 'config/config.php';

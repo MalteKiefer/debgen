@@ -82,6 +82,15 @@
   					$('#backports').prop('checked', true);
   				}
   				$(".button").prop('disabled', false);
+  				var repo = $.getJSON("api.php?get_repos&release_id=" + $("#release").find(":selected").data('id'));
+  				var cat = $.getJSON("api.php?get_cat")";
+
+
+  				$.when(first, second)
+  					.done(function (firstResult, secondResult) {
+  						// Executed when both requests complete successfully
+  						// Both results are available here 
+  					})
   				$.getJSON("api.php?get_repos&release_id=" + $("#release").find(":selected").data('id'), function (
   					result) {
   					$(".repos").empty();
@@ -93,11 +102,11 @@
   							'" target="_blank"  class="link"><i class="icon ion-earth"> Homepage</i></a>&nbsp;&nbsp;<a href="' +
   							v.repo_documentation +
   							'"  target="_blank" class="link"><i class="icon ion-university"> Documentation</i></a>'
-  							);
+  						);
   						$(".repos").append('<div class="inside">' + v.repo_desc + '');
   						$(".repos").append('<a href="#" onClick="brokenRepo(\'' + v.repo_id +
   							'\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />'
-  							);
+  						);
   					});
   				});
 
@@ -127,7 +136,6 @@
   				document.getElementById(cityName).style.display = "block";
   				evt.currentTarget.className += " active";
   			}
-		  
-		  </script>
+  		</script>
   	</div>
   </form>

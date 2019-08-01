@@ -5,7 +5,6 @@
 	
 	$repo = new Repo($db);
 	$release = $repo->getRelease();
-	$cat = $repo->getCat();
 
 	$changes = new Changes($db);
 	$allchangesDate = $changes->getChangesDate();
