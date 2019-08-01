@@ -82,36 +82,54 @@
   					$('#backports').prop('checked', true);
   				}
   				$(".button").prop('disabled', false);
-  				var repo = $.getJSON("api.php?get_repos&release_id=" + $("#release").find(":selected").data('id'));
-  				var cat = $.getJSON("api.php?get_cat")";
-
-
-  				$.when(first, second)
-  					.done(function (firstResult, secondResult) {
-  						// Executed when both requests complete successfully
-  						// Both results are available here 
-  					})
+  				var repo;
   				$.getJSON("api.php?get_repos&release_id=" + $("#release").find(":selected").data('id'), function (
-  					result) {
-  					$(".repos").empty();
-  					$.each(result, function (k, v) {
-  						$(".repos").append(
-  							'<div class="repo"></div><p><label><input name="3rdparties[]" type="checkbox" value="' +
-  							v.repo_id + '"> ' + v.repo_name + '</label>&nbsp;&nbsp;<a href="' + v
-  							.repo_homepage +
-  							'" target="_blank"  class="link"><i class="icon ion-earth"> Homepage</i></a>&nbsp;&nbsp;<a href="' +
-  							v.repo_documentation +
-  							'"  target="_blank" class="link"><i class="icon ion-university"> Documentation</i></a>'
-  						);
-  						$(".repos").append('<div class="inside">' + v.repo_desc + '');
-  						$(".repos").append('<a href="#" onClick="brokenRepo(\'' + v.repo_id +
-  							'\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />'
-  						);
-  					});
+  					json) {
+  					repo = json;
   				});
+  				var cat;
+  				$.getJSON("api.php?get_cat", function (json) {
+  					cat = json;
+  				});
+
+  				$(".tab").empty();
+  				$(".repos").empty();
+  				$.when(cat, repo)
+  					.done(function (cat, repo) {
+  						$.each(cat, function (i, j) {
+  							$(".tab").append('<button class="tablinks" onclick="openCAT(event, \'' + j
+  								.cat_name + '\'">' + j.cat_name + '</button>');
+  							$(".repos").append('<div id="' + j.cat_name + '" class="tabcontent"></div>');
+  							$.each(repo, function (k, v) {
+
+  								if (v.repo_cat == j.cat_id) {
+  									$("#"+ j.cat_name).append(
+  										'<div class="repo"></div><p><label><input name="3rdparties[]" type="checkbox" value="' +
+  										v.repo_id + '"> ' + v.repo_name +
+  										'</label>&nbsp;&nbsp;<a href="' + v
+  										.repo_homepage +
+  										'" target="_blank"  class="link"><i class="icon ion-earth"> Homepage</i></a>&nbsp;&nbsp;<a href="' +
+  										v.repo_documentation +
+  										'"  target="_blank" class="link"><i class="icon ion-university"> Documentation</i></a>'
+  									);
+  									$("#"+ j.cat_name).append('<div class="inside">' + v.repo_desc + '');
+  									$("#"+ j.cat_name).append('<a href="#" onClick="brokenRepo(\'' + v
+  										.repo_id +
+  										'\');" class="link right"><i class="icon ion-flash-off"> Broken Repo</i></a></div></p></div><br />'
+  									);
+  								}
+
+  							});
+  						});
+  					})
+
 
   			});
   		</script>
+  		<div class="tab">
+
+  		</div>
+
   		<div class="repos">
 
   		</div>
@@ -120,7 +138,7 @@
   		<script>
   			$(".button").submit();
 
-  			function openCAT(evt, cityName) {
+  			function openCAT(evt, catName) {
   				var i, tabcontent, tablinks;
 
   				tabcontent = document.getElementsByClassName("tabcontent");
@@ -133,7 +151,7 @@
   					tablinks[i].className = tablinks[i].className.replace(" active", "");
   				}
 
-  				document.getElementById(cityName).style.display = "block";
+  				document.getElementById(catName).style.display = "block";
   				evt.currentTarget.className += " active";
   			}
   		</script>
