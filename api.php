@@ -12,7 +12,7 @@ if(isset($_GET['get_repos']))
     foreach ($repoAll as $repoOut) {
 		if($repoOut['repo_release'] == $_GET['release_id'])
 		{
-            $temT = array('repo_id' => $repoOut['repo_id'], 'repo_name' => $repoOut['repo_name'], 'repo_desc' => $repoOut['repo_desc'], 'repo_url' => $repoOut['repo_url'],'repo_url_src' => $repoOut['repo_url_src'],'repo_gpg' => $repoOut['repo_gpg'],'repo_arch' => $repoOut['repo_arch'],'repo_homepage' => $repoOut['repo_homepage'],'repo_documentation' => $repoOut['repo_documentation']);
+            $temT = array('repo_id' => $repoOut['repo_id'], 'repo_name' => $repoOut['repo_name'], 'repo_desc' => $repoOut['repo_desc'], 'repo_url' => $repoOut['repo_url'],'repo_url_src' => $repoOut['repo_url_src'],'repo_gpg' => $repoOut['repo_gpg'],'repo_arch' => $repoOut['repo_arch'],'repo_homepage' => $repoOut['repo_homepage'],'repo_documentation' => $repoOut['repo_documentation'], 'repo_cat' => $repoOut['repo_cat']);
             array_push($repoOut2, $temT);
 		}
     }

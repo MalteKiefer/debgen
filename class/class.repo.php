@@ -24,7 +24,7 @@ class Repo
     public function getRepos() {
 		try {
 
-		  $stmt = $this->db->prepare('SELECT repo_id, repo_name, repo_desc, repo_url, repo_url_src, repo_gpg, repo_arch, repo_homepage, repo_documentation, repo_release, repo_checked, issue, issue_key FROM repos ORDER BY repo_name ASC');
+		  $stmt = $this->db->prepare('SELECT repo_id, repo_name, repo_desc, repo_url, repo_url_src, repo_gpg, repo_arch, repo_homepage, repo_documentation, repo_release, repo_checked, repo_cat, issue, issue_key FROM repos ORDER BY repo_name ASC');
 		  $stmt->execute();
 
 		  return $stmt->fetchAll(PDO::FETCH_ASSOC);
