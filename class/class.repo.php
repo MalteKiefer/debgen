@@ -67,7 +67,7 @@ class Repo
 	}
 	
     public function feedback($mail, $subject, $message) {
-		$to = "malte.kiefer@mailgermania.de";
+		$to = "malte.kiefer@mailbox.org";
 		$subject2 = "DebGen SourcesList: ".$subject;
 		$message2 = $message."\n\n--\nThis message was sent to you by the DebGen SourcesList site!";
 
