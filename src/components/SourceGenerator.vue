@@ -183,7 +183,7 @@ export default {
   name: "SourceGenerator",
   data: () => ({
     repos: [],
-    release: "Stable",
+    release: "Bullseye",
     include_source: true,
     include_contrib: true,
     include_nonfree: true,
@@ -211,7 +211,7 @@ export default {
     reset: function(){
       this.selected_repos = []
       this.keys = []
-      this.release = "Stable"
+      this.release = "Bullseye"
       this.generated = false
     },
 
