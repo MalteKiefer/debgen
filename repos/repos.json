@@ -44,50 +44,6 @@
     "category": "Multimedia"
   },
   {
-    "release": "Buster",
-    "name": "Dropbox",
-    "description": "Dropbox is a file hosting service operated by American company Dropbox, Inc., headquartered in San Francisco, California, that offers cloud storage, file synchronization, personal cloud, and client software. Dropbox was founded in 2007, by MIT students Drew Houston and Arash Ferdowsi, as a startup company, with initial funding from seed accelerator Y Combinator.",
-    "repo": "deb https://linux.dropbox.com/debian buster main",
-    "repo_src": "",
-    "key": "apt-key adv --keyserver pgp.mit.edu --recv-keys 1C61A2656FB57B7E4DE0F4C1FC918B335044912E",
-    "web": "https://dropbox.com/",
-    "docs": "https://help.dropbox.com/installs-integrations/desktop/linux-repository",
-    "category": "Cloud"
-  },
-  {
-    "release": "Jessie",
-    "name": "Dropbox",
-    "description": "Dropbox is a file hosting service operated by American company Dropbox, Inc., headquartered in San Francisco, California, that offers cloud storage, file synchronization, personal cloud, and client software. Dropbox was founded in 2007, by MIT students Drew Houston and Arash Ferdowsi, as a startup company, with initial funding from seed accelerator Y Combinator.",
-    "repo": "deb https://linux.dropbox.com/debian jessie main",
-    "repo_src": "",
-    "key": "apt-key adv --keyserver pgp.mit.edu --recv-keys 1C61A2656FB57B7E4DE0F4C1FC918B335044912E",
-    "web": "https://dropbox.com/",
-    "docs": "https://help.dropbox.com/installs-integrations/desktop/linux-repository",
-    "category": "Cloud"
-  },
-  {
-    "release": "Sid",
-    "name": "Dropbox",
-    "description": "Dropbox is a file hosting service operated by American company Dropbox, Inc., headquartered in San Francisco, California, that offers cloud storage, file synchronization, personal cloud, and client software. Dropbox was founded in 2007, by MIT students Drew Houston and Arash Ferdowsi, as a startup company, with initial funding from seed accelerator Y Combinator.",
-    "repo": "deb https://linux.dropbox.com/debian sid main",
-    "repo_src": "",
-    "key": "apt-key adv --keyserver pgp.mit.edu --recv-keys 1C61A2656FB57B7E4DE0F4C1FC918B335044912E",
-    "web": "https://dropbox.com/",
-    "docs": "https://help.dropbox.com/installs-integrations/desktop/linux-repository",
-    "category": "Cloud"
-  },
-  {
-    "release": "Stretch",
-    "name": "Dropbox",
-    "description": "Dropbox is a file hosting service operated by American company Dropbox, Inc., headquartered in San Francisco, California, that offers cloud storage, file synchronization, personal cloud, and client software. Dropbox was founded in 2007, by MIT students Drew Houston and Arash Ferdowsi, as a startup company, with initial funding from seed accelerator Y Combinator.",
-    "repo": "deb https://linux.dropbox.com/debian stretch main",
-    "repo_src": "",
-    "key": "apt-key adv --keyserver pgp.mit.edu --recv-keys 1C61A2656FB57B7E4DE0F4C1FC918B335044912E",
-    "web": "https://dropbox.com/",
-    "docs": "https://help.dropbox.com/installs-integrations/desktop/linux-repository",
-    "category": "Cloud"
-  },
-  {
     "release": "Bullseye",
     "name": "PostgreSQL",
     "description": "PostgreSQL is a powerful, open source object-relational database system.",
