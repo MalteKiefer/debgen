@@ -14,6 +14,7 @@
               label="Release"
               v-model="release"
               outlined
+              @change="clean"
               prepend-icon="mdi-debian"
           ></v-select>
         </v-col>
@@ -180,6 +181,10 @@ export default {
     ],
   }),
   methods: {
+
+    clean: function(){
+      this.selected_repos = []
+    },
 
     getReleases: function () {
       this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/releases.json')
