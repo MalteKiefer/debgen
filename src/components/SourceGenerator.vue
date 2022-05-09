@@ -129,8 +129,8 @@
           </v-alert>
           <v-textarea
               label="/etc/sources.list"
-              auto-grow
               readonly
+              rows="15"
               filled
               v-if="!release && generated"
               v-model="sources"
@@ -139,9 +139,9 @@
           </v-textarea>
           <v-textarea
               label="GPG Keys"
-              auto-grow
               readonly
               filled
+              rows="15"
               v-if="!release && generated && keys != ''"
               v-model="keys"
           >
@@ -306,7 +306,7 @@ export default {
             }
 
             if(this.selected_repos.length > 0){
-              this.sources =  this.sources + '\n' +
+              this.sources =  this.sources + '\n\n' +
                   '#------------------------------------------------------------------------------#\n' +
                   '#                   UNOFFICIAL  REPOS                    \n' +
                   '#------------------------------------------------------------------------------#\n' +
@@ -315,8 +315,10 @@ export default {
               for (const element of this.selected_repos) {
                 this.sources = this.sources + '###' + element.name + '\n'
                 this.sources = this.sources + element.repo + '\n'
-                if(this.include_source)
-                  this.sources = this.sources + element.repo_src + '\n' + '\n'
+                if(this.include_source && element.repo_src)
+                  this.sources = this.sources + element.repo_src + '\n'
+                else
+                  this.sources = this.sources + '\n'
 
                 this.keys = this.keys + element.key + '\n'
               }

@@ -262,5 +262,60 @@
     "web": "https://syncthing.net/",
     "docs": "https://apt.syncthing.net/",
     "category": "Tools"
+  },
+  {
+    "release": "Stretch",
+    "name": "Dino",
+    "description": "Dino is a modern open-source chat client for the desktop. It focuses on providing a clean and reliable Jabber/XMPP experience while having your privacy in mind.",
+    "repo": "deb http://download.opensuse.org/repositories/network:/messaging:/xmpp:/dino/Debian_9.0/ /",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_9.0/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
+    "web": "https://dino.im/",
+    "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
+    "category": "Tools"
+  },
+  {
+    "release": "Buster",
+    "name": "Dino",
+    "description": "Dino is a modern open-source chat client for the desktop. It focuses on providing a clean and reliable Jabber/XMPP experience while having your privacy in mind.",
+    "repo": "deb http://download.opensuse.org/repositories/network:/messaging:/xmpp:/dino/Debian_10/ /",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_10/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
+    "web": "https://dino.im/",
+    "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
+    "category": "Tools"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Dino",
+    "description": "Dino is a modern open-source chat client for the desktop. It focuses on providing a clean and reliable Jabber/XMPP experience while having your privacy in mind.",
+    "repo": "deb http://download.opensuse.org/repositories/network:/messaging:/xmpp:/dino/Debian_11/ /",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_11/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
+    "web": "https://dino.im/",
+    "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
+    "category": "Tools"
+  },
+  {
+    "release": "Unstable",
+    "name": "Dino",
+    "description": "Dino is a modern open-source chat client for the desktop. It focuses on providing a clean and reliable Jabber/XMPP experience while having your privacy in mind.",
+    "repo": "deb http://download.opensuse.org/repositories/network:/messaging:/xmpp:/dino/Debian_Unstable/ /",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_Unstable/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
+    "web": "https://dino.im/",
+    "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
+    "category": "Tools"
+  },
+  {
+    "release": "Testing",
+    "name": "Dino",
+    "description": "Dino is a modern open-source chat client for the desktop. It focuses on providing a clean and reliable Jabber/XMPP experience while having your privacy in mind.",
+    "repo": "deb http://download.opensuse.org/repositories/network:/messaging:/xmpp:/dino/Debian_Testing/ /",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_Testing/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
+    "web": "https://dino.im/",
+    "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
+    "category": "Tools"
   }
 ]
