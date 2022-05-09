@@ -132,17 +132,6 @@
     "category": "Databases"
   },
   {
-    "release": "Stable",
-    "name": "Spotify",
-    "description": "Spotify is a digital music service that gives you access to millions of songs.",
-    "repo": "deb http://repository.spotify.com stable non-free",
-    "repo_src": "",
-    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
-    "web": "https://www.spotify.com",
-    "docs": "https://www.spotify.com/download/linux/",
-    "category": "Multimedia"
-  },
-  {
     "release": "Bullseye",
     "name": "Spotify",
     "description": "Spotify is a digital music service that gives you access to millions of songs.",
@@ -154,106 +143,7 @@
     "category": "Multimedia"
   },
   {
-    "release": "Oldstable",
-    "name": "Spotify",
-    "description": "Spotify is a digital music service that gives you access to millions of songs.",
-    "repo": "deb http://repository.spotify.com stable non-free",
-    "repo_src": "",
-    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
-    "web": "https://www.spotify.com",
-    "docs": "https://www.spotify.com/download/linux/",
-    "category": "Multimedia"
-  },
-  {
-    "release": "Buster",
-    "name": "Spotify",
-    "description": "Spotify is a digital music service that gives you access to millions of songs.",
-    "repo": "deb http://repository.spotify.com stable non-free",
-    "repo_src": "",
-    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
-    "web": "https://www.spotify.com",
-    "docs": "https://www.spotify.com/download/linux/",
-    "category": "Multimedia"
-  },
-  {
-    "release": "Unstable",
-    "name": "Spotify",
-    "description": "Spotify is a digital music service that gives you access to millions of songs.",
-    "repo": "deb http://repository.spotify.com stable non-free",
-    "repo_src": "",
-    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
-    "web": "https://www.spotify.com",
-    "docs": "https://www.spotify.com/download/linux/",
-    "category": "Multimedia"
-  },
-  {
-    "release": "Sid",
-    "name": "Spotify",
-    "description": "Spotify is a digital music service that gives you access to millions of songs.",
-    "repo": "deb http://repository.spotify.com stable non-free",
-    "repo_src": "",
-    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
-    "web": "https://www.spotify.com",
-    "docs": "https://www.spotify.com/download/linux/",
-    "category": "Multimedia"
-  },
-  {
-    "release": "Stable",
-    "name": "Syncthing",
-    "description": "Syncthing is a continuous file synchronization program.",
-    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
-    "repo_src": "",
-    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
-    "web": "https://syncthing.net/",
-    "docs": "https://apt.syncthing.net/",
-    "category": "Tools"
-  },
-  {
     "release": "Bullseye",
-    "name": "Syncthing",
-    "description": "Syncthing is a continuous file synchronization program.",
-    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
-    "repo_src": "",
-    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
-    "web": "https://syncthing.net/",
-    "docs": "https://apt.syncthing.net/",
-    "category": "Tools"
-  },
-  {
-    "release": "Buster",
-    "name": "Syncthing",
-    "description": "Syncthing is a continuous file synchronization program.",
-    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
-    "repo_src": "",
-    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
-    "web": "https://syncthing.net/",
-    "docs": "https://apt.syncthing.net/",
-    "category": "Tools"
-  },
-  {
-    "release": "Oldstable",
-    "name": "Syncthing",
-    "description": "Syncthing is a continuous file synchronization program.",
-    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
-    "repo_src": "",
-    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
-    "web": "https://syncthing.net/",
-    "docs": "https://apt.syncthing.net/",
-    "category": "Tools"
-  },
-  {
-    "release": "Sid",
-    "name": "Syncthing",
-    "description": "Syncthing is a continuous file synchronization program.",
-    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
-    "repo_src": "",
-    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
-    "web": "https://syncthing.net/",
-    "docs": "https://apt.syncthing.net/",
-    "category": "Tools"
-  },
-  {
-    "release": "Unstable",
     "name": "Syncthing",
     "description": "Syncthing is a continuous file synchronization program.",
     "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
@@ -272,7 +162,7 @@
     "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_9.0/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
     "web": "https://dino.im/",
     "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
-    "category": "Tools"
+    "category": "Messaging"
   },
   {
     "release": "Buster",
@@ -283,7 +173,7 @@
     "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_10/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
     "web": "https://dino.im/",
     "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
-    "category": "Tools"
+    "category": "Messaging"
   },
   {
     "release": "Bullseye",
@@ -294,7 +184,7 @@
     "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_11/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
     "web": "https://dino.im/",
     "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
-    "category": "Tools"
+    "category": "Messaging"
   },
   {
     "release": "Unstable",
@@ -305,7 +195,7 @@
     "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_Unstable/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
     "web": "https://dino.im/",
     "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
-    "category": "Tools"
+    "category": "Messaging"
   },
   {
     "release": "Testing",
@@ -316,6 +206,72 @@
     "key": "curl -fsSL https://download.opensuse.org/repositories/network:messaging:xmpp:dino/Debian_Testing/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/network_messaging_xmpp_dino.gpg > /dev/null",
     "web": "https://dino.im/",
     "docs": "https://software.opensuse.org/download.html?project=network:messaging:xmpp:dino&package=dino",
-    "category": "Tools"
+    "category": "Messaging"
+  },
+  {
+    "release": "Stretch",
+    "name": "Docker CE",
+    "description": "Docker is a software technology providing containers.",
+    "repo": "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian stretch stable",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+    "web": "https://docker.com/",
+    "docs": "https://docs.docker.com/engine/install/debian/",
+    "category": "VM"
+  },
+  {
+    "release": "Buster",
+    "name": "Docker CE",
+    "description": "Docker is a software technology providing containers.",
+    "repo": "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian buster stable",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+    "web": "https://docker.com/",
+    "docs": "https://docs.docker.com/engine/install/debian/",
+    "category": "VM"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Docker CE",
+    "description": "Docker is a software technology providing containers.",
+    "repo": "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable",
+    "repo_src": "",
+    "key": "curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+    "web": "https://docker.com/",
+    "docs": "https://docs.docker.com/engine/install/debian/",
+    "category": "VM"
+  },
+  {
+    "release": "Stretch",
+    "name": "Dovecot",
+    "description": "Dovecot is an open-source IMAP and POP3 server for Linux/UNIX-like systems, written primarily with security in mind.",
+    "repo": "deb https://repo.dovecot.org/ce-2.3.17/debian/stretch stretch main",
+    "repo_src": "",
+    "key": "curl https://repo.dovecot.org/DOVECOT-REPO-GPG | gpg --import && gpg --export ED409DA1 > /etc/apt/trusted.gpg.d/dovecot.gpg",
+    "web": "https://dovecot.org/",
+    "docs": "https://repo.dovecot.org/",
+    "category": "Mail"
+  },
+  {
+    "release": "Buster",
+    "name": "Dovecot",
+    "description": "Dovecot is an open-source IMAP and POP3 server for Linux/UNIX-like systems, written primarily with security in mind.",
+    "repo": "deb https://repo.dovecot.org/ce-2.3-latest/debian/buster buster main",
+    "repo_src": "",
+    "key": "curl https://repo.dovecot.org/DOVECOT-REPO-GPG | gpg --import && gpg --export ED409DA1 > /etc/apt/trusted.gpg.d/dovecot.gpg",
+    "web": "https://dovecot.org/",
+    "docs": "https://repo.dovecot.org/",
+    "category": "Mail"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Dovecot",
+    "description": "Dovecot is an open-source IMAP and POP3 server for Linux/UNIX-like systems, written primarily with security in mind.",
+    "repo": "deb https://repo.dovecot.org/ce-2.3-latest/debian/bullseye bullseye main",
+    "repo_src": "",
+    "key": "curl https://repo.dovecot.org/DOVECOT-REPO-GPG | gpg --import && gpg --export ED409DA1 > /etc/apt/trusted.gpg.d/dovecot.gpg",
+    "web": "https://dovecot.org/",
+    "docs": "https://repo.dovecot.org/",
+    "category": "Mail"
   }
 ]
