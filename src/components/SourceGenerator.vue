@@ -11,9 +11,9 @@ export default {
   }),
   methods: {
     getRepos: function () {
-      this.$http.get('/addresses/delegates/')
+      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos.json')
           .then(function (response) {
-            console.log(response)
+            console.log(response.data)
           }.bind(this))
     },
   },
