@@ -1,13 +1,24 @@
 [
   {
     "version": "stable",
+    "name": "Atom",
+    "description": "Atom is an open-source text editor created by GitHub, quickly becoming one of the most popular choices for developers. It is available for Linux, Mac, and Windows operating systems",
+    "repo": "deb [arch=amd64 signed-by=/usr/share/keyrings/atomeditor-keyring.gpg] https://packagecloud.io/AtomEditor/atom/any/ any main",
+    "repo_src": "",
+    "key": "wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | gpg --dearmor -o /usr/share/keyrings/atomeditor-keyring.gpg",
+    "web": "https://atom.io/",
+    "docs": "https://atom.io/docs",
+    "category": "Development"
+  },
+  {
+    "version": "stable",
     "name": "Debian Multimedia",
     "description": "",
     "repo": "deb https://www.deb-multimedia.org stable main non-free",
     "repo_src": "",
     "key": "wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && dpkg -i deb-multimedia-keyring_2016.8.1_all.deb && rm -f deb-multimedia-keyring_2016.8.1_all.deb",
     "web": "https://deb-multimedia.org/",
-    "wiki": "https://deb-multimedia.org/",
+    "docs": "https://deb-multimedia.org/",
     "category": "multimedia"
   }
 ]
