@@ -86,5 +86,181 @@
     "web": "https://dropbox.com/",
     "docs": "https://help.dropbox.com/installs-integrations/desktop/linux-repository",
     "category": "Cloud"
+  },
+  {
+    "release": "Bullseye",
+    "name": "PostgreSQL",
+    "description": "PostgreSQL is a powerful, open source object-relational database system.",
+    "repo": "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main",
+    "repo_src": "",
+    "key": "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -",
+    "web": "https://www.postgresql.org/",
+    "docs": "https://www.postgresql.org/download/linux/debian/",
+    "category": "Databases"
+  },
+  {
+    "release": "Buster",
+    "name": "PostgreSQL",
+    "description": "PostgreSQL is a powerful, open source object-relational database system.",
+    "repo": "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main",
+    "repo_src": "",
+    "key": "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -",
+    "web": "https://www.postgresql.org/",
+    "docs": "https://www.postgresql.org/download/linux/debian/",
+    "category": "Databases"
+  },
+  {
+    "release": "Sid",
+    "name": "PostgreSQL",
+    "description": "PostgreSQL is a powerful, open source object-relational database system.",
+    "repo": "deb http://apt.postgresql.org/pub/repos/apt sid-pgdg main",
+    "repo_src": "",
+    "key": "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -",
+    "web": "https://www.postgresql.org/",
+    "docs": "https://www.postgresql.org/download/linux/debian/",
+    "category": "Databases"
+  },
+  {
+    "release": "Stretch",
+    "name": "PostgreSQL",
+    "description": "PostgreSQL is a powerful, open source object-relational database system.",
+    "repo": "deb http://apt.postgresql.org/pub/repos/apt strech-pgdg main",
+    "repo_src": "",
+    "key": "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -",
+    "web": "https://www.postgresql.org/",
+    "docs": "https://www.postgresql.org/download/linux/debian/",
+    "category": "Databases"
+  },
+  {
+    "release": "Stable",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Oldstable",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Buster",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Unstable",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Sid",
+    "name": "Spotify",
+    "description": "Spotify is a digital music service that gives you access to millions of songs.",
+    "repo": "deb http://repository.spotify.com stable non-free",
+    "repo_src": "",
+    "key": "curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add -",
+    "web": "https://www.spotify.com",
+    "docs": "https://www.spotify.com/download/linux/",
+    "category": "Multimedia"
+  },
+  {
+    "release": "Stable",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
+  },
+  {
+    "release": "Buster",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
+  },
+  {
+    "release": "Oldstable",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
+  },
+  {
+    "release": "Sid",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
+  },
+  {
+    "release": "Unstable",
+    "name": "Syncthing",
+    "description": "Syncthing is a continuous file synchronization program.",
+    "repo": "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable",
+    "repo_src": "",
+    "key": "curl -s -o /usr/share/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg",
+    "web": "https://syncthing.net/",
+    "docs": "https://apt.syncthing.net/",
+    "category": "Tools"
   }
 ]

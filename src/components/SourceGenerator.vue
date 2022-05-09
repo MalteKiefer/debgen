@@ -2,6 +2,20 @@
   <v-row>
     <v-col>
       <v-row
+          class="mt-5 mb-5"
+      >
+        <v-alert
+            color="blue-grey"
+            dark
+            dense
+            icon="mdi-debian"
+            prominent
+        >
+          <strong>Welcome to the Debian SourcesList Generator.</strong> This service gives you the possibility to create SourcesLists for your Debian installation. Although we have thoroughly checked all sources, we are not liable for any damage caused to your system by using our service.
+        </v-alert>
+      </v-row>
+      <v-divider></v-divider>
+      <v-row
           class="mt-5"
       >
         <v-col
@@ -86,7 +100,7 @@
               item-key="name"
               sort-by="name"
               group-by="category"
-              class="elevation-1"
+              class="elevation-8"
               show-group-by
               disable-pagination
               hide-default-footer
@@ -111,7 +125,7 @@
               type="info"
               outlined
               v-if="!release && generated"
-          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https dirmngr</code>
+          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https dirmngr gnupg2 </code>
           </v-alert>
           <v-textarea
               label="/etc/sources.list"
@@ -142,12 +156,19 @@
             md="12"
             align="center"
         >
-
+          <v-btn
+              depressed
+              color="warning"
+              @click="reset"
+              v-if = "!release && generated"
+          >
+            Reset
+          </v-btn>
           <v-btn
               depressed
               color="primary"
               @click="generate"
-              :disabled="(release == null) ? true : false"
+              v-if="release != null"
           >
             Generate
           </v-btn>
@@ -184,6 +205,14 @@ export default {
 
     clean: function(){
       this.selected_repos = []
+      this.keys = []
+    },
+
+    reset: function(){
+      this.selected_repos = []
+      this.keys = []
+      this.release = "Stable"
+      this.generated = false
     },
 
     getReleases: function () {

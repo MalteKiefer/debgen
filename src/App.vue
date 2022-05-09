@@ -10,11 +10,15 @@
       <v-spacer></v-spacer>
 
       <v-btn icon>
+        <v-icon>mdi-information</v-icon>
+      </v-btn>
+
+      <v-btn icon>
         <v-icon @click="liberapay">mdi-heart</v-icon>
       </v-btn>
 
       <v-btn icon>
-        <v-icon>mdi-github</v-icon>
+        <v-icon @click="github">mdi-github</v-icon>
       </v-btn>
     </v-app-bar>
 
@@ -37,6 +41,9 @@ export default {
   methods: {
     liberapay() {
       window.open('https://de.liberapay.com/beli3ver', '_blank');
+    },
+    github() {
+      window.open('https://github.com/maltekiefer/debgen', '_blank');
     },
   },
 };
