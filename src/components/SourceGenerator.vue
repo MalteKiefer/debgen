@@ -127,7 +127,7 @@
               auto-grow
               readonly
               filled
-              v-if="!release && generated"
+              v-if="!release && generated && keys != ''"
               v-model="keys"
           >
 
@@ -271,19 +271,21 @@ export default {
                 this.sources = this.sources + response.data.backports_src
             }
 
-            this.sources =  this.sources + '\n' +
-                '#------------------------------------------------------------------------------#\n' +
-                '#                   UNOFFICIAL  REPOS                    \n' +
-                '#------------------------------------------------------------------------------#\n' +
-                '###### 3rd Party Binary Repos\n\n'
+            if(this.selected_repos.length > 0){
+              this.sources =  this.sources + '\n' +
+                  '#------------------------------------------------------------------------------#\n' +
+                  '#                   UNOFFICIAL  REPOS                    \n' +
+                  '#------------------------------------------------------------------------------#\n' +
+                  '###### 3rd Party Binary Repos\n\n'
 
-            for (const element of this.selected_repos) {
-              this.sources = this.sources + '###' + element.name + '\n'
+              for (const element of this.selected_repos) {
+                this.sources = this.sources + '###' + element.name + '\n'
                 this.sources = this.sources + element.repo + '\n'
                 if(this.include_source)
                   this.sources = this.sources + element.repo_src + '\n' + '\n'
 
-              this.keys = this.keys + element.key + '\n'
+                this.keys = this.keys + element.key + '\n'
+              }
             }
 
             this.release = null
