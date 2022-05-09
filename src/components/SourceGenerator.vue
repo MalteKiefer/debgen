@@ -169,31 +169,101 @@ export default {
   }),
   methods: {
 
+    getReleases: function () {
+      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/releases.json')
+          .then(function (response) {
+            this.releases = response.data
+          }.bind(this))
+    },
+
     getRepos: function () {
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos.json')
+      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/repos.json')
           .then(function (response) {
             this.repos = response.data
-            this.releases = [...new Set(response.data.map(({release}) => release))].sort((a, b) => (a > b ? 1 : -1))
-
           }.bind(this))
     },
     generate: function () {
       this.generated = true
       const release = this.release.toLowerCase()
-      this.release = null
+
 
       this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release+ '.json')
           .then(function (response) {
-            this.repos = response.data
-            this.releases = [...new Set(response.data.map(({release}) => release))].sort((a, b) => (a > b ? 1 : -1))
+            this.sources = '' +
+                '#------------------------------------------------------------------------------#\n' +
+                '#                   OFFICIAL DEBIAN REPOS                    \n' +
+                '#------------------------------------------------------------------------------#\n' +
+                '###### Debian Main Repos\n'
 
+            if(this.include_nonfree) {
+              this.sources = this.sources + response.data.main_nonfree + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.main_src_nonfree + '\n' + '\n'
+            }
+            if(this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.main_contrib + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.main_src_contrib + '\n' + '\n'
+            }
+            if(!this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.main + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.main_src + '\n' + '\n'
+            }
+
+            if(this.include_nonfree && this.include_security) {
+              this.sources = this.sources + response.data.security_nonfree + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.security_src_nonfree + '\n' + '\n'
+            }
+            if(this.include_security && this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.security_contrib + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.security_src_contrib + '\n' + '\n'
+            }
+            if(this.include_security && !this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.security + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.security_src + '\n' + '\n'
+            }
+
+            if(this.include_nonfree && this.include_update) {
+              this.sources = this.sources + response.data.updates_nonfree + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.updates_src_nonfree + '\n' + '\n'
+            }
+            if(this.include_update && this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.updates_contrib + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.updates_src_contrib + '\n' + '\n'
+            }
+            if(this.include_update && !this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.updates + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.updates_src + '\n' + '\n'
+            }
+
+            if(this.include_nonfree && this.include_backports) {
+              this.sources = this.sources + response.data.backports_nonfree + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.backports_src_nonfree + '\n' + '\n'
+            }
+            if(this.include_backports && this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.backports_contrib + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.backports_src_contrib + '\n' + '\n'
+            }
+            if(this.include_backports && !this.include_contrib && !this.include_nonfree) {
+              this.sources = this.sources + response.data.backports + '\n'
+              if(this.include_source)
+                this.sources = this.sources + response.data.backports_src + '\n' + '\n'
+            }
+
+            this.release = null
           }.bind(this))
 
-      this.sources = '' +
-          '#------------------------------------------------------------------------------#\n' +
-          '#                   OFFICIAL DEBIAN REPOS                    \n' +
-          '#------------------------------------------------------------------------------#\n' +
-          '###### Debian Main Repos\n'
+
+
     },
   },
   mounted() {
