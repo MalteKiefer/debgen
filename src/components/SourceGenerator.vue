@@ -12,6 +12,7 @@
           <v-select
               :items="releases"
               label="Release"
+              v-model="release"
               hide-details
               prepend-icon="mdi-debian"
               single-line
@@ -71,10 +72,17 @@
       <v-divider></v-divider>
       <v-row class="mt-3">
         <v-col>
-
+          <v-alert
+              dense
+              border="left"
+              type="warning"
+              v-if="!release && !generated"
+          >
+            Please select a release first to see the 3rd party repos.
+          </v-alert>
           <v-data-table
               :headers="headers"
-              :items="repos"
+              :items="filteredRepos"
               item-key="name"
               sort-by="name"
               group-by="category"
@@ -82,6 +90,7 @@
               show-group-by
               disable-pagination
               hide-default-footer
+              v-if="release"
               :items-per-page="repos.length"
               show-select
           >
@@ -92,6 +101,27 @@
             </template>
 
           </v-data-table>
+        </v-col>
+      </v-row>
+      <v-row class="mt-3">
+        <v-col>
+          <v-alert
+              dense
+              type="info"
+              outlined
+              v-if="!release && generated"
+          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https dirmngr</code>
+          </v-alert>
+          <v-textarea
+              label="/etc/sources.list"
+              auto-grow
+              readonly
+              filled
+              v-if="!release && generated"
+              v-model="sources"
+          >
+
+          </v-textarea>
         </v-col>
       </v-row>
       <v-row>
@@ -105,6 +135,8 @@
           <v-btn
               depressed
               color="primary"
+              @click="generate"
+              :disabled="(release == null) ? true : false"
           >
             Generate
           </v-btn>
@@ -119,12 +151,15 @@ export default {
   name: "SourceGenerator",
   data: () => ({
     repos: [],
+    release: null,
     include_source: true,
     include_contrib: true,
     include_nonfree: true,
     include_security: true,
     include_update: true,
     include_backports: true,
+    sources: null,
+    generated: false,
     releases: [],
     headers: [
       {text: 'Name', align: 'start', value: 'name', groupable: false,},
@@ -133,17 +168,49 @@ export default {
     ],
   }),
   methods: {
+
     getRepos: function () {
       this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos.json')
           .then(function (response) {
             this.repos = response.data
-            this.releases = [...new Set(response.data.map(({release}) => release))]
+            this.releases = [...new Set(response.data.map(({release}) => release))].sort((a, b) => (a > b ? 1 : -1))
 
           }.bind(this))
+    },
+    generate: function () {
+      this.generated = true
+      const release = this.release.toLowerCase()
+      this.release = null
+
+      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release+ '.json')
+          .then(function (response) {
+            this.repos = response.data
+            this.releases = [...new Set(response.data.map(({release}) => release))].sort((a, b) => (a > b ? 1 : -1))
+
+          }.bind(this))
+
+      this.sources = '' +
+          '#------------------------------------------------------------------------------#\n' +
+          '#                   OFFICIAL DEBIAN REPOS                    \n' +
+          '#------------------------------------------------------------------------------#\n' +
+          '###### Debian Main Repos\n'
     },
   },
   mounted() {
     this.getRepos()
   },
+  computed: {
+    filteredRepos() {
+      return this.repos.filter(item => {
+        return item.release === this.release
+      })
+    },
+  }
 }
 </script>
+<style>
+textarea {
+  font-size: 0.7em;
+  line-height: 1rem!important;
+}
+</style>
