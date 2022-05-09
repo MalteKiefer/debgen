@@ -13,9 +13,8 @@
               :items="releases"
               label="Release"
               v-model="release"
-              hide-details
+              outlined
               prepend-icon="mdi-debian"
-              single-line
           ></v-select>
         </v-col>
         <v-col
@@ -93,6 +92,7 @@
               v-if="release"
               :items-per-page="repos.length"
               show-select
+              v-model="selected_repos"
           >
             <template v-slot:[`group.header`]="{ group, headers }">
               <td :colspan="headers.length">
@@ -119,6 +119,16 @@
               filled
               v-if="!release && generated"
               v-model="sources"
+          >
+
+          </v-textarea>
+          <v-textarea
+              label="GPG Keys"
+              auto-grow
+              readonly
+              filled
+              v-if="!release && generated"
+              v-model="keys"
           >
 
           </v-textarea>
@@ -151,7 +161,7 @@ export default {
   name: "SourceGenerator",
   data: () => ({
     repos: [],
-    release: null,
+    release: "Stable",
     include_source: true,
     include_contrib: true,
     include_nonfree: true,
@@ -159,8 +169,10 @@ export default {
     include_update: true,
     include_backports: true,
     sources: null,
+    keys: '',
     generated: false,
     releases: [],
+    selected_repos: [],
     headers: [
       {text: 'Name', align: 'start', value: 'name', groupable: false,},
       {text: 'Description', value: 'description', groupable: false,},
@@ -246,17 +258,32 @@ export default {
             if(this.include_nonfree && this.include_backports) {
               this.sources = this.sources + response.data.backports_nonfree + '\n'
               if(this.include_source)
-                this.sources = this.sources + response.data.backports_src_nonfree + '\n' + '\n'
+                this.sources = this.sources + response.data.backports_src_nonfree
             }
             if(this.include_backports && this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.backports_contrib + '\n'
               if(this.include_source)
-                this.sources = this.sources + response.data.backports_src_contrib + '\n' + '\n'
+                this.sources = this.sources + response.data.backports_src_contrib
             }
             if(this.include_backports && !this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.backports + '\n'
               if(this.include_source)
-                this.sources = this.sources + response.data.backports_src + '\n' + '\n'
+                this.sources = this.sources + response.data.backports_src
+            }
+
+            this.sources =  this.sources +
+                '#------------------------------------------------------------------------------#\n' +
+                '#                   UNOFFICIAL  REPOS                    \n' +
+                '#------------------------------------------------------------------------------#\n' +
+                '###### 3rd Party Binary Repos\n\n'
+
+            for (const element of this.selected_repos) {
+              this.sources = this.sources + '###' + element.name + '\n'
+                this.sources = this.sources + element.repo + '\n'
+                if(this.include_source)
+                  this.sources = this.sources + element.repo_src + '\n' + '\n'
+
+              this.keys = this.keys + element.key + '\n'
             }
 
             this.release = null
@@ -267,6 +294,7 @@ export default {
     },
   },
   mounted() {
+    this.getReleases()
     this.getRepos()
   },
   computed: {
