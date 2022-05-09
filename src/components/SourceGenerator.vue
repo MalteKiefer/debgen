@@ -271,7 +271,7 @@ export default {
                 this.sources = this.sources + response.data.backports_src
             }
 
-            this.sources =  this.sources +
+            this.sources =  this.sources + '\n' +
                 '#------------------------------------------------------------------------------#\n' +
                 '#                   UNOFFICIAL  REPOS                    \n' +
                 '#------------------------------------------------------------------------------#\n' +
