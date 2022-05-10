@@ -1,0 +1,5 @@
+{
+  "stable": "bullseye",
+  "oldstable": "buster",
+  "oldoldstable": "stretch"
+}

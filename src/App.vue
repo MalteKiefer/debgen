@@ -10,10 +10,6 @@
       <v-spacer></v-spacer>
 
       <v-btn icon>
-        <v-icon>mdi-information</v-icon>
-      </v-btn>
-
-      <v-btn icon>
         <v-icon @click="liberapay">mdi-heart</v-icon>
       </v-btn>
 

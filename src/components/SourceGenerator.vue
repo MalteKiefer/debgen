@@ -11,7 +11,9 @@
             icon="mdi-debian"
             prominent
         >
-          <strong>Welcome to the Debian SourcesList Generator.</strong> This service gives you the possibility to create SourcesLists for your Debian installation. Although we have thoroughly checked all sources, we are not liable for any damage caused to your system by using our service.
+          <strong>Welcome to the Debian SourcesList Generator.</strong> This service gives you the possibility to create
+          SourcesLists for your Debian installation. Although we have thoroughly checked all sources, we are not liable
+          for any damage caused to your system by using our service.
         </v-alert>
       </v-row>
       <v-divider></v-divider>
@@ -31,6 +33,11 @@
               @change="clean"
               prepend-icon="mdi-debian"
           ></v-select>
+          <v-checkbox
+              v-model="enable_version_lines"
+              dense
+              label="Allow combining Debian release and main repos (stable & bullseye, oldstable & buster)"
+          ></v-checkbox>
         </v-col>
         <v-col
             cols="12"
@@ -50,11 +57,13 @@
               ></v-checkbox>
               <v-checkbox
                   dense
+                  @change="toggleNonFree"
                   v-model="include_contrib"
                   label="Contrib"
               ></v-checkbox>
               <v-checkbox
                   dense
+                  :disabled="disable_nonfree"
                   v-model="include_nonfree"
                   label="Non-Free"
               ></v-checkbox>
@@ -125,7 +134,8 @@
               type="info"
               outlined
               v-if="!release && generated"
-          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https dirmngr gnupg2 </code>
+          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https
+            dirmngr gnupg2 </code>
           </v-alert>
           <v-textarea
               label="/etc/sources.list"
@@ -160,7 +170,7 @@
               depressed
               color="warning"
               @click="reset"
-              v-if = "!release && generated"
+              v-if="!release && generated"
           >
             Reset
           </v-btn>
@@ -184,6 +194,8 @@ export default {
   data: () => ({
     repos: [],
     release: "Bullseye",
+    enable_version_lines: false,
+    disable_nonfree: false,
     include_source: true,
     include_contrib: true,
     include_nonfree: true,
@@ -203,16 +215,25 @@ export default {
   }),
   methods: {
 
-    clean: function(){
+    clean: function () {
       this.selected_repos = []
       this.keys = []
     },
 
-    reset: function(){
+    reset: function () {
       this.selected_repos = []
       this.keys = []
       this.release = "Bullseye"
       this.generated = false
+    },
+
+    toggleNonFree: function (){
+     if(this.include_contrib)
+        this.disable_nonfree = false
+      else {
+       this.include_nonfree = false
+       this.disable_nonfree = true
+     }
     },
 
     getReleases: function () {
@@ -233,7 +254,7 @@ export default {
       const release = this.release.toLowerCase()
 
 
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release+ '.json')
+      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release + '.json')
           .then(function (response) {
             this.sources = '' +
                 '#------------------------------------------------------------------------------#\n' +
@@ -241,72 +262,72 @@ export default {
                 '#------------------------------------------------------------------------------#\n' +
                 '###### Debian Main Repos\n'
 
-            if(this.include_nonfree) {
+            if (this.include_nonfree) {
               this.sources = this.sources + response.data.main_nonfree + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.main_src_nonfree + '\n' + '\n'
             }
-            if(this.include_contrib && !this.include_nonfree) {
+            if (this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.main_contrib + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.main_src_contrib + '\n' + '\n'
             }
-            if(!this.include_contrib && !this.include_nonfree) {
+            if (!this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.main + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.main_src + '\n' + '\n'
             }
 
-            if(this.include_nonfree && this.include_security) {
+            if (this.include_nonfree && this.include_security) {
               this.sources = this.sources + response.data.security_nonfree + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.security_src_nonfree + '\n' + '\n'
             }
-            if(this.include_security && this.include_contrib && !this.include_nonfree) {
+            if (this.include_security && this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.security_contrib + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.security_src_contrib + '\n' + '\n'
             }
-            if(this.include_security && !this.include_contrib && !this.include_nonfree) {
+            if (this.include_security && !this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.security + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.security_src + '\n' + '\n'
             }
 
-            if(this.include_nonfree && this.include_update) {
+            if (this.include_nonfree && this.include_update) {
               this.sources = this.sources + response.data.updates_nonfree + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.updates_src_nonfree + '\n' + '\n'
             }
-            if(this.include_update && this.include_contrib && !this.include_nonfree) {
+            if (this.include_update && this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.updates_contrib + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.updates_src_contrib + '\n' + '\n'
             }
-            if(this.include_update && !this.include_contrib && !this.include_nonfree) {
+            if (this.include_update && !this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.updates + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.updates_src + '\n' + '\n'
             }
 
-            if(this.include_nonfree && this.include_backports) {
+            if (this.include_nonfree && this.include_backports) {
               this.sources = this.sources + response.data.backports_nonfree + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.backports_src_nonfree
             }
-            if(this.include_backports && this.include_contrib && !this.include_nonfree) {
+            if (this.include_backports && this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.backports_contrib + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.backports_src_contrib
             }
-            if(this.include_backports && !this.include_contrib && !this.include_nonfree) {
+            if (this.include_backports && !this.include_contrib && !this.include_nonfree) {
               this.sources = this.sources + response.data.backports + '\n'
-              if(this.include_source)
+              if (this.include_source)
                 this.sources = this.sources + response.data.backports_src
             }
 
-            if(this.selected_repos.length > 0){
-              this.sources =  this.sources + '\n\n' +
+            if (this.selected_repos.length > 0) {
+              this.sources = this.sources + '\n\n' +
                   '#------------------------------------------------------------------------------#\n' +
                   '#                   UNOFFICIAL  REPOS                    \n' +
                   '#------------------------------------------------------------------------------#\n' +
@@ -315,8 +336,8 @@ export default {
               for (const element of this.selected_repos) {
                 this.sources = this.sources + '###' + element.name + '\n'
                 this.sources = this.sources + element.repo + '\n'
-                if(this.include_source && element.repo_src)
-                  this.sources = this.sources + element.repo_src + '\n'
+                if (this.include_source && element.repo_src)
+                  this.sources = this.sources + element.repo_src + '\n' + '\n'
                 else
                   this.sources = this.sources + '\n'
 
@@ -326,7 +347,6 @@ export default {
 
             this.release = null
           }.bind(this))
-
 
 
     },
@@ -347,6 +367,6 @@ export default {
 <style>
 textarea {
   font-size: 0.7em;
-  line-height: 1rem!important;
+  line-height: 1rem !important;
 }
 </style>
