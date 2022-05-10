@@ -423,7 +423,7 @@
     "description": "Visual Studio Code is a code editor redefined and optimized for building and debugging modern web and cloud applications.",
     "repo": "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main",
     "repo_src": "",
-    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/g",
+    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/",
     "web": "https://code.visualstudio.com/",
     "docs": "https://code.visualstudio.com/docs/setup/linux",
     "category": "Development"
@@ -434,7 +434,7 @@
     "description": "Visual Studio Code is a code editor redefined and optimized for building and debugging modern web and cloud applications.",
     "repo": "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main",
     "repo_src": "",
-    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/g",
+    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/",
     "web": "https://code.visualstudio.com/",
     "docs": "https://code.visualstudio.com/docs/setup/linux",
     "category": "Development"
@@ -445,9 +445,42 @@
     "description": "Visual Studio Code is a code editor redefined and optimized for building and debugging modern web and cloud applications.",
     "repo": "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main",
     "repo_src": "",
-    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/g",
+    "key": "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/",
     "web": "https://code.visualstudio.com/",
     "docs": "https://code.visualstudio.com/docs/setup/linux",
     "category": "Development"
+  },
+  {
+    "release": "Stretch",
+    "name": "weechat",
+    "description": "WeeChat (Wee Enhanced Environment for Chat) is a free and open-source Internet Relay Chat client, which is designed to be light and fast.",
+    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian stretch main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian stretch main",
+    "key": "gpg --no-default-keyring --keyring /usr/share/keyrings/weechat-archive-keyring.gpg --keyserver hkps://keys.openpgp.org --recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E",
+    "web": "https://weechat.org/",
+    "docs": "https://weechat.org/download/debian/",
+    "category": "Messaging"
+  },
+  {
+    "release": "Buster",
+    "name": "weechat",
+    "description": "WeeChat (Wee Enhanced Environment for Chat) is a free and open-source Internet Relay Chat client, which is designed to be light and fast.",
+    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian buster  main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian buster  main",
+    "key": "gpg --no-default-keyring --keyring /usr/share/keyrings/weechat-archive-keyring.gpg --keyserver hkps://keys.openpgp.org --recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E",
+    "web": "https://weechat.org/",
+    "docs": "https://weechat.org/download/debian/",
+    "category": "Messaging"
+  },
+  {
+    "release": "Bullseye",
+    "name": "weechat",
+    "description": "WeeChat (Wee Enhanced Environment for Chat) is a free and open-source Internet Relay Chat client, which is designed to be light and fast.",
+    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian bullseye  main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian bullseye  main",
+    "key": "gpg --no-default-keyring --keyring /usr/share/keyrings/weechat-archive-keyring.gpg --keyserver hkps://keys.openpgp.org --recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E",
+    "web": "https://weechat.org/",
+    "docs": "https://weechat.org/download/debian/",
+    "category": "Messaging"
   }
 ]
