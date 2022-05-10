@@ -581,5 +581,49 @@
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
     "category": "Development"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Lutris",
+    "description": "Lutris is a video game preservation platform aiming to keep your video game collection up and running for the years to come. ",
+    "repo": "deb http://download.opensuse.org/repositories/home:/strycore/Debian_11/ ./",
+    "repo_src": "",
+    "key": "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_11/Release.key -O- | tee /etc/apt/trusted.gpg.d/lutris.asc -",
+    "web": "https://lutris.net",
+    "docs": "https://lutris.net/downloads",
+    "category": "Gaming"
+  },
+  {
+    "release": "Buster",
+    "name": "Lutris",
+    "description": "Lutris is a video game preservation platform aiming to keep your video game collection up and running for the years to come. ",
+    "repo": "deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./",
+    "repo_src": "",
+    "key": "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_11/Release.key -O- | tee /etc/apt/trusted.gpg.d/lutris.asc -",
+    "web": "https://lutris.net",
+    "docs": "https://lutris.net/downloads",
+    "category": "Gaming"
+  },
+  {
+    "release": "Testing",
+    "name": "Lutris",
+    "description": "Lutris is a video game preservation platform aiming to keep your video game collection up and running for the years to come. ",
+    "repo": "deb http://download.opensuse.org/repositories/home:/strycore/Debian_Testing/ ./",
+    "repo_src": "",
+    "key": "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_11/Release.key -O- | tee /etc/apt/trusted.gpg.d/lutris.asc -",
+    "web": "https://lutris.net",
+    "docs": "https://lutris.net/downloads",
+    "category": "Gaming"
+  },
+  {
+    "release": "Unstable",
+    "name": "Lutris",
+    "description": "Lutris is a video game preservation platform aiming to keep your video game collection up and running for the years to come. ",
+    "repo": "deb http://download.opensuse.org/repositories/home:/strycore/Debian_Unstable/ ./",
+    "repo_src": "",
+    "key": "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_11/Release.key -O- | tee /etc/apt/trusted.gpg.d/lutris.asc -",
+    "web": "https://lutris.net",
+    "docs": "https://lutris.net/downloads",
+    "category": "Gaming"
   }
 ]
