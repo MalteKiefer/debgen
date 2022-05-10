@@ -350,5 +350,71 @@
     "web": "https://nginx.org/",
     "docs": "https://nginx.org/en/linux_packages.html#Debian",
     "category": "Server"
+  },
+  {
+    "release": "Stable",
+    "name": "Opera",
+    "description": "Opera is a web browser for Windows, macOS, and Linux operating systems",
+    "repo": "deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ stable non-free",
+    "repo_src": "",
+    "key": "wget -qO- https://deb.opera.com/archive.key | gpg --dearmor | dd of=/usr/share/keyrings/opera-browser.gpg",
+    "web": "https://opera.com",
+    "docs": "https://deb.opera.com/manual.html",
+    "category": "Browser"
+  },
+  {
+    "release": "Unstable",
+    "name": "Opera",
+    "description": "Opera is a web browser for Windows, macOS, and Linux operating systems",
+    "repo": "deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ unstable non-free",
+    "repo_src": "",
+    "key": "wget -qO- https://deb.opera.com/archive.key | gpg --dearmor | dd of=/usr/share/keyrings/opera-browser.gpg",
+    "web": "https://opera.com",
+    "docs": "https://deb.opera.com/manual.html",
+    "category": "Browser"
+  },
+  {
+    "release": "Testing",
+    "name": "Opera",
+    "description": "Opera is a web browser for Windows, macOS, and Linux operating systems",
+    "repo": "deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ testing non-free",
+    "repo_src": "",
+    "key": "wget -qO- https://deb.opera.com/archive.key | gpg --dearmor | dd of=/usr/share/keyrings/opera-browser.gpg",
+    "web": "https://opera.com",
+    "docs": "https://deb.opera.com/manual.html",
+    "category": "Browser"
+  },
+  {
+    "release": "Buster",
+    "name": "PHP by sury.org",
+    "description": "This is a home for packaging various software into Debian and Ubuntu. Most notable package under DEB.SURY.ORG is the PHP packaging.",
+    "repo": "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ buster main",
+    "repo_src": "",
+    "key": "curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg",
+    "web": "https://deb.sury.org/",
+    "docs": "https://packages.sury.org/php/README.txt",
+    "category": "Server"
+  },
+  {
+    "release": "Bullseye",
+    "name": "PHP by sury.org",
+    "description": "This is a home for packaging various software into Debian and Ubuntu. Most notable package under DEB.SURY.ORG is the PHP packaging.",
+    "repo": "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bullseye main",
+    "repo_src": "",
+    "key": "curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg",
+    "web": "https://deb.sury.org/",
+    "docs": "https://packages.sury.org/php/README.txt",
+    "category": "Server"
+  },
+  {
+    "release": "Stretch",
+    "name": "PHP by sury.org",
+    "description": "This is a home for packaging various software into Debian and Ubuntu. Most notable package under DEB.SURY.ORG is the PHP packaging.",
+    "repo": "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ stretch main",
+    "repo_src": "",
+    "key": "curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg",
+    "web": "https://deb.sury.org/",
+    "docs": "https://packages.sury.org/php/README.txt",
+    "category": "Server"
   }
 ]
