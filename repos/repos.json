@@ -525,7 +525,7 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   },
   {
     "release": "Buster",
@@ -536,7 +536,7 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   },
   {
     "release": "Stretch",
@@ -547,7 +547,7 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   },
   {
     "release": "Stretch",
@@ -558,7 +558,7 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   },
   {
     "release": "Buster",
@@ -569,7 +569,7 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   },
   {
     "release": "Bullseye",
@@ -580,6 +580,6 @@
     "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
     "web": "https://nodejs.org/en/",
     "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
-    "category": "Server"
+    "category": "Development"
   }
 ]
