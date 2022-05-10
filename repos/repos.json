@@ -295,5 +295,27 @@
     "web": "https://1password.com/",
     "docs": "https://support.1password.com/install-linux/",
     "category": "Security"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Enpass",
+    "description": "Enpass is a cross-platform offline password management app to securely store passwords and other credentials in a virtual vault locked with a master password",
+    "repo": "deb https://apt.enpass.io/ stable main",
+    "repo_src": "",
+    "key": "wget -O - https://apt.enpass.io/keys/enpass-linux.key | tee /etc/apt/trusted.gpg.d/enpass.asc",
+    "web": "https://www.enpass.io/",
+    "docs": "https://www.enpass.io/support/kb/general/how-to-install-enpass-on-linux/",
+    "category": "Security"
+  },
+  {
+    "release": "Buster",
+    "name": "Enpass",
+    "description": "Enpass is a cross-platform offline password management app to securely store passwords and other credentials in a virtual vault locked with a master password",
+    "repo": "deb https://apt.enpass.io/ stable main",
+    "repo_src": "",
+    "key": "wget -O - https://apt.enpass.io/keys/enpass-linux.key | tee /etc/apt/trusted.gpg.d/enpass.asc",
+    "web": "https://www.enpass.io/",
+    "docs": "https://www.enpass.io/support/kb/general/how-to-install-enpass-on-linux/",
+    "category": "Security"
   }
 ]
