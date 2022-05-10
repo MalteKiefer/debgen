@@ -465,7 +465,7 @@
     "release": "Buster",
     "name": "weechat",
     "description": "WeeChat (Wee Enhanced Environment for Chat) is a free and open-source Internet Relay Chat client, which is designed to be light and fast.",
-    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian buster  main",
+    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian buster main",
     "repo_src": "deb-src [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian buster  main",
     "key": "gpg --no-default-keyring --keyring /usr/share/keyrings/weechat-archive-keyring.gpg --keyserver hkps://keys.openpgp.org --recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E",
     "web": "https://weechat.org/",
@@ -476,11 +476,44 @@
     "release": "Bullseye",
     "name": "weechat",
     "description": "WeeChat (Wee Enhanced Environment for Chat) is a free and open-source Internet Relay Chat client, which is designed to be light and fast.",
-    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian bullseye  main",
+    "repo": "deb [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian bullseye main",
     "repo_src": "deb-src [signed-by=/usr/share/keyrings/weechat-archive-keyring.gpg] https://weechat.org/debian bullseye  main",
     "key": "gpg --no-default-keyring --keyring /usr/share/keyrings/weechat-archive-keyring.gpg --keyserver hkps://keys.openpgp.org --recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E",
     "web": "https://weechat.org/",
     "docs": "https://weechat.org/download/debian/",
     "category": "Messaging"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Icinga2",
+    "description": "Icinga is an open-source computer system and network monitoring application",
+    "repo": "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-bullseye main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-bullseye main",
+    "key": "wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg",
+    "web": "https://icinga.com/",
+    "docs": "https://packages.icinga.com/debian/",
+    "category": "Server"
+  },
+  {
+    "release": "Buster",
+    "name": "Icinga2",
+    "description": "Icinga is an open-source computer system and network monitoring application",
+    "repo": "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-buster main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-buster main",
+    "key": "wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg",
+    "web": "https://icinga.com/",
+    "docs": "https://packages.icinga.com/debian/",
+    "category": "Server"
+  },
+  {
+    "release": "Stretch",
+    "name": "Icinga2",
+    "description": "Icinga is an open-source computer system and network monitoring application",
+    "repo": "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-stretch main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-stretch main",
+    "key": "wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg",
+    "web": "https://icinga.com/",
+    "docs": "https://packages.icinga.com/debian/",
+    "category": "Server"
   }
 ]
