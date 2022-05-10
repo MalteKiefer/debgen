@@ -1,4 +1,6 @@
 {
+  "unstable": "sid",
+  "testing": "bookworm",
   "stable": "bullseye",
   "oldstable": "buster",
   "oldoldstable": "stretch"
