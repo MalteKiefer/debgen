@@ -317,5 +317,38 @@
     "web": "https://www.enpass.io/",
     "docs": "https://www.enpass.io/support/kb/general/how-to-install-enpass-on-linux/",
     "category": "Security"
+  },
+  {
+    "release": "Bullseye",
+    "name": "nginx",
+    "description": "nginx [engine x] is an HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server",
+    "repo": "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian bullseye nginx",
+    "repo_src": "",
+    "key": "curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null",
+    "web": "https://nginx.org/",
+    "docs": "https://nginx.org/en/linux_packages.html#Debian",
+    "category": "Server"
+  },
+  {
+    "release": "Buster",
+    "name": "nginx",
+    "description": "nginx [engine x] is an HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server",
+    "repo": "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian buster nginx",
+    "repo_src": "",
+    "key": "curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null",
+    "web": "https://nginx.org/",
+    "docs": "https://nginx.org/en/linux_packages.html#Debian",
+    "category": "Server"
+  },
+  {
+    "release": "Stretch",
+    "name": "nginx",
+    "description": "nginx [engine x] is an HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server",
+    "repo": "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian stretch nginx",
+    "repo_src": "",
+    "key": "curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null",
+    "web": "https://nginx.org/",
+    "docs": "https://nginx.org/en/linux_packages.html#Debian",
+    "category": "Server"
   }
 ]
