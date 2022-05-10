@@ -111,7 +111,7 @@
           >
             <template v-slot:[`group.header`]="{ group, headers }">
               <td :colspan="headers.length">
-                {{ group }}
+                <strong>{{ group }}</strong>
               </td>
             </template>
 

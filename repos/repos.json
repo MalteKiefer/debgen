@@ -515,5 +515,71 @@
     "web": "https://icinga.com/",
     "docs": "https://packages.icinga.com/debian/",
     "category": "Server"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Node.js v18",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x bullseye main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x bullseye main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
+  },
+  {
+    "release": "Buster",
+    "name": "Node.js v18",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x buster main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x buster main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
+  },
+  {
+    "release": "Stretch",
+    "name": "Node.js v18",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x stretch main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x stretch main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
+  },
+  {
+    "release": "Stretch",
+    "name": "Node.js v16 LTS",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x stretch main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x stretch main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
+  },
+  {
+    "release": "Buster",
+    "name": "Node.js v16 LTS",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x buster main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x buster main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
+  },
+  {
+    "release": "Bullseye",
+    "name": "Node.js v16 LTS",
+    "description": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.",
+    "repo": "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x bullseye main",
+    "repo_src": "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x bullseye main",
+    "key": "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/nodesource.gpg >/dev/null",
+    "web": "https://nodejs.org/en/",
+    "docs": "https://github.com/nodesource/distributions/blob/master/README.md#deb=",
+    "category": "Server"
   }
 ]
