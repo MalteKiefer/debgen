@@ -237,118 +237,110 @@ export default {
     },
 
     getReleases: function () {
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/releases.json')
-          .then(function (response) {
-            this.releases = response.data
-          }.bind(this))
+      this.releases = require('../../repos/releases.json')
     },
 
     getRepos: function () {
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/repos.json')
-          .then(function (response) {
-            this.repos = response.data
-          }.bind(this))
+      this.repos = require('../../repos/repos.json')
     },
+    
     generate: function () {
       this.generated = true
       const release = this.release.toLowerCase()
+      const response = {
+        data: require('../../repos/debian_' + release + '.json')
+      }
 
+      this.sources = '' +
+        '#------------------------------------------------------------------------------#\n' +
+        '#                   OFFICIAL DEBIAN REPOS                    \n' +
+        '#------------------------------------------------------------------------------#\n' +
+        '###### Debian Main Repos\n'
 
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release + '.json')
-          .then(function (response) {
-            this.sources = '' +
-                '#------------------------------------------------------------------------------#\n' +
-                '#                   OFFICIAL DEBIAN REPOS                    \n' +
-                '#------------------------------------------------------------------------------#\n' +
-                '###### Debian Main Repos\n'
+      if (this.include_nonfree) {
+        this.sources = this.sources + response.data.main_nonfree + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.main_src_nonfree + '\n' + '\n'
+      }
+      if (this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.main_contrib + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.main_src_contrib + '\n' + '\n'
+      }
+      if (!this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.main + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.main_src + '\n' + '\n'
+      }
 
-            if (this.include_nonfree) {
-              this.sources = this.sources + response.data.main_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.main_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src_contrib + '\n' + '\n'
-            }
-            if (!this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.main + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src + '\n' + '\n'
-            }
+      if (this.include_nonfree && this.include_security) {
+        this.sources = this.sources + response.data.security_nonfree + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.security_src_nonfree + '\n' + '\n'
+      }
+      if (this.include_security && this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.security_contrib + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.security_src_contrib + '\n' + '\n'
+      }
+      if (this.include_security && !this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.security + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.security_src + '\n' + '\n'
+      }
 
-            if (this.include_nonfree && this.include_security) {
-              this.sources = this.sources + response.data.security_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_security && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.security_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src_contrib + '\n' + '\n'
-            }
-            if (this.include_security && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.security + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src + '\n' + '\n'
-            }
+      if (this.include_nonfree && this.include_update) {
+        this.sources = this.sources + response.data.updates_nonfree + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.updates_src_nonfree + '\n' + '\n'
+      }
+      if (this.include_update && this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.updates_contrib + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.updates_src_contrib + '\n' + '\n'
+      }
+      if (this.include_update && !this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.updates + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.updates_src + '\n' + '\n'
+      }
 
-            if (this.include_nonfree && this.include_update) {
-              this.sources = this.sources + response.data.updates_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_update && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.updates_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src_contrib + '\n' + '\n'
-            }
-            if (this.include_update && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.updates + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src + '\n' + '\n'
-            }
+      if (this.include_nonfree && this.include_backports) {
+        this.sources = this.sources + response.data.backports_nonfree + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.backports_src_nonfree
+      }
+      if (this.include_backports && this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.backports_contrib + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.backports_src_contrib
+      }
+      if (this.include_backports && !this.include_contrib && !this.include_nonfree) {
+        this.sources = this.sources + response.data.backports + '\n'
+        if (this.include_source)
+          this.sources = this.sources + response.data.backports_src
+      }
 
-            if (this.include_nonfree && this.include_backports) {
-              this.sources = this.sources + response.data.backports_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src_nonfree
-            }
-            if (this.include_backports && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.backports_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src_contrib
-            }
-            if (this.include_backports && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.backports + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src
-            }
+      if (this.selected_repos.length > 0) {
+        this.sources = this.sources + '\n\n' +
+            '#------------------------------------------------------------------------------#\n' +
+            '#                   UNOFFICIAL  REPOS                    \n' +
+            '#------------------------------------------------------------------------------#\n' +
+            '###### 3rd Party Binary Repos\n\n'
 
-            if (this.selected_repos.length > 0) {
-              this.sources = this.sources + '\n\n' +
-                  '#------------------------------------------------------------------------------#\n' +
-                  '#                   UNOFFICIAL  REPOS                    \n' +
-                  '#------------------------------------------------------------------------------#\n' +
-                  '###### 3rd Party Binary Repos\n\n'
+        for (const element of this.selected_repos) {
+          this.sources = this.sources + '###' + element.name + '\n'
+          this.sources = this.sources + element.repo + '\n'
+          if (this.include_source && element.repo_src)
+            this.sources = this.sources + element.repo_src + '\n' + '\n'
+          else
+            this.sources = this.sources + '\n'
 
-              for (const element of this.selected_repos) {
-                this.sources = this.sources + '###' + element.name + '\n'
-                this.sources = this.sources + element.repo + '\n'
-                if (this.include_source && element.repo_src)
-                  this.sources = this.sources + element.repo_src + '\n' + '\n'
-                else
-                  this.sources = this.sources + '\n'
+          this.keys = this.keys + element.key + '\n'
+        }
+      }
 
-                this.keys = this.keys + element.key + '\n'
-              }
-            }
-
-            this.release = null
-          }.bind(this))
-
-
+      this.release = null
     },
   },
   mounted() {
