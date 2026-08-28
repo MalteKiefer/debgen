@@ -41,6 +41,42 @@ Every generated entry uses HTTPS and scopes archive verification to the keyring 
 
 Generated configurations can change package sources on a system. Choose the release that matches the installed Debian version, review the selected components and suites, and inspect the complete output before installing it. Testing and unstable are rolling suites and do not provide stable-grade security support.
 
+## Official third-party catalog
+
+The built-in vendor catalog is a manually reviewed, static list. It contains only repositories operated by the named vendor or upstream project; it never uses PPAs, community mirrors, `apt-key`, unsigned sources, or a vendor setup script. Every catalog entry links to the vendor's installation documentation and has been verified on **2026-08-28**. A third-party repository extends the system's trust beyond Debian and can change independently, so always review the generated source and installation instructions before using them.
+
+| Product | Compatible DebGen releases | Architectures / limitation |
+| --- | --- | --- |
+| Brave Browser | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
+| Mozilla Firefox | Trixie, Bookworm, Bullseye | amd64, arm64; Mozilla pinning is included |
+| Google Chrome | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
+| Microsoft Edge | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
+| Vivaldi | Trixie, Forky, Sid | amd64, arm64; Debian 13 or newer |
+| Opera | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
+| Signal Desktop | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
+| Proton VPN | Trixie | amd64, arm64; GNOME desktop only, not headless |
+| Mullvad VPN | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 or newer |
+| Tor | Trixie, Bookworm, Bullseye | amd64, arm64; daemon/client, not Tor Browser |
+| Docker Engine | Trixie, Bookworm, Bullseye | amd64, arm64, armhf; can affect firewall rules |
+| Kubernetes tools v1.36 | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; versioned `pkgs.k8s.io` channel |
+| Google Cloud CLI | Trixie, Bookworm, Bullseye | amd64, arm64 |
+| Microsoft Azure CLI | Bookworm, Bullseye | amd64, arm64; no verified Trixie suite |
+| GitHub CLI | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
+| HashiCorp Terraform | Trixie, Bookworm, Bullseye | amd64, arm64 |
+| PostgreSQL PGDG | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; `<codename>-pgdg` suites |
+| MongoDB Community 8.0 | Bookworm | amd64 only |
+| Grafana | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
+| NVIDIA Container Toolkit | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; supported NVIDIA GPU, driver, and runtime required |
+| MariaDB Community 11.8 | Trixie, Bookworm, Bullseye, Sid | amd64, arm64; no vendor setup script |
+| Redis Open Source | Trixie, Bookworm | amd64, arm64 |
+| ClickHouse | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; distribution-independent repository |
+| InfluxDB 3 Core | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 or newer |
+| Zabbix 7.4 | Trixie, Bookworm, Bullseye | amd64, arm64 |
+
+### Catalog maintenance
+
+When updating the catalog, verify the current official installation documentation, repository `Release` or `InRelease` metadata, signing-key URL, suite, component, package name, and published architecture support. Keep versioned channels explicit: Kubernetes v1.36, MongoDB 8.0, MariaDB 11.8, and Zabbix 7.4 must never become an unbounded `latest` entry. Update the verification date, compatibility tests, and any vendor-published fingerprint at the same time. Remove or disable an entry when its official repository disappears; never substitute a different host.
+
 ## Static API
 
 The public GitHub Pages API root is `https://maltekiefer.github.io/debgen/api/v1/`. Forks use their own Pages host and repository name. All published endpoints are static text or JSON:
