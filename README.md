@@ -83,6 +83,6 @@ Back up or remove conflicting existing source definitions separately; these comm
 
 ## GitHub Pages
 
-The Pages workflow runs only for pushes to `master` or a manual dispatch. Its verification job installs locked dependencies, runs the complete check and security audit, derives the site base path from `GITHUB_REPOSITORY`, builds the site, and uploads `dist/`. The deployment job cannot run unless verification succeeds and deploys through the protected `github-pages` environment.
+The Pages workflow runs only for pushes to `master`. Its verification job installs locked dependencies, runs the complete check and security audit, derives the site base path from `GITHUB_REPOSITORY`, builds the site, and uploads `dist/`. The deployment job cannot run unless verification succeeds and deploys through the protected `github-pages` environment.
 
 To enable deployment for a repository, open **Settings → Pages → Build and deployment** and select **GitHub Actions** as the source. No hard-coded repository name is needed in the workflow, so forks and renamed repositories build under their own `/<repository-name>/` base path.
