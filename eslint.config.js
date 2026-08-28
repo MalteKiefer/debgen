@@ -18,6 +18,11 @@ export default tseslint.config(
       },
       globals: {
         document: 'readonly',
+        Event: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        KeyboardEvent: 'readonly',
         window: 'readonly',
         MediaQueryListEvent: 'readonly',
         ResizeObserver: 'readonly',

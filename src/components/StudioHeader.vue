@@ -19,6 +19,7 @@
       <v-btn
         class="studio-touch-target"
         href="https://de.liberapay.com/beli3ver"
+        prepend-icon="mdi-heart-outline"
         rel="noopener noreferrer"
         target="_blank"
         variant="text"
@@ -28,6 +29,7 @@
       <v-btn
         class="studio-touch-target"
         href="https://github.com/maltekiefer/debgen"
+        prepend-icon="mdi-github"
         rel="noopener noreferrer"
         target="_blank"
         variant="text"

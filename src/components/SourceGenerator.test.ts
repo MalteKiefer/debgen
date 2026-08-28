@@ -224,6 +224,38 @@ describe('SourceGenerator', () => {
     expect(control(wrapper, 'Architektur').attributes('value')).toContain('arm64')
   })
 
+  it('führt Softwareauswahl und Systemzustand in den Review-Schritt', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Weiter zur Software')
+    await control(wrapper, 'Brave Browser auswählen').setValue(true)
+    await clickButton(wrapper, 'Auswahl prüfen')
+
+    expect(wrapper.get('h2').text()).toContain('Prüfen und exportieren')
+    expect(wrapper.get('[aria-label="Ausgewählte Software"]').text()).toContain('Brave Browser')
+    expect(wrapper.text()).toContain('debian.sources')
+    expect(wrapper.get('[aria-label="Aktuelle Auswahl"]').text()).toContain('1 Paketquelle')
+  })
+
+  it('entfernt nach einer Systemänderung inkompatible Software noch vor dem direkten Review', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Weiter zur Software')
+    await control(wrapper, 'Google Chrome auswählen').setValue(true)
+    await clickButton(wrapper, 'Zurück zum Debian-System')
+    await choose(wrapper, 'Architektur', 'arm64')
+    await control(wrapper, 'Schritt 3: Prüfen und exportieren').trigger('click')
+    await settle()
+
+    expect(wrapper.get('[aria-label="Ausgewählte Software"] [role="status"]').text()).toContain(
+      'Keine zusätzlichen Paketquellen ausgewählt',
+    )
+    expect(wrapper.get('[aria-label="Aktuelle Auswahl"]').text()).toContain('0 Paketquellen')
+    expect(wrapper.findAll('[role="status"]').some((status) => status.text().includes('Google Chrome'))).toBe(true)
+  })
+
   it('reports copied only after the generated text is copied', async () => {
     let resolveCopy: (() => void) | undefined
     copyTextMock.mockImplementation(() => new Promise<void>((resolve) => { resolveCopy = resolve }))

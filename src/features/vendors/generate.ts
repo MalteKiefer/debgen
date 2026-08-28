@@ -17,6 +17,10 @@ export interface VendorGenerationConfig {
   readonly products?: readonly VendorProduct[]
 }
 
+export interface InstallScriptOptions {
+  readonly includePackageInstallation?: boolean
+}
+
 function withOneTrailingNewline(content: string): string {
   return content.replace(/\n+$/, '') + '\n'
 }
@@ -202,6 +206,7 @@ function artifactInstallCommands(artifacts: readonly GeneratedArtifact[]): strin
 export function generateInstallScript(
   config: VendorGenerationConfig,
   artifacts: readonly GeneratedArtifact[],
+  options: InstallScriptOptions = {},
 ): GeneratedArtifact {
   const products = selectedProducts(config)
   const warnings = products.flatMap((product) => product.warning ? [product.warning] : [])
@@ -221,7 +226,7 @@ export function generateInstallScript(
     ...products.flatMap((product, index) => keyInstallCommands(product, index)),
     ...artifactInstallCommands(artifacts),
     'apt-get update',
-    ...(products.length > 0
+    ...(products.length > 0 && options.includePackageInstallation !== false
       ? ['apt-get install -y ' + products.flatMap((product) => product.packages).map(shellQuote).join(' ')]
       : []),
   ]

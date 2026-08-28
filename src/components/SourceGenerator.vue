@@ -3,12 +3,16 @@ import { computed, ref, watch } from 'vue'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
-import type { SystemArchitecture } from '../features/vendors/model'
+import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
+import { getVendorCompatibility } from '../features/vendors/compatibility'
+import type { GeneratedArtifact, OutputMode, SystemArchitecture } from '../features/vendors/model'
 import { getRelease } from '../features/sources/releases'
 import SelectionSummary from './SelectionSummary.vue'
+import ReviewStep from './ReviewStep.vue'
 import SourceOutput from './SourceOutput.vue'
 import StudioProgress from './StudioProgress.vue'
 import SystemStep from './SystemStep.vue'
+import VendorStep from './VendorStep.vue'
 
 const release = ref<ReleaseCodename>('trixie')
 const architecture = ref<SystemArchitecture>('amd64')
@@ -23,6 +27,8 @@ const includeBackports = ref(false)
 const generatedText = ref('')
 const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
 const activeStep = ref(1)
+const selectedIds = ref<string[]>([])
+const outputMode = ref<OutputMode>('perVendor')
 let feedbackVersion = 0
 
 const filename = computed(() => getOutputFilename(format.value))
@@ -32,6 +38,21 @@ const components = computed(() => [
   ...(includeNonFree.value ? ['non-free'] : []),
   ...(includeFirmware.value ? ['non-free-firmware'] : []),
 ])
+const sourceOptions = computed<SourceOptions>(() => ({
+  release: release.value,
+  format: format.value,
+  includeSource: includeSource.value,
+  includeSecurity: includeSecurity.value,
+  includeUpdates: includeUpdates.value,
+  includeBackports: includeBackports.value,
+  components: components.value,
+}))
+const debianArtifact = computed<GeneratedArtifact>(() => ({
+  filename: getOutputFilename(format.value),
+  mediaType: 'text/plain',
+  description: 'Debian-Paketquellen',
+  content: generateSources(sourceOptions.value),
+}))
 
 watch(release, (codename) => {
   const selected = getRelease(codename)
@@ -61,6 +82,7 @@ watch(release, (codename) => {
 
 watch([
   release,
+  architecture,
   format,
   includeSource,
   includeContrib,
@@ -75,21 +97,29 @@ watch([
   feedback.value = null
 })
 
+watch([release, architecture], ([nextRelease, nextArchitecture], previousSystem) => {
+  const selected = new Set(selectedIds.value)
+  const removedProducts = VENDOR_PRODUCTS.filter((product) => selected.has(product.id)
+    && !getVendorCompatibility(product, nextRelease, nextArchitecture).compatible)
+  if (removedProducts.length === 0) return
+
+  const removedIds = new Set(removedProducts.map((product) => product.id))
+  selectedIds.value = selectedIds.value.filter((id) => !removedIds.has(id))
+  feedbackVersion += 1
+  const changedSystem = previousSystem?.[0] !== nextRelease
+    ? `Release ${nextRelease.charAt(0).toUpperCase()}${nextRelease.slice(1)}`
+    : `Architektur ${nextArchitecture}`
+  feedback.value = {
+    kind: 'success',
+    message: `${changedSystem}: ${removedProducts.map((product) => product.name).join(', ')} ${removedProducts.length === 1 ? 'wurde' : 'wurden'} aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`,
+  }
+}, { flush: 'post' })
+
 function generate(): void {
   feedbackVersion += 1
   feedback.value = null
 
-  const options: SourceOptions = {
-    release: release.value,
-    format: format.value,
-    includeSource: includeSource.value,
-    includeSecurity: includeSecurity.value,
-    includeUpdates: includeUpdates.value,
-    includeBackports: includeBackports.value,
-    components: components.value,
-  }
-
-  generatedText.value = generateSources(options)
+  generatedText.value = generateSources(sourceOptions.value)
 }
 
 async function copyGeneratedText(content: string): Promise<void> {
@@ -138,9 +168,9 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
     <SelectionSummary
       :architecture="architecture"
-      :repository-count="0"
+      :repository-count="selectedIds.length"
       :release="release"
-      output-mode="perVendor"
+      :output-mode="outputMode"
     />
 
     <template v-if="activeStep === 1">
@@ -227,26 +257,59 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       </div>
     </template>
 
-    <v-card
-      v-else
-      class="source-generator__next-step"
-      variant="outlined"
-    >
-      <v-card-title>
-        {{ activeStep === 2 ? 'Offizielle Software' : 'Prüfen und exportieren' }}
-      </v-card-title>
-      <v-card-text>
-        Dieser Schritt wird mit den nächsten Studio-Bausteinen ergänzt. Deine Systemauswahl bleibt erhalten.
-      </v-card-text>
-      <v-card-actions>
+    <template v-else-if="activeStep === 2">
+      <VendorStep
+        v-model:selected-ids="selectedIds"
+        :architecture="architecture"
+        :release="release"
+      />
+      <div class="source-generator__submit source-generator__submit--between">
         <v-btn
           class="studio-touch-target"
+          prepend-icon="mdi-arrow-left"
+          variant="text"
           @click="activeStep = 1"
         >
           Zurück zum Debian-System
         </v-btn>
-      </v-card-actions>
-    </v-card>
+        <v-btn
+          append-icon="mdi-arrow-right"
+          class="studio-touch-target"
+          color="primary"
+          @click="activeStep = 3"
+        >
+          Auswahl prüfen
+        </v-btn>
+      </div>
+    </template>
+
+    <template v-else>
+      <ReviewStep
+        v-model:output-mode="outputMode"
+        :architecture="architecture"
+        :debian-artifact="debianArtifact"
+        :release="release"
+        :selected-ids="selectedIds"
+      />
+      <div class="source-generator__submit source-generator__submit--between">
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-arrow-left"
+          variant="text"
+          @click="activeStep = 2"
+        >
+          Auswahl bearbeiten
+        </v-btn>
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-cog-outline"
+          variant="tonal"
+          @click="activeStep = 1"
+        >
+          System bearbeiten
+        </v-btn>
+      </div>
+    </template>
 
     <div
       aria-live="polite"
