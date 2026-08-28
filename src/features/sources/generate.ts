@@ -75,6 +75,9 @@ function deb822Stanza(
 }
 
 export function generateDeb822(options: SourceOptions): string {
+  if (options.format !== 'deb822') {
+    throw new Error('generateDeb822 requires the deb822 format.')
+  }
   const validated = validateOptions(options)
   const { release } = validated
   const baseSuites = [release.suites.base]
@@ -119,6 +122,9 @@ function legacyLines(
 }
 
 export function generateLegacyList(options: SourceOptions): string {
+  if (options.format !== 'legacy') {
+    throw new Error('generateLegacyList requires the legacy format.')
+  }
   const validated = validateOptions(options)
   const { release } = validated
   const lines = legacyLines(validated.includeSource, release.baseUri, release.suites.base, validated.components, release.keyring)

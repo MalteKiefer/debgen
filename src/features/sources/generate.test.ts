@@ -101,6 +101,13 @@ describe('Debian release catalog', () => {
 })
 
 describe('DEB822 generation', () => {
+  it('rejects legacy options passed directly to the DEB822 generator', () => {
+    expect(() => generateDeb822(options({
+      release: 'bookworm',
+      format: 'legacy',
+    }))).toThrow('generateDeb822 requires the deb822 format.')
+  })
+
   it('generates Trixie base, updates, and security stanzas with ordered components', () => {
     expect(generateDeb822(options({
       includeSecurity: true,
@@ -159,6 +166,13 @@ describe('strict source option validation', () => {
 })
 
 describe('legacy list generation', () => {
+  it('rejects DEB822 options passed directly to the legacy generator', () => {
+    expect(() => generateLegacyList(options({
+      release: 'bookworm',
+      format: 'deb822',
+    }))).toThrow('generateLegacyList requires the legacy format.')
+  })
+
   it('generates Bookworm lines with source packages and HTTPS keyring isolation', () => {
     expect(generateLegacyList(options({
       release: 'bookworm',
