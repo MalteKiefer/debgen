@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { generateInstallScript, generateVendorArtifacts, type VendorGenerationConfig } from './generate'
+import {
+  generateInstallScript,
+  generatePackageInstallCommand,
+  generateVendorArtifacts,
+  type VendorGenerationConfig,
+} from './generate'
 import type { VendorProduct } from './model'
 
 type ProductWithFingerprint = VendorProduct & { readonly fingerprint?: string }
@@ -144,6 +149,24 @@ describe('vendor artifact generation', () => {
 
     expect(generateVendorArtifacts(emptyConfig)).toEqual([])
     expect(generateInstallScript(emptyConfig, []).content).not.toContain('apt-get install -y \n')
+  })
+
+  it('generates the package command in deterministic product order with shell quoting', () => {
+    const alpha = product({
+      id: 'alpha-tool',
+      filename: 'alpha-tool.sources',
+      keyringPath: '/etc/apt/keyrings/alpha-tool.gpg',
+      packages: ["alpha's-tool"],
+    })
+    const selectedConfig = config({
+      productIds: ['example-tool', 'alpha-tool'],
+      products: [product(), alpha],
+    })
+
+    expect(generatePackageInstallCommand(selectedConfig)).toBe(
+      "apt-get install -y 'alpha'\"'\"'s-tool' 'example-tool'\n",
+    )
+    expect(generatePackageInstallCommand({ ...selectedConfig, productIds: [] })).toBe('')
   })
 
   it('makes injected names, warnings, and heredoc markers inert', () => {

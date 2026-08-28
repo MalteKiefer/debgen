@@ -57,6 +57,29 @@ describe('downloadText', () => {
     expect(environment.revokeObjectURL).toHaveBeenCalledWith('blob:debian-sources')
   })
 
+  it('preserves an artifact media type while adding UTF-8 for text downloads', () => {
+    let blobOptions: BlobPropertyBag | undefined
+    function Blob(_parts: BlobPart[], options: BlobPropertyBag): Blob {
+      blobOptions = options
+      return {} as Blob
+    }
+    const environment: DownloadEnvironment = {
+      document: { createElement: vi.fn().mockReturnValue({ click: vi.fn() }) } as unknown as Document,
+      Blob: Blob as unknown as typeof globalThis.Blob,
+      createObjectURL: vi.fn().mockReturnValue('blob:install-script'),
+      revokeObjectURL: vi.fn(),
+    }
+
+    downloadText(
+      'install-vendor-repositories.sh',
+      '#!/usr/bin/env bash\n',
+      environment,
+      'text/x-shellscript',
+    )
+
+    expect(blobOptions).toEqual({ type: 'text/x-shellscript;charset=utf-8' })
+  })
+
   it('propagates Blob failures', () => {
     const failure = new Error('Blob failed')
     function Blob(): Blob {

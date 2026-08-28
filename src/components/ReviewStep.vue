@@ -2,8 +2,12 @@
 import { computed } from 'vue'
 import type { ReleaseCodename } from '../features/sources/model'
 import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
-import { generateInstallScript, generateVendorArtifacts } from '../features/vendors/generate'
-import { groupArtifacts } from '../features/vendors/group'
+import {
+  generateInstallScript,
+  generatePackageInstallCommand,
+  generateVendorArtifacts,
+} from '../features/vendors/generate'
+import { composeArtifacts, groupArtifacts } from '../features/vendors/group'
 import type { GeneratedArtifact, OutputMode, SystemArchitecture } from '../features/vendors/model'
 import GeneratedFileTabs from './GeneratedFileTabs.vue'
 import InstallCommands from './InstallCommands.vue'
@@ -39,20 +43,19 @@ const selectedProducts = computed(() => {
 
 const vendorArtifacts = computed(() => generateVendorArtifacts(generationConfig.value))
 const groupedVendorArtifacts = computed(() => groupArtifacts(vendorArtifacts.value, props.outputMode))
-const generatedFiles = computed(() => [props.debianArtifact, ...groupedVendorArtifacts.value])
-const setupScript = computed(() => selectedProducts.value.length > 0
+const generatedFiles = computed(() => composeArtifacts(
+  props.debianArtifact,
+  vendorArtifacts.value,
+  props.outputMode,
+))
+const setupArtifact = computed(() => selectedProducts.value.length > 0
   ? generateInstallScript(
       generationConfig.value,
       groupedVendorArtifacts.value,
       { includePackageInstallation: false },
-    ).content
-  : '')
-const packageCommand = computed(() => {
-  const packages = selectedProducts.value.flatMap((product) => product.packages)
-  return packages.length > 0
-    ? `apt-get install -y ${packages.map((name) => `'${name.replace(/'/g, `'"'"'`)}'`).join(' ')}\n`
-    : ''
-})
+    )
+  : null)
+const packageCommand = computed(() => generatePackageInstallCommand(generationConfig.value))
 const warnings = computed(() => selectedProducts.value.flatMap((product) => product.warning
   ? [{ productName: product.name, message: product.warning }]
   : []))
@@ -132,9 +135,9 @@ function updateMode(event: Event): void {
     <GeneratedFileTabs :artifacts="generatedFiles" />
 
     <InstallCommands
-      v-if="selectedProducts.length > 0"
+      v-if="setupArtifact"
       :package-command="packageCommand"
-      :setup-script="setupScript"
+      :setup-artifact="setupArtifact"
     />
   </section>
 </template>

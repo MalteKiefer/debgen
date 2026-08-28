@@ -4,6 +4,17 @@ const categoryOrder: readonly VendorCategory[] = [
   'browser', 'communication', 'privacy', 'development', 'cloud', 'containers', 'database', 'monitoring',
 ]
 
+const categoryLabels: Readonly<Record<VendorCategory, string>> = {
+  browser: 'Browser',
+  communication: 'Kommunikation',
+  privacy: 'Privatsphäre',
+  development: 'Entwicklung',
+  cloud: 'Cloud',
+  containers: 'Container',
+  database: 'Datenbanken',
+  monitoring: 'Überwachung',
+}
+
 function compareCodePoints(left: string, right: string): number {
   if (left < right) return -1
   if (left > right) return 1
@@ -79,7 +90,7 @@ function categoryArtifacts(sources: readonly GeneratedArtifact[]): GeneratedArti
     return [{
       filename: category + '.sources',
       mediaType: 'text/plain',
-      description: 'Paketquellen: ' + category,
+      description: 'Paketquellen: ' + categoryLabels[category],
       content: withOneTrailingNewline(members.map((artifact) => artifact.content.replace(/\n+$/, '')).join('\n\n')),
       category,
       ...(riskNotes ? { riskNotes } : {}),
@@ -101,4 +112,15 @@ export function groupArtifacts(artifacts: readonly GeneratedArtifact[], mode: Ou
   }
   if (mode === 'byCategory') return [...debian, ...categoryArtifacts(sources), ...auxiliary]
   throw new Error('Unsupported output mode: ' + String(mode) + '.')
+}
+
+export function composeArtifacts(
+  debianArtifact: GeneratedArtifact,
+  vendorArtifacts: readonly GeneratedArtifact[],
+  mode: OutputMode = 'perVendor',
+): GeneratedArtifact[] {
+  checkForCollisions([debianArtifact, ...vendorArtifacts])
+  const composed = [debianArtifact, ...groupArtifacts(vendorArtifacts, mode)]
+  checkForCollisions(composed)
+  return composed
 }

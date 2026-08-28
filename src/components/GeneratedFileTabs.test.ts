@@ -49,7 +49,7 @@ describe('GeneratedFileTabs', () => {
     const wrapper = mountTabs()
 
     expect(wrapper.get('[role="tablist"]').attributes('aria-label')).toBe('Erzeugte Dateien')
-    expect(wrapper.get('[role="tabpanel"]').text()).toContain('Suites: trixie')
+    expect(wrapper.get('[role="tabpanel"]:not([hidden])').text()).toContain('Suites: trixie')
 
     const tabs = wrapper.findAll('[role="tab"]')
     expect(tabs).toHaveLength(2)
@@ -57,8 +57,51 @@ describe('GeneratedFileTabs', () => {
 
     await tabs[1]?.trigger('click')
 
-    expect(wrapper.get('[role="tabpanel"]').text()).toContain('https://brave.example/')
+    expect(wrapper.get('[role="tabpanel"]:not([hidden])').text()).toContain('https://brave.example/')
     expect(wrapper.text()).toContain('Paketquelle für Brave Browser')
+  })
+
+  it('verknüpft jeden Dateireiter dauerhaft mit seinem vorhandenen Tabpanel', () => {
+    const wrapper = mountTabs()
+
+    for (const tab of wrapper.findAll('[role="tab"]')) {
+      const panelId = tab.attributes('aria-controls')
+      expect(panelId).toBeTruthy()
+      const panel = wrapper.get(`#${panelId}`)
+      expect(panel.attributes('role')).toBe('tabpanel')
+      expect(panel.attributes('aria-labelledby')).toBe(tab.attributes('id'))
+    }
+  })
+
+  it('benennt jede scrollbare Dateivorschau und nimmt sie in die Fokusreihenfolge auf', () => {
+    const wrapper = mountTabs()
+
+    for (const artifact of artifacts) {
+      const preview = wrapper.get(`pre[aria-label="Inhalt von ${artifact.filename}"]`)
+      expect(preview.attributes('tabindex')).toBe('0')
+    }
+  })
+
+  it('bewegt Auswahl und echten Fokus mit Pfeil-, Home- und End-Tasten', async () => {
+    const wrapper = mountTabs()
+    const tabs = wrapper.findAll<HTMLButtonElement>('[role="tab"]')
+
+    tabs[0]?.element.focus()
+    await tabs[0]?.trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(tabs[1]?.element)
+    expect(tabs[1]?.attributes('aria-selected')).toBe('true')
+
+    await tabs[1]?.trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(tabs[0]?.element)
+
+    await tabs[0]?.trigger('keydown', { key: 'End' })
+    expect(document.activeElement).toBe(tabs[1]?.element)
+
+    await tabs[1]?.trigger('keydown', { key: 'Home' })
+    expect(document.activeElement).toBe(tabs[0]?.element)
+
+    await tabs[0]?.trigger('keydown', { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(tabs[1]?.element)
   })
 
   it('kopiert und lädt immer die aktuell ausgewählte Datei einzeln herunter', async () => {
@@ -84,7 +127,7 @@ describe('GeneratedFileTabs', () => {
     await wrapper.get('button[aria-label="debian.sources kopieren"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.get('[role="tabpanel"]').text()).toContain('Suites: trixie')
+    expect(wrapper.get('[role="tabpanel"]:not([hidden])').text()).toContain('Suites: trixie')
     expect(wrapper.get('[role="alert"]').text()).toContain('Bitte kopiere den Inhalt manuell')
   })
 })

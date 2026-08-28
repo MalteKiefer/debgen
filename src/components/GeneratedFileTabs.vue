@@ -110,21 +110,23 @@ function downloadArtifact(): void {
     </div>
 
     <article
-      v-if="activeArtifact"
-      :id="`file-panel-${activeIndex}`"
-      :aria-labelledby="`file-tab-${activeIndex}`"
+      v-for="(artifact, index) in artifacts"
+      :id="`file-panel-${index}`"
+      :key="`panel-${artifact.filename}`"
+      :aria-labelledby="`file-tab-${index}`"
       class="generated-files__panel"
+      :hidden="activeIndex !== index"
       role="tabpanel"
-      tabindex="0"
+      :tabindex="activeIndex === index ? 0 : -1"
     >
       <div class="generated-files__meta">
         <div>
-          <strong>{{ activeArtifact.filename }}</strong>
-          <p>{{ activeArtifact.description }}</p>
+          <strong>{{ artifact.filename }}</strong>
+          <p>{{ artifact.description }}</p>
         </div>
         <div aria-label="Aktionen für die ausgewählte Datei" class="generated-files__actions" role="group">
           <v-btn
-            :aria-label="`${activeArtifact.filename} kopieren`"
+            :aria-label="`${artifact.filename} kopieren`"
             class="studio-touch-target"
             prepend-icon="mdi-content-copy"
             variant="tonal"
@@ -133,7 +135,7 @@ function downloadArtifact(): void {
             Kopieren
           </v-btn>
           <v-btn
-            :aria-label="`${activeArtifact.filename} herunterladen`"
+            :aria-label="`${artifact.filename} herunterladen`"
             class="studio-touch-target"
             color="primary"
             prepend-icon="mdi-download"
@@ -143,7 +145,11 @@ function downloadArtifact(): void {
           </v-btn>
         </div>
       </div>
-      <pre class="generated-files__preview"><code>{{ activeArtifact.content }}</code></pre>
+      <pre
+        :aria-label="`Inhalt von ${artifact.filename}`"
+        class="generated-files__preview"
+        tabindex="0"
+      ><code>{{ artifact.content }}</code></pre>
     </article>
 
     <div aria-live="polite" class="generated-files__feedback">

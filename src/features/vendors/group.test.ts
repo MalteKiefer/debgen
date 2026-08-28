@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupArtifacts } from './group'
+import { composeArtifacts, groupArtifacts } from './group'
 import type { GeneratedArtifact } from './model'
 
 const debian: GeneratedArtifact = {
@@ -48,6 +48,11 @@ describe('artifact grouping', () => {
     const result = groupArtifacts([docker, firefox, debian], 'byCategory')
 
     expect(result.map(({ filename }) => filename)).toEqual(['debian.sources', 'browser.sources', 'containers.sources'])
+    expect(result.map(({ description }) => description)).toEqual([
+      'Debian-Basis',
+      'Paketquellen: Browser',
+      'Paketquellen: Container',
+    ])
     expect(result[1]?.content).toContain('Signed-By: /etc/apt/keyrings/mozilla.asc')
     expect(result[2]?.content).toContain('Signed-By: /etc/apt/keyrings/docker.asc')
   })
@@ -105,5 +110,23 @@ describe('artifact grouping', () => {
     ], 'perVendor')
 
     expect(result.map(({ filename }) => filename)).toEqual(['zeta.sources', 'umlaut.sources'])
+  })
+
+  it.each(['debian.sources', 'debian.list'])(
+    'rejects vendor collisions with the complete Debian artifact list for %s',
+    (filename) => {
+      const base = { ...debian, filename }
+      const collidingVendor = { ...firefox, filename }
+
+      expect(() => composeArtifacts(base, [collidingVendor], 'perVendor'))
+        .toThrow(new RegExp(`duplicate.*${filename.replace('.', '\\.')}`, 'i'))
+    },
+  )
+
+  it('keeps a legacy Debian base first while grouping only vendor sources', () => {
+    const legacy = { ...debian, filename: 'debian.list' }
+
+    expect(composeArtifacts(legacy, [docker, firefox], 'combined').map(({ filename }) => filename))
+      .toEqual(['debian.list', 'vendors.sources'])
   })
 })

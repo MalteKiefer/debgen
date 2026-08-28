@@ -110,6 +110,15 @@ function shellQuote(value: string): string {
   return '\'' + value.replace(/'/g, "'\"'\"'") + '\''
 }
 
+function packageInstallCommand(products: readonly VendorProduct[]): string {
+  const packages = products.flatMap((product) => product.packages)
+  return packages.length > 0 ? 'apt-get install -y ' + packages.map(shellQuote).join(' ') + '\n' : ''
+}
+
+export function generatePackageInstallCommand(config: VendorGenerationConfig): string {
+  return packageInstallCommand(selectedProducts(config))
+}
+
 function shellComment(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').replace(/[\t ]+/g, ' ').trim()
 }
@@ -227,7 +236,7 @@ export function generateInstallScript(
     ...artifactInstallCommands(artifacts),
     'apt-get update',
     ...(products.length > 0 && options.includePackageInstallation !== false
-      ? ['apt-get install -y ' + products.flatMap((product) => product.packages).map(shellQuote).join(' ')]
+      ? [packageInstallCommand(products).trimEnd()]
       : []),
   ]
   return {

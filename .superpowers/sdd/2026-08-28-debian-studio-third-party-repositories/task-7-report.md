@@ -66,3 +66,58 @@ Geändert:
 ## Commit
 
 Vorgesehener neutraler Commit: `feat: add repository review and export`
+
+## Fix-Runde 1
+
+### Status
+
+Alle Review-Findings wurden testgetrieben behoben. Das Setup-Skript bleibt durchgehend ein `GeneratedArtifact`; Dateiname, MIME-Typ, Vorschau, Kopieren und eigener Download sind getrennt verfügbar. Die Dateireiter besitzen vollständige ARIA-Beziehungen und unterstützen Pfeiltasten, Pos1 und Ende. Rückmeldungen aus laufenden Kopiervorgängen werden bei geänderten Befehls-Props sicher verworfen.
+
+Die Kollisionsprüfung umfasst nun die komplette Debian- und Hersteller-Artefaktliste, einschließlich `debian.sources` und `debian.list`. Der Paketinstallationsbefehl wird ausschließlich von der reinen Generierungsschicht erzeugt. Alle Vuetify-Auswahlsteuerelemente erhalten global eine Mindesthöhe von 44 Pixeln; scrollbare Vorschauen sind per Tastatur erreichbar, benannt und sichtbar fokussiert. Kategorien werden mit deutschen Bezeichnungen ausgegeben.
+
+### RED-Evidenz
+
+1. Der neue Generator-Test schlug zunächst fehl, weil `generatePackageInstallCommand` nicht existierte.
+2. Der Download-Test zeigte den fest verdrahteten MIME-Typ `text/plain` statt `text/x-shellscript`.
+3. Die Installationskomponente kannte nur den Skriptinhalt, nicht das vollständige Artefakt, und bot keinen separaten Download.
+4. Prop-Wechsel ließen bestätigte und noch ausstehende Kopier-Rückmeldungen sichtbar werden.
+5. Die ARIA-Tests fanden `aria-controls`-Ziele ohne existierende `tabpanel`-Elemente.
+6. Die Kollisionsfälle mit Debian-Basisdateien scheiterten, weil nur Herstellerartefakte geprüft wurden.
+7. Der Laufzeittest maß für Vuetify-Auswahlsteuerelemente eine Mindesthöhe von 0 statt 44 Pixeln.
+8. Dateivorschauen besaßen weder `tabindex` noch einen zugänglichen Namen.
+9. Kategoriegruppen verwendeten interne englische Kennungen statt deutscher Beschreibungen.
+
+### GREEN-Evidenz
+
+- Fokussierter Integrationslauf: 8 Testdateien, 86 Tests, 0 Fehler.
+- Vollständiger Projektcheck: `npm run check` grün.
+- Ergebnis des vollständigen Laufs: 21 Testdateien, 208 Tests, 0 Fehler.
+- `vue-tsc -b`, `eslint .`, API-Erzeugung und Vite-Produktions-Build: grün.
+- Tastaturnavigation wurde mit echten Fokuswechseln für Pfeil links/rechts, Pos1 und Ende getestet.
+- Prop-Wechsel während laufender Kopiervorgänge sowie nach bestätigtem Feedback sind abgedeckt.
+- Der visuelle Browser-Smoke-Test konnte in dieser Fix-Runde nicht erneut ausgeführt werden, weil die lokale Browser-Anbindung kein Browser-Backend bereitstellte. Die vorherige Task-7-Prüfung bei Desktop- und Mobilbreite war grün; die aktuelle automatisierte Komponenten-, Typ-, Lint- und Build-Prüfung ist vollständig grün.
+
+### Geänderte Dateien
+
+- `src/components/GeneratedFileTabs.vue` und zugehörige Tests
+- `src/components/GeneratorControls.test.ts`
+- `src/components/InstallCommands.vue` und zugehörige Tests
+- `src/components/ReviewStep.vue`
+- `src/features/sources/download.ts` und zugehörige Tests
+- `src/features/vendors/generate.ts` und zugehörige Tests
+- `src/features/vendors/group.ts` und zugehörige Tests
+- `src/plugins/vuetify.ts`
+- `src/styles/main.scss`
+
+### Selbstreview
+
+- Keine Paketbefehlsrekonstruktion in der UI; Reihenfolge und Shell-Quoting stammen aus der reinen Generierungsschicht.
+- Kollisionsfehler werden vor und nach der Gruppierung geprüft und können die Debian-Basisdatei nicht umgehen.
+- Veraltete asynchrone Rückmeldungen werden versionsgebunden verworfen.
+- Alle `aria-controls`-Referenzen zeigen auf dauerhaft vorhandene Panels; nur das aktive Panel ist sichtbar und fokussierbar.
+- Der 44-Pixel-Test prüft den tatsächlich berechneten Laufzeitstil statt nur einen CSS-Quelltexttreffer.
+- Keine offenen Code- oder Test-Findings im Umfang der Fix-Runde.
+
+### Commit
+
+Vorgesehener neutraler Commit: `fix: address repository review findings`

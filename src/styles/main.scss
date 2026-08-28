@@ -65,6 +65,8 @@ button, input, select, textarea { font: inherit; }
 .studio-touch-target,
 .studio-touch-target.v-btn { min-block-size: 44px; }
 
+.v-selection-control { min-block-size: 44px; }
+
 .studio-touch-target:focus-visible,
 .v-btn:focus-visible,
 .v-field:has(input:focus-visible),
@@ -231,10 +233,12 @@ a:focus-visible {
   font: 0.84rem/1.62 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; tab-size: 2; white-space: pre;
 }
 .generated-files__preview { min-height: 14rem; max-height: 32rem; padding: 1rem; }
+.generated-files__preview:focus-visible { outline: 3px solid var(--studio-red); outline-offset: -4px; }
 .generated-files__feedback, .install-commands__feedback { min-height: 1.5rem; color: var(--studio-red-dark); font-weight: 700; }
 
 .install-commands__block { overflow: hidden; border: 1px solid var(--studio-line); border-radius: 0.85rem; background: #fff; }
 .install-commands__block-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 0.9rem; }
+.install-commands__actions { display: flex; flex-wrap: wrap; gap: 0.55rem; }
 .install-commands__block h4 { font-size: 1rem; }
 .install-commands__block p { margin-top: 0.2rem; color: var(--studio-muted); font-size: 0.88rem; }
 .install-commands__block pre { max-height: 28rem; padding: 1rem; }

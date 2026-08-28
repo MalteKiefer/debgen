@@ -80,4 +80,18 @@ describe('GeneratorControls', () => {
     expect(wrapper.text()).toContain('stabil')
     expect(wrapper.text()).not.toContain('stable')
   })
+
+  it('gibt jedem Vuetify-Schalter und jeder Checkbox global mindestens 44 Pixel Zielhöhe', () => {
+    const wrapper = mount(GeneratorControls, {
+      props: props(),
+      attachTo: document.body,
+      global: { plugins: [vuetify] },
+    })
+
+    const selectionControls = wrapper.findAll<HTMLElement>('.v-selection-control')
+    expect(selectionControls).toHaveLength(7)
+    for (const control of selectionControls) {
+      expect(window.getComputedStyle(control.element).minBlockSize).toBe('44px')
+    }
+  })
 })

@@ -8,6 +8,7 @@ export default createVuetify({
     VBtn: { rounded: 'lg', elevation: 0 },
     VCard: { rounded: 'xl' },
     VChip: { rounded: 'lg' },
+    VSelectionControl: { style: 'min-block-size: 44px' },
   },
   icons: {
     defaultSet: 'mdi',
