@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
+import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
+import { getVendorCompatibility } from '../features/vendors/compatibility'
+import type { GeneratedArtifact, OutputMode, SystemArchitecture } from '../features/vendors/model'
 import { getRelease } from '../features/sources/releases'
-import GeneratorControls from './GeneratorControls.vue'
+import SelectionSummary from './SelectionSummary.vue'
+import ReviewStep from './ReviewStep.vue'
 import SourceOutput from './SourceOutput.vue'
+import StudioProgress from './StudioProgress.vue'
+import SystemStep from './SystemStep.vue'
+import VendorStep from './VendorStep.vue'
 
 const release = ref<ReleaseCodename>('trixie')
+const architecture = ref<SystemArchitecture>('amd64')
 const format = ref<SourceFormat>('deb822')
 const includeSource = ref(false)
 const includeContrib = ref(false)
@@ -18,7 +26,16 @@ const includeUpdates = ref(true)
 const includeBackports = ref(false)
 const generatedText = ref('')
 const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
+const activeStep = ref(1)
+const selectedIds = ref<string[]>([])
+const outputMode = ref<OutputMode>('perVendor')
 let feedbackVersion = 0
+
+const stepFocusTargets: Readonly<Record<number, string>> = {
+  1: 'system-step-title',
+  2: 'vendor-step-title',
+  3: 'review-step-title',
+}
 
 const filename = computed(() => getOutputFilename(format.value))
 const components = computed(() => [
@@ -27,6 +44,21 @@ const components = computed(() => [
   ...(includeNonFree.value ? ['non-free'] : []),
   ...(includeFirmware.value ? ['non-free-firmware'] : []),
 ])
+const sourceOptions = computed<SourceOptions>(() => ({
+  release: release.value,
+  format: format.value,
+  includeSource: includeSource.value,
+  includeSecurity: includeSecurity.value,
+  includeUpdates: includeUpdates.value,
+  includeBackports: includeBackports.value,
+  components: components.value,
+}))
+const debianArtifact = computed<GeneratedArtifact>(() => ({
+  filename: getOutputFilename(format.value),
+  mediaType: 'text/plain',
+  description: 'Debian-Paketquellen',
+  content: generateSources(sourceOptions.value),
+}))
 
 watch(release, (codename) => {
   const selected = getRelease(codename)
@@ -56,6 +88,7 @@ watch(release, (codename) => {
 
 watch([
   release,
+  architecture,
   format,
   includeSource,
   includeContrib,
@@ -70,21 +103,34 @@ watch([
   feedback.value = null
 })
 
+watch([release, architecture], ([nextRelease, nextArchitecture], previousSystem) => {
+  const selected = new Set(selectedIds.value)
+  const removedProducts = VENDOR_PRODUCTS.filter((product) => selected.has(product.id)
+    && !getVendorCompatibility(product, nextRelease, nextArchitecture).compatible)
+  if (removedProducts.length === 0) return
+
+  const removedIds = new Set(removedProducts.map((product) => product.id))
+  selectedIds.value = selectedIds.value.filter((id) => !removedIds.has(id))
+  feedbackVersion += 1
+  const changedSystem = previousSystem?.[0] !== nextRelease
+    ? `Release ${nextRelease.charAt(0).toUpperCase()}${nextRelease.slice(1)}`
+    : `Architektur ${nextArchitecture}`
+  feedback.value = {
+    kind: 'success',
+    message: `${changedSystem}: ${removedProducts.map((product) => product.name).join(', ')} ${removedProducts.length === 1 ? 'wurde' : 'wurden'} aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`,
+  }
+}, { flush: 'post' })
+
+watch(activeStep, async (step) => {
+  await nextTick()
+  document.getElementById(stepFocusTargets[step] ?? '')?.focus()
+}, { flush: 'post' })
+
 function generate(): void {
   feedbackVersion += 1
   feedback.value = null
 
-  const options: SourceOptions = {
-    release: release.value,
-    format: format.value,
-    includeSource: includeSource.value,
-    includeSecurity: includeSecurity.value,
-    includeUpdates: includeUpdates.value,
-    includeBackports: includeBackports.value,
-    components: components.value,
-  }
-
-  generatedText.value = generateSources(options)
+  generatedText.value = generateSources(sourceOptions.value)
 }
 
 async function copyGeneratedText(content: string): Promise<void> {
@@ -96,14 +142,14 @@ async function copyGeneratedText(content: string): Promise<void> {
     if (copyVersion !== feedbackVersion) {
       return
     }
-    feedback.value = { kind: 'success', message: 'Copied generated configuration.' }
+    feedback.value = { kind: 'success', message: 'Die erzeugte Konfiguration wurde kopiert.' }
   } catch {
     if (copyVersion !== feedbackVersion) {
       return
     }
     feedback.value = {
       kind: 'error',
-      message: 'Copy failed. Please select the generated configuration and copy the configuration manually.',
+      message: 'Kopieren fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und kopiere sie manuell.',
     }
   }
 }
@@ -114,11 +160,11 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
   try {
     downloadText(outputFilename, content)
-    feedback.value = { kind: 'success', message: `Downloaded ${outputFilename}.` }
+    feedback.value = { kind: 'success', message: `${outputFilename} wurde heruntergeladen.` }
   } catch {
     feedback.value = {
       kind: 'error',
-      message: 'Download failed. Please select the generated configuration and save the configuration manually.',
+      message: 'Herunterladen fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und speichere sie manuell.',
     }
   }
 }
@@ -126,35 +172,24 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
 <template>
   <section
+    aria-label="Debian Studio Arbeitsbereich"
     class="source-generator"
-    aria-labelledby="source-generator-title"
   >
-    <v-card
-      class="source-generator__intro"
-      color="primary"
-      variant="tonal"
-    >
-      <v-card-text>
-        <div class="source-generator__intro-content">
-          <v-icon
-            aria-hidden="true"
-            icon="mdi-debian"
-            size="48"
-          />
-          <div>
-            <h1 id="source-generator-title">
-              Debian sources generator
-            </h1>
-            <p>
-              Build an official Debian repository configuration from the release catalog bundled with DebGen.
-            </p>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+    <StudioProgress v-model="activeStep" />
 
-    <GeneratorControls
+    <SelectionSummary
+      :architecture="architecture"
+      :repository-count="selectedIds.length"
+      :release="release"
+      :output-mode="outputMode"
+      :current-step="activeStep"
+      @navigate="activeStep = $event"
+    />
+
+    <template v-if="activeStep === 1">
+      <SystemStep
       v-model:release="release"
+      v-model:architecture="architecture"
       v-model:format="format"
       v-model:include-source="includeSource"
       v-model:include-contrib="includeContrib"
@@ -163,63 +198,131 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       v-model:include-security="includeSecurity"
       v-model:include-updates="includeUpdates"
       v-model:include-backports="includeBackports"
-    />
+      />
 
-    <div class="source-generator__submit">
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-file-document-plus-outline"
-        size="large"
-        @click="generate"
-      >
-        Generate sources
-      </v-btn>
-    </div>
-
-    <SourceOutput
-      v-if="generatedText"
-      :content="generatedText"
-      :filename="filename"
-    >
-      <template #actions="{ content, filename: outputFilename }">
+      <div class="source-generator__submit">
         <v-btn
-          prepend-icon="mdi-content-copy"
-          variant="tonal"
-          @click="copyGeneratedText(content)"
-        >
-          Copy
-        </v-btn>
-        <v-btn
+          class="studio-touch-target"
           color="primary"
-          prepend-icon="mdi-download"
-          @click="downloadGeneratedText(outputFilename, content)"
+          prepend-icon="mdi-file-document-plus-outline"
+          size="large"
+          @click="generate"
         >
-          Download
+          Paketquellen erzeugen
         </v-btn>
-      </template>
-    </SourceOutput>
+        <v-btn
+          append-icon="mdi-arrow-right"
+          class="studio-touch-target"
+          variant="tonal"
+          @click="activeStep = 2"
+        >
+          Weiter zur Software
+        </v-btn>
+      </div>
 
-    <div
-      v-else
-      aria-label="Generated configuration actions"
-      class="source-output__actions"
-      role="group"
-    >
-      <v-btn
-        disabled
-        prepend-icon="mdi-content-copy"
-        variant="tonal"
+      <SourceOutput
+        v-if="generatedText"
+        :content="generatedText"
+        :filename="filename"
       >
-        Copy
-      </v-btn>
-      <v-btn
-        color="primary"
-        disabled
-        prepend-icon="mdi-download"
+        <template #actions="{ content, filename: outputFilename }">
+          <v-btn
+            class="studio-touch-target"
+            prepend-icon="mdi-content-copy"
+            variant="tonal"
+            @click="copyGeneratedText(content)"
+          >
+            Kopieren
+          </v-btn>
+          <v-btn
+            class="studio-touch-target"
+            color="primary"
+            prepend-icon="mdi-download"
+            @click="downloadGeneratedText(outputFilename, content)"
+          >
+            Herunterladen
+          </v-btn>
+        </template>
+      </SourceOutput>
+
+      <div
+        v-else
+        aria-label="Aktionen für die erzeugte Konfiguration"
+        class="source-output__actions"
+        role="group"
       >
-        Download
-      </v-btn>
-    </div>
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-content-copy"
+          disabled
+          variant="tonal"
+        >
+          Kopieren
+        </v-btn>
+        <v-btn
+          class="studio-touch-target"
+          color="primary"
+          disabled
+          prepend-icon="mdi-download"
+        >
+          Herunterladen
+        </v-btn>
+      </div>
+    </template>
+
+    <template v-else-if="activeStep === 2">
+      <VendorStep
+        v-model:selected-ids="selectedIds"
+        :architecture="architecture"
+        :release="release"
+      />
+      <div class="source-generator__submit source-generator__submit--between">
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-arrow-left"
+          variant="text"
+          @click="activeStep = 1"
+        >
+          Zurück zum Debian-System
+        </v-btn>
+        <v-btn
+          append-icon="mdi-arrow-right"
+          class="studio-touch-target"
+          color="primary"
+          @click="activeStep = 3"
+        >
+          Auswahl prüfen
+        </v-btn>
+      </div>
+    </template>
+
+    <template v-else>
+      <ReviewStep
+        v-model:output-mode="outputMode"
+        :architecture="architecture"
+        :debian-artifact="debianArtifact"
+        :release="release"
+        :selected-ids="selectedIds"
+      />
+      <div class="source-generator__submit source-generator__submit--between">
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-arrow-left"
+          variant="text"
+          @click="activeStep = 2"
+        >
+          Auswahl bearbeiten
+        </v-btn>
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-cog-outline"
+          variant="tonal"
+          @click="activeStep = 1"
+        >
+          System bearbeiten
+        </v-btn>
+      </div>
+    </template>
 
     <div
       aria-live="polite"

@@ -25,8 +25,12 @@ export function downloadText(
     createObjectURL: globalThis.URL.createObjectURL.bind(globalThis.URL),
     revokeObjectURL: globalThis.URL.revokeObjectURL.bind(globalThis.URL),
   },
+  mediaType = 'text/plain',
 ): void {
-  const blob = new environment.Blob([text], { type: 'text/plain;charset=utf-8' })
+  const contentType = mediaType.startsWith('text/') && !/;\s*charset=/i.test(mediaType)
+    ? `${mediaType};charset=utf-8`
+    : mediaType
+  const blob = new environment.Blob([text], { type: contentType })
   const objectUrl = environment.createObjectURL(blob)
 
   try {

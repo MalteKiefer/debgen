@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ReleaseCodename, SourceFormat } from '../features/sources/model'
+import type { SystemArchitecture } from '../features/vendors/model'
 import { getRelease, RELEASES } from '../features/sources/releases'
 
 const release = defineModel<ReleaseCodename>('release', { required: true })
+const architecture = defineModel<SystemArchitecture>('architecture', { required: true })
 const format = defineModel<SourceFormat>('format', { required: true })
 const includeSource = defineModel<boolean>('includeSource', { required: true })
 const includeContrib = defineModel<boolean>('includeContrib', { required: true })
@@ -15,14 +17,32 @@ const includeBackports = defineModel<boolean>('includeBackports', { required: tr
 
 const availabilityId = 'release-capability-status'
 const selectedRelease = computed(() => getRelease(release.value))
+const releaseStatus = computed(() => {
+  const statuses: Record<string, string> = {
+    stable: 'stabil',
+    'oldstable / LTS': 'vorherige stabile Version / LTS',
+    'oldoldstable / LTS': 'ältere stabile Version / LTS',
+    testing: 'Testversion',
+    unstable: 'instabil',
+  }
+
+  return statuses[selectedRelease.value.status] ?? selectedRelease.value.status
+})
 
 const releaseItems = RELEASES.map((entry) => ({
   title: entry.codename.charAt(0).toUpperCase() + entry.codename.slice(1),
   value: entry.codename,
 }))
 
+const architectureItems = [
+  { title: 'amd64 (64-Bit-PC)', value: 'amd64' },
+  { title: 'arm64 (64-Bit-ARM)', value: 'arm64' },
+  { title: 'armhf (32-Bit-ARM)', value: 'armhf' },
+  { title: 'i386 (32-Bit-PC)', value: 'i386' },
+] satisfies { title: string, value: SystemArchitecture }[]
+
 const formatItems = computed(() => selectedRelease.value.formats.map((entry) => ({
-  title: entry === 'deb822' ? 'DEB822 (.sources)' : 'Legacy sources.list (.list, deprecated)',
+  title: entry === 'deb822' ? 'DEB822 (.sources)' : 'Klassische sources.list (.list, veraltet)',
   value: entry,
 })))
 
@@ -36,18 +56,18 @@ const availabilityMessage = computed(() => {
     + selectedRelease.value.codename.slice(1)
 
   if (selectedRelease.value.codename === 'bullseye') {
-    return 'Bullseye does not provide non-free-firmware or backports. Those controls are disabled. The legacy sources.list format is deprecated.'
+    return 'Bullseye bietet weder non-free-firmware noch Backports. Diese Steuerelemente sind deaktiviert. Das klassische sources.list-Format ist veraltet.'
   }
   if (selectedRelease.value.codename === 'bookworm') {
-    return 'Bookworm supports DEB822 and the deprecated legacy sources.list format. Backports support ended on 2026-08-09, so that control is disabled.'
+    return 'Bookworm unterstützt DEB822 und das veraltete klassische sources.list-Format. Die Backports-Unterstützung endete am 09.08.2026, deshalb ist dieses Steuerelement deaktiviert.'
   }
   if (!supportsSecurity.value && !supportsUpdates.value && !supportsBackports.value) {
-    return `${name} is base-only: security, updates, and backports suites are unavailable.`
+    return `${name} enthält nur die Basisquelle: Security, Updates und Backports sind nicht verfügbar.`
   }
   if (selectedRelease.value.formats.length === 1) {
-    return `${name} uses the recommended DEB822 format. Security, updates, and backports are available.`
+    return `${name} nutzt das empfohlene DEB822-Format. Security, Updates und Backports sind verfügbar.`
   }
-  return `${name} supports DEB822 and the deprecated legacy sources.list format.`
+  return `${name} unterstützt DEB822 und das veraltete klassische sources.list-Format.`
 })
 
 function describedBy(supported: boolean): string | undefined {
@@ -61,26 +81,33 @@ function describedBy(supported: boolean): string | undefined {
     variant="outlined"
   >
     <v-card-title id="generator-controls-title">
-      Repository configuration
+      Paketquellen konfigurieren
     </v-card-title>
     <v-card-subtitle>
-      {{ selectedRelease.status }}
+      {{ releaseStatus }}
     </v-card-subtitle>
 
     <v-card-text>
       <div class="generator-controls__selects">
         <v-select
           v-model="release"
-          aria-label="Debian release"
+          aria-label="Debian-Version"
           :items="releaseItems"
-          label="Debian release"
+          label="Debian-Version"
+        variant="outlined"
+      />
+        <v-select
+          v-model="architecture"
+          aria-label="Architektur"
+          :items="architectureItems"
+          label="Architektur"
           variant="outlined"
         />
         <v-select
           v-model="format"
-          aria-label="Output format"
+          aria-label="Ausgabeformat"
           :items="formatItems"
-          label="Output format"
+          label="Ausgabeformat"
           variant="outlined"
         />
       </div>
@@ -98,18 +125,18 @@ function describedBy(supported: boolean): string | undefined {
 
       <div class="generator-controls__groups">
         <fieldset>
-          <legend>Package indexes</legend>
+          <legend>Paketindizes</legend>
           <v-switch
             v-model="includeSource"
-            aria-label="Source packages"
+            aria-label="Quellpakete"
             color="primary"
             hide-details
-            label="Source packages"
+            label="Quellpakete"
           />
         </fieldset>
 
         <fieldset>
-          <legend>Repository components</legend>
+          <legend>Repository-Komponenten</legend>
           <v-checkbox
             v-model="includeContrib"
             aria-label="Contrib"
@@ -136,7 +163,7 @@ function describedBy(supported: boolean): string | undefined {
         </fieldset>
 
         <fieldset>
-          <legend>Additional suites</legend>
+          <legend>Zusätzliche Suiten</legend>
           <v-checkbox
             v-model="includeSecurity"
             aria-label="Security"

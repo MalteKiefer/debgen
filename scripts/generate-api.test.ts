@@ -1,14 +1,30 @@
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
+import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { generateApi } from './generate-api'
+import { VENDOR_PRODUCTS } from '../src/features/vendors/catalog'
+import { getVendorCompatibility } from '../src/features/vendors/compatibility'
+import type { SystemArchitecture } from '../src/features/vendors/model'
+import { RELEASES } from '../src/features/sources/releases'
+import { generateApi, resolveManifestUrl } from './generate-api'
 
 const outputRoots: string[] = []
+const apiArchitectures: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
 
 afterEach(async () => {
   await Promise.all(outputRoots.splice(0).map((outputRoot) => rm(outputRoot, { force: true, recursive: true })))
 })
+
+async function readFileTree(root: string, relativeDirectory = ''): Promise<Record<string, string>> {
+  const entries = await readdir(join(root, relativeDirectory), { withFileTypes: true })
+  const tree: Record<string, string> = {}
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name, 'en'))) {
+    const relativePath = join(relativeDirectory, entry.name)
+    if (entry.isDirectory()) Object.assign(tree, await readFileTree(root, relativePath))
+    else tree[relativePath.replaceAll('\\', '/')] = await readFile(join(root, relativePath), 'utf8')
+  }
+  return tree
+}
 
 const trixieSources = `Types: deb
 URIs: https://deb.debian.org/debian
@@ -92,6 +108,24 @@ const expectedProfileFiles = {
 } as const
 
 describe('versioned static API generation', () => {
+  it('accepts only URLs that resolve exactly beneath their manifest directory', () => {
+    const manifestUrl = 'https://maltekiefer.github.io/debgen/api/v1/vendors.json'
+
+    expect(resolveManifestUrl('vendors/brave-browser/trixie/amd64/brave-browser.sources', manifestUrl).href)
+      .toBe('https://maltekiefer.github.io/debgen/api/v1/vendors/brave-browser/trixie/amd64/brave-browser.sources')
+    for (const unsafeUrl of [
+      '/api/v1/vendors/brave-browser/trixie/amd64/brave-browser.sources',
+      '../releases.json',
+      'vendors/brave-browser#fragment',
+      'vendors/brave-browser?query=value',
+      'vendors/brave-browser%2fsources',
+      'vendors\\brave-browser',
+      'https://example.invalid/api/v1/vendors/brave-browser',
+    ]) {
+      expect(() => resolveManifestUrl(unsafeUrl, manifestUrl)).toThrow(/manifest url/i)
+    }
+  })
+
   it('writes the exact canonical profiles and manifest', async () => {
     const outputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
     outputRoots.push(outputRoot)
@@ -117,10 +151,13 @@ describe('versioned static API generation', () => {
     expect((await readdir(outputRoot)).sort()).toEqual([
       'bookworm',
       'bullseye',
+      'catalog.json',
       'forky',
       'releases.json',
       'sid',
       'trixie',
+      'vendors',
+      'vendors.json',
     ])
     expect(generatedProfileFiles).toEqual(expectedProfileFiles)
     expect(manifestText).toMatch(/[^\n]\n$/)
@@ -187,5 +224,148 @@ describe('versioned static API generation', () => {
     expect(bullseyeProfiles).not.toContain('bullseye-backports')
     expect(Object.values(fileMap).join('\n')).not.toMatch(/-backports/)
     expect({ manifest, fileMap }).toMatchSnapshot()
+  })
+
+  it('publishes deterministic compatible vendor resources with resolvable manifest URLs', async () => {
+    const firstOutputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
+    const secondOutputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
+    outputRoots.push(firstOutputRoot, secondOutputRoot)
+
+    await generateApi(firstOutputRoot)
+    await generateApi(secondOutputRoot)
+
+    const [catalogText, releasesText, vendorsText] = await Promise.all([
+      readFile(join(firstOutputRoot, 'catalog.json'), 'utf8'),
+      readFile(join(firstOutputRoot, 'releases.json'), 'utf8'),
+      readFile(join(firstOutputRoot, 'vendors.json'), 'utf8'),
+    ])
+    const catalog = JSON.parse(catalogText) as {
+      debian: { url: string }
+      vendors: { url: string }
+    }
+    const releases = JSON.parse(releasesText) as Array<{ files: Array<{ url: string }> }>
+    const vendors = JSON.parse(vendorsText) as Array<{
+      id: string
+      documentationUrl: string
+      verifiedAt: string
+      compatibility: Array<{
+        release: string
+        architecture: string
+        source: { url: string }
+        install: { url: string }
+      }>
+    }>
+    const manifestUrls = [
+      catalog.debian.url,
+      catalog.vendors.url,
+      ...releases.flatMap((release) => release.files.map((file) => file.url)),
+      ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((combination) => [
+        combination.source.url,
+        combination.install.url,
+      ])),
+    ]
+
+    expect(catalog).toEqual({
+      debian: { url: 'releases.json' },
+      vendors: { url: 'vendors.json' },
+    })
+    expect(vendors.map((vendor) => vendor.id)).toEqual([...vendors.map((vendor) => vendor.id)].sort())
+    expect(vendors.map((vendor) => vendor.id)).toEqual([...VENDOR_PRODUCTS].map((product) => product.id).sort())
+    for (const product of VENDOR_PRODUCTS) {
+      const entry = vendors.find((vendor) => vendor.id === product.id)
+      expect(entry).toBeDefined()
+      for (const release of RELEASES) {
+        for (const architecture of apiArchitectures) {
+          const compatible = getVendorCompatibility(product, release.codename, architecture).compatible
+          const sourceUrl = `vendors/${product.id}/${release.codename}/${architecture}/${product.filename}`
+          const installUrl = `vendors/${product.id}/${release.codename}/${architecture}/install.sh`
+          const combination = entry?.compatibility.find((candidate) => (
+            candidate.release === release.codename && candidate.architecture === architecture
+          ))
+
+          if (compatible) {
+            expect(combination).toEqual({
+              release: release.codename,
+              architecture,
+              source: { url: sourceUrl },
+              install: { url: installUrl },
+            })
+            await expect(access(join(firstOutputRoot, sourceUrl))).resolves.toBeUndefined()
+            await expect(access(join(firstOutputRoot, installUrl))).resolves.toBeUndefined()
+          } else {
+            expect(combination).toBeUndefined()
+            await expect(access(join(firstOutputRoot, sourceUrl))).rejects.toThrow()
+            await expect(access(join(firstOutputRoot, installUrl))).rejects.toThrow()
+          }
+        }
+      }
+    }
+    expect(vendors.find((vendor) => vendor.id === 'brave-browser')).toMatchObject({
+      documentationUrl: 'https://brave.com/linux/',
+      verifiedAt: '2026-08-28',
+      compatibility: expect.arrayContaining([
+        {
+          release: 'trixie',
+          architecture: 'amd64',
+          source: { url: 'vendors/brave-browser/trixie/amd64/brave-browser.sources' },
+          install: { url: 'vendors/brave-browser/trixie/amd64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mozilla-firefox')).toMatchObject({
+      compatibility: expect.arrayContaining([
+        {
+          release: 'bookworm',
+          architecture: 'arm64',
+          source: { url: 'vendors/mozilla-firefox/bookworm/arm64/mozilla-firefox.sources' },
+          install: { url: 'vendors/mozilla-firefox/bookworm/arm64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mullvad-vpn')).toMatchObject({
+      compatibility: expect.arrayContaining([
+        {
+          release: 'sid',
+          architecture: 'amd64',
+          source: { url: 'vendors/mullvad-vpn/sid/amd64/mullvad-vpn.sources' },
+          install: { url: 'vendors/mullvad-vpn/sid/amd64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mozilla-firefox')?.compatibility)
+      .not.toContainEqual(expect.objectContaining({ release: 'sid' }))
+    expect(vendors.find((vendor) => vendor.id === 'mullvad-vpn')?.compatibility)
+      .not.toContainEqual(expect.objectContaining({ release: 'bullseye' }))
+    await expect(access(join(firstOutputRoot, 'vendors', 'mozilla-firefox', 'sid', 'amd64', 'mozilla-firefox.sources'))).rejects.toThrow()
+    await expect(access(join(firstOutputRoot, 'vendors', 'mullvad-vpn', 'bullseye', 'amd64', 'mullvad-vpn.sources'))).rejects.toThrow()
+    await Promise.all(manifestUrls.map((relativeUrl) => access(join(firstOutputRoot, relativeUrl))))
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'brave-browser', 'trixie', 'amd64', 'brave-browser.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://brave-browser-apt-release.s3.brave.com/
+Suites: stable
+Architectures: amd64
+Components: main
+Signed-By: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+`)
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'mozilla-firefox', 'bookworm', 'arm64', 'mozilla-firefox.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Architectures: arm64
+Components: main
+Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
+`)
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'mullvad-vpn', 'sid', 'amd64', 'mullvad-vpn.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://repository.mullvad.net/deb/stable
+Suites: stable
+Architectures: amd64
+Components: main
+Signed-By: /usr/share/keyrings/mullvad-keyring.asc
+`)
+    expect({
+      catalog,
+      representativeVendorEndpoints: vendors
+        .filter((vendor) => ['brave-browser', 'mozilla-firefox', 'mullvad-vpn'].includes(vendor.id))
+        .map((vendor) => ({ id: vendor.id, compatibility: vendor.compatibility })),
+    }).toMatchSnapshot()
+    expect(await readFileTree(secondOutputRoot)).toEqual(await readFileTree(firstOutputRoot))
   })
 })
