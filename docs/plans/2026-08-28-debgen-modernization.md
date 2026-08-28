@@ -107,7 +107,7 @@ Use literal, hand-checked expected output. Cover:
 - Trixie DEB822 with base+updates, separate security stanza, all selected components, and `.pgp` Signed-By.
 - Bookworm with optional backports.
 - Bullseye rejecting `non-free-firmware` and backports.
-- Forky and Sid emitting base only even if unsupported flags are requested.
+- Forky and Sid emitting base-only output for valid options and rejecting security, updates, or backports flags.
 - `deb deb-src` when source indexes are enabled.
 - Bookworm/Bullseye legacy lines with `[signed-by=/usr/share/keyrings/debian-archive-keyring.pgp]`.
 - Legacy format rejection for Trixie, Forky, and Sid.
