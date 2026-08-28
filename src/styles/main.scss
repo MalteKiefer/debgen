@@ -1,0 +1,162 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f5f4;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top right, rgb(215 10 83 / 8%), transparent 28rem),
+    #f7f5f4;
+  color: #261b20;
+}
+
+.app-header {
+  border-bottom: 3px solid #d70a53;
+}
+
+.app-header__link:focus-visible,
+.v-btn:focus-visible,
+.v-field:has(input:focus-visible),
+.v-selection-control:has(input:focus-visible) {
+  outline: 3px solid #6b1539;
+  outline-offset: 3px;
+}
+
+.app-main {
+  width: min(100% - 2rem, 70rem);
+  margin-inline: auto;
+  padding-block: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+.source-generator {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.source-generator__intro {
+  border-inline-start: 0.4rem solid #d70a53;
+}
+
+.source-generator__intro-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.source-generator h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  line-height: 1.1;
+}
+
+.source-generator p {
+  margin: 0;
+}
+
+.generator-controls__selects,
+.generator-controls__groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.generator-controls__status {
+  margin-bottom: 1rem;
+}
+
+.generator-controls__groups {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.generator-controls fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid #c9bcc1;
+  border-radius: 0.5rem;
+}
+
+.generator-controls legend {
+  padding-inline: 0.35rem;
+  font-weight: 700;
+}
+
+.source-generator__submit {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.source-output__filename {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem !important;
+}
+
+.source-output__filename span {
+  font-weight: 700;
+}
+
+.source-output__filename code {
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  background: #eee7ea;
+}
+
+.source-output__preview {
+  max-width: 100%;
+  max-height: 30rem;
+  margin: 0;
+  overflow: auto;
+  padding: clamp(0.75rem, 2.5vw, 1.25rem);
+  border: 1px solid #493740;
+  border-radius: 0.5rem;
+  background: #211a1d;
+  color: #fff8fa;
+  font: 0.875rem/1.55 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  white-space: pre;
+}
+
+.source-output__preview:focus-visible {
+  outline: 3px solid #d70a53;
+  outline-offset: 3px;
+}
+
+.source-output__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 700px) {
+  .app-main {
+    width: min(100% - 1rem, 70rem);
+    padding-block: 0.75rem 1.5rem;
+  }
+
+  .app-header__link:first-of-type {
+    display: none;
+  }
+
+  .source-generator__intro-content {
+    align-items: flex-start;
+  }
+
+  .generator-controls__selects,
+  .generator-controls__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .source-generator__submit .v-btn {
+    width: 100%;
+  }
+
+  .source-output__preview {
+    min-height: 14rem;
+    font-size: 0.78rem;
+  }
+}

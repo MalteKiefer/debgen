@@ -290,3 +290,6 @@ yarn-error.log
 
 # Local isolated development workspaces
 .worktrees/
+
+# Generated versioned static API
+public/api/v1/

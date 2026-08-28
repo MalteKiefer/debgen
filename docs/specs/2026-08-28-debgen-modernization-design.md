@@ -53,11 +53,11 @@ DEB822 output uses `/etc/apt/sources.list.d/debian.sources` and emits only field
 - HTTPS `URIs` for Debian and Debian Security services;
 - codename-based `Suites`;
 - selected `Components`;
-- `Signed-By` pointing at the Debian archive keyring.
+- `Signed-By` pointing at the Debian archive keyring filename shipped by the selected release: `.gpg` for Bookworm and Bullseye, `.pgp` for Trixie, Forky, and Sid.
 
 `main` is always enabled. `contrib` and `non-free` are optional. `non-free-firmware` is separately selectable where the release provides it and is offered by default from Bookworm onward.
 
-Security, updates, and backports are capability-driven rather than produced from string concatenation. Sid has no security, updates, or backports stanza. Testing only receives suites that officially exist and are supported. The catalog explicitly records these differences so invalid combinations cannot be generated.
+Security, updates, and backports are capability-driven rather than produced from string concatenation. Only Trixie offers supported backports; Bookworm Backports support ended on 2026-08-09. Sid has no security, updates, or backports stanza. Testing only receives suites that officially exist and are supported. The catalog explicitly records these differences so invalid combinations cannot be generated.
 
 Legacy output uses the one-line syntax only for Bookworm and Bullseye. It carries the equivalent suite, component, source-package, and `signed-by` semantics and is clearly labeled deprecated compatibility output.
 
@@ -82,9 +82,9 @@ GitHub Pages has no dynamic server. DebGen therefore publishes canonical, pre-ge
 /api/v1/sid/debian.sources
 ```
 
-Canonical profiles enable binary packages, supported standard updates and security suites, and the recommended components for the release. Backports remain opt-in in the interactive generator and are not silently enabled in canonical profiles.
+Canonical profiles enable binary packages, supported standard updates and security suites, and the recommended components for the release. Trixie backports remain opt-in in the interactive generator and are not silently enabled in canonical profiles.
 
-The versioned `releases.json` manifest describes each profile, its status, format, target filename, and URL. API output is deterministic and receives snapshot and semantic tests.
+The versioned `releases.json` manifest describes each profile, its status, format, target filename, and manifest-relative URL such as `trixie/debian.sources`. Resolving a file URL against the manifest URL must point to the sibling profile under `/api/v1/`. API output is deterministic and receives snapshot and semantic tests.
 
 A documented console example is:
 
@@ -104,6 +104,7 @@ Invalid catalog data fails validation during tests and builds. Runtime copy/down
 Development follows test-driven changes. Tests cover:
 
 - all supported release profiles;
+- release-compatible Debian archive keyring filenames;
 - permitted and forbidden suite combinations;
 - component availability, including `non-free-firmware`;
 - binary-only and binary-plus-source output;
@@ -116,7 +117,7 @@ Completion requires fresh successful runs of dependency installation, unit/compo
 
 ## Continuous Integration and Deployment
 
-GitHub Actions runs verification on pushes and pull requests. A separate Pages deployment job builds from the default branch, uploads the Vite artifact, and deploys it using GitHub's official Pages actions and permissions.
+GitHub Actions runs verification on pushes and pull requests. A separate Pages deployment job builds from the default branch, uploads the Vite artifact, and deploys it using GitHub's official Pages actions and permissions. Workflow actions are pinned to immutable commit SHAs with readable version comments, and Dependabot checks GitHub Actions weekly.
 
 Vite receives the repository base path for production while local development continues at `/`. The workflow pins the supported Node major and uses a committed lockfile with a frozen install.
 

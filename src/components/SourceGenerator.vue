@@ -1,372 +1,242 @@
-<template>
-  <v-row>
-    <v-col>
-      <v-row
-          class="mt-5 mb-5"
-      >
-        <v-alert
-            color="blue-grey"
-            dark
-            dense
-            icon="mdi-debian"
-            prominent
-        >
-          <strong>Welcome to the Debian SourcesList Generator.</strong> This service gives you the possibility to create
-          SourcesLists for your Debian installation. Although we have thoroughly checked all sources, we are not liable
-          for any damage caused to your system by using our service.
-        </v-alert>
-      </v-row>
-      <v-divider></v-divider>
-      <v-row
-          class="mt-5"
-      >
-        <v-col
-            cols="12"
-            sm="6"
-            md="6"
-        >
-          <v-select
-              :items="releases"
-              label="Release"
-              v-model="release"
-              outlined
-              @change="clean"
-              prepend-icon="mdi-debian"
-          ></v-select>
-          <v-checkbox
-              v-model="enable_version_lines"
-              dense
-              label="Allow combining Debian release and main repos (stable & bullseye, oldstable & buster)"
-          ></v-checkbox>
-        </v-col>
-        <v-col
-            cols="12"
-            sm="6"
-            md="6"
-        >
-          <v-row>
-            <v-col
-                cols="12"
-                sm="6"
-                md="6"
-            >
-              <v-checkbox
-                  v-model="include_source"
-                  dense
-                  label="Include source"
-              ></v-checkbox>
-              <v-checkbox
-                  dense
-                  @change="toggleNonFree"
-                  v-model="include_contrib"
-                  label="Contrib"
-              ></v-checkbox>
-              <v-checkbox
-                  dense
-                  :disabled="disable_nonfree"
-                  v-model="include_nonfree"
-                  label="Non-Free"
-              ></v-checkbox>
-            </v-col>
-            <v-col
-                cols="12"
-                sm="6"
-                md="6"
-            >
-              <v-checkbox
-                  dense
-                  v-model="include_security"
-                  label="Security"
-              ></v-checkbox>
-              <v-checkbox
-                  dense
-                  v-model="include_update"
-                  label="Updates"
-              ></v-checkbox>
-              <v-checkbox
-                  dense
-                  v-model="include_backports"
-                  label="Backports"
-              ></v-checkbox>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-      <v-divider></v-divider>
-      <v-row class="mt-3">
-        <v-col>
-          <v-alert
-              dense
-              border="left"
-              type="warning"
-              v-if="!release && !generated"
-          >
-            Please select a release first to see the 3rd party repos.
-          </v-alert>
-          <v-data-table
-              :headers="headers"
-              :items="filteredRepos"
-              item-key="name"
-              sort-by="name"
-              group-by="category"
-              class="elevation-8"
-              show-group-by
-              disable-pagination
-              hide-default-footer
-              v-if="release"
-              :items-per-page="repos.length"
-              show-select
-              v-model="selected_repos"
-          >
-            <template v-slot:[`group.header`]="{ group, headers }">
-              <td :colspan="headers.length">
-                <strong>{{ group }}</strong>
-              </td>
-            </template>
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { copyText, downloadText } from '../features/sources/download'
+import { generateSources, getOutputFilename } from '../features/sources/generate'
+import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
+import { getRelease } from '../features/sources/releases'
+import GeneratorControls from './GeneratorControls.vue'
+import SourceOutput from './SourceOutput.vue'
 
-          </v-data-table>
-        </v-col>
-      </v-row>
-      <v-row class="mt-3">
-        <v-col>
-          <v-alert
-              dense
-              type="info"
-              outlined
-              v-if="!release && generated"
-          > Attention! Before you start install these packages first: <code>apt install curl wget apt-transport-https
-            dirmngr gnupg2 </code>
-          </v-alert>
-          <v-textarea
-              label="/etc/sources.list"
-              readonly
-              rows="15"
-              filled
-              v-if="!release && generated"
-              v-model="sources"
-          >
+const release = ref<ReleaseCodename>('trixie')
+const format = ref<SourceFormat>('deb822')
+const includeSource = ref(false)
+const includeContrib = ref(false)
+const includeNonFree = ref(false)
+const includeFirmware = ref(true)
+const includeSecurity = ref(true)
+const includeUpdates = ref(true)
+const includeBackports = ref(false)
+const generatedText = ref('')
+const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
+let feedbackVersion = 0
 
-          </v-textarea>
-          <v-textarea
-              label="GPG Keys"
-              readonly
-              filled
-              rows="15"
-              v-if="!release && generated && keys != ''"
-              v-model="keys"
-          >
+const filename = computed(() => getOutputFilename(format.value))
+const components = computed(() => [
+  'main',
+  ...(includeContrib.value ? ['contrib'] : []),
+  ...(includeNonFree.value ? ['non-free'] : []),
+  ...(includeFirmware.value ? ['non-free-firmware'] : []),
+])
 
-          </v-textarea>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col
-            cols="12"
-            sm="12"
-            md="12"
-            align="center"
-        >
-          <v-btn
-              depressed
-              color="warning"
-              @click="reset"
-              v-if="!release && generated"
-          >
-            Reset
-          </v-btn>
-          <v-btn
-              depressed
-              color="primary"
-              @click="generate"
-              v-if="release != null"
-          >
-            Generate
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
-</template>
+watch(release, (codename) => {
+  const selected = getRelease(codename)
 
-<script>
-export default {
-  name: "SourceGenerator",
-  data: () => ({
-    repos: [],
-    release: "Bullseye",
-    enable_version_lines: false,
-    disable_nonfree: false,
-    include_source: true,
-    include_contrib: true,
-    include_nonfree: true,
-    include_security: true,
-    include_update: true,
-    include_backports: true,
-    sources: null,
-    keys: '',
-    generated: false,
-    releases: [],
-    selected_repos: [],
-    headers: [
-      {text: 'Name', align: 'start', value: 'name', groupable: false,},
-      {text: 'Description', value: 'description', groupable: false,},
-      {text: 'Category', value: 'category', align: 'right'},
-    ],
-  }),
-  methods: {
+  if (!selected.formats.includes(format.value)) {
+    format.value = selected.formats[0]
+  }
+  if (!selected.components.includes('contrib')) {
+    includeContrib.value = false
+  }
+  if (!selected.components.includes('non-free')) {
+    includeNonFree.value = false
+  }
+  if (!selected.components.includes('non-free-firmware')) {
+    includeFirmware.value = false
+  }
+  if (!selected.capabilities.security) {
+    includeSecurity.value = false
+  }
+  if (!selected.capabilities.updates) {
+    includeUpdates.value = false
+  }
+  if (!selected.capabilities.backports) {
+    includeBackports.value = false
+  }
+}, { flush: 'sync' })
 
-    clean: function () {
-      this.selected_repos = []
-      this.keys = []
-    },
+watch([
+  release,
+  format,
+  includeSource,
+  includeContrib,
+  includeNonFree,
+  includeFirmware,
+  includeSecurity,
+  includeUpdates,
+  includeBackports,
+], () => {
+  feedbackVersion += 1
+  generatedText.value = ''
+  feedback.value = null
+})
 
-    reset: function () {
-      this.selected_repos = []
-      this.keys = []
-      this.release = "Bullseye"
-      this.generated = false
-    },
+function generate(): void {
+  feedbackVersion += 1
+  feedback.value = null
 
-    toggleNonFree: function (){
-     if(this.include_contrib)
-        this.disable_nonfree = false
-      else {
-       this.include_nonfree = false
-       this.disable_nonfree = true
-     }
-    },
+  const options: SourceOptions = {
+    release: release.value,
+    format: format.value,
+    includeSource: includeSource.value,
+    includeSecurity: includeSecurity.value,
+    includeUpdates: includeUpdates.value,
+    includeBackports: includeBackports.value,
+    components: components.value,
+  }
 
-    getReleases: function () {
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/releases.json')
-          .then(function (response) {
-            this.releases = response.data
-          }.bind(this))
-    },
+  generatedText.value = generateSources(options)
+}
 
-    getRepos: function () {
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/repos.json')
-          .then(function (response) {
-            this.repos = response.data
-          }.bind(this))
-    },
-    generate: function () {
-      this.generated = true
-      const release = this.release.toLowerCase()
+async function copyGeneratedText(content: string): Promise<void> {
+  const copyVersion = ++feedbackVersion
+  feedback.value = null
 
+  try {
+    await copyText(content)
+    if (copyVersion !== feedbackVersion) {
+      return
+    }
+    feedback.value = { kind: 'success', message: 'Copied generated configuration.' }
+  } catch {
+    if (copyVersion !== feedbackVersion) {
+      return
+    }
+    feedback.value = {
+      kind: 'error',
+      message: 'Copy failed. Please select the generated configuration and copy the configuration manually.',
+    }
+  }
+}
 
-      this.$http.get('https://raw.githubusercontent.com/MalteKiefer/debgen/master/repos/debian_' + release + '.json')
-          .then(function (response) {
-            this.sources = '' +
-                '#------------------------------------------------------------------------------#\n' +
-                '#                   OFFICIAL DEBIAN REPOS                    \n' +
-                '#------------------------------------------------------------------------------#\n' +
-                '###### Debian Main Repos\n'
+function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list', content: string): void {
+  feedbackVersion += 1
+  feedback.value = null
 
-            if (this.include_nonfree) {
-              this.sources = this.sources + response.data.main_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.main_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src_contrib + '\n' + '\n'
-            }
-            if (!this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.main + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.main_src + '\n' + '\n'
-            }
-
-            if (this.include_nonfree && this.include_security) {
-              this.sources = this.sources + response.data.security_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_security && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.security_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src_contrib + '\n' + '\n'
-            }
-            if (this.include_security && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.security + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.security_src + '\n' + '\n'
-            }
-
-            if (this.include_nonfree && this.include_update) {
-              this.sources = this.sources + response.data.updates_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src_nonfree + '\n' + '\n'
-            }
-            if (this.include_update && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.updates_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src_contrib + '\n' + '\n'
-            }
-            if (this.include_update && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.updates + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.updates_src + '\n' + '\n'
-            }
-
-            if (this.include_nonfree && this.include_backports) {
-              this.sources = this.sources + response.data.backports_nonfree + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src_nonfree
-            }
-            if (this.include_backports && this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.backports_contrib + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src_contrib
-            }
-            if (this.include_backports && !this.include_contrib && !this.include_nonfree) {
-              this.sources = this.sources + response.data.backports + '\n'
-              if (this.include_source)
-                this.sources = this.sources + response.data.backports_src
-            }
-
-            if (this.selected_repos.length > 0) {
-              this.sources = this.sources + '\n\n' +
-                  '#------------------------------------------------------------------------------#\n' +
-                  '#                   UNOFFICIAL  REPOS                    \n' +
-                  '#------------------------------------------------------------------------------#\n' +
-                  '###### 3rd Party Binary Repos\n\n'
-
-              for (const element of this.selected_repos) {
-                this.sources = this.sources + '###' + element.name + '\n'
-                this.sources = this.sources + element.repo + '\n'
-                if (this.include_source && element.repo_src)
-                  this.sources = this.sources + element.repo_src + '\n' + '\n'
-                else
-                  this.sources = this.sources + '\n'
-
-                this.keys = this.keys + element.key + '\n'
-              }
-            }
-
-            this.release = null
-          }.bind(this))
-
-
-    },
-  },
-  mounted() {
-    this.getReleases()
-    this.getRepos()
-  },
-  computed: {
-    filteredRepos() {
-      return this.repos.filter(item => {
-        return item.release === this.release
-      })
-    },
+  try {
+    downloadText(outputFilename, content)
+    feedback.value = { kind: 'success', message: `Downloaded ${outputFilename}.` }
+  } catch {
+    feedback.value = {
+      kind: 'error',
+      message: 'Download failed. Please select the generated configuration and save the configuration manually.',
+    }
   }
 }
 </script>
-<style>
-textarea {
-  font-size: 0.7em;
-  line-height: 1rem !important;
-}
-</style>
+
+<template>
+  <section
+    class="source-generator"
+    aria-labelledby="source-generator-title"
+  >
+    <v-card
+      class="source-generator__intro"
+      color="primary"
+      variant="tonal"
+    >
+      <v-card-text>
+        <div class="source-generator__intro-content">
+          <v-icon
+            aria-hidden="true"
+            icon="mdi-debian"
+            size="48"
+          />
+          <div>
+            <h1 id="source-generator-title">
+              Debian sources generator
+            </h1>
+            <p>
+              Build an official Debian repository configuration from the release catalog bundled with DebGen.
+            </p>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <GeneratorControls
+      v-model:release="release"
+      v-model:format="format"
+      v-model:include-source="includeSource"
+      v-model:include-contrib="includeContrib"
+      v-model:include-non-free="includeNonFree"
+      v-model:include-firmware="includeFirmware"
+      v-model:include-security="includeSecurity"
+      v-model:include-updates="includeUpdates"
+      v-model:include-backports="includeBackports"
+    />
+
+    <div class="source-generator__submit">
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-file-document-plus-outline"
+        size="large"
+        @click="generate"
+      >
+        Generate sources
+      </v-btn>
+    </div>
+
+    <SourceOutput
+      v-if="generatedText"
+      :content="generatedText"
+      :filename="filename"
+    >
+      <template #actions="{ content, filename: outputFilename }">
+        <v-btn
+          prepend-icon="mdi-content-copy"
+          variant="tonal"
+          @click="copyGeneratedText(content)"
+        >
+          Copy
+        </v-btn>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-download"
+          @click="downloadGeneratedText(outputFilename, content)"
+        >
+          Download
+        </v-btn>
+      </template>
+    </SourceOutput>
+
+    <div
+      v-else
+      aria-label="Generated configuration actions"
+      class="source-output__actions"
+      role="group"
+    >
+      <v-btn
+        disabled
+        prepend-icon="mdi-content-copy"
+        variant="tonal"
+      >
+        Copy
+      </v-btn>
+      <v-btn
+        color="primary"
+        disabled
+        prepend-icon="mdi-download"
+      >
+        Download
+      </v-btn>
+    </div>
+
+    <div
+      aria-live="polite"
+      class="source-generator__feedback"
+    >
+      <p
+        v-if="feedback?.kind === 'success'"
+        role="status"
+      >
+        {{ feedback.message }}
+      </p>
+      <p
+        v-else-if="feedback?.kind === 'error'"
+        role="alert"
+      >
+        {{ feedback.message }}
+      </p>
+    </div>
+  </section>
+</template>
