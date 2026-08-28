@@ -159,6 +159,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
       <div class="source-generator__submit">
         <v-btn
+          class="studio-touch-target"
           color="primary"
           prepend-icon="mdi-file-document-plus-outline"
           size="large"
@@ -168,6 +169,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
         </v-btn>
         <v-btn
           append-icon="mdi-arrow-right"
+          class="studio-touch-target"
           variant="tonal"
           @click="activeStep = 2"
         >
@@ -182,6 +184,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       >
         <template #actions="{ content, filename: outputFilename }">
           <v-btn
+            class="studio-touch-target"
             prepend-icon="mdi-content-copy"
             variant="tonal"
             @click="copyGeneratedText(content)"
@@ -189,6 +192,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
             Kopieren
           </v-btn>
           <v-btn
+            class="studio-touch-target"
             color="primary"
             prepend-icon="mdi-download"
             @click="downloadGeneratedText(outputFilename, content)"
@@ -205,6 +209,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
         role="group"
       >
         <v-btn
+          class="studio-touch-target"
           prepend-icon="mdi-content-copy"
           disabled
           variant="tonal"
@@ -212,6 +217,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           Kopieren
         </v-btn>
         <v-btn
+          class="studio-touch-target"
           color="primary"
           disabled
           prepend-icon="mdi-download"
@@ -233,7 +239,10 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
         Dieser Schritt wird mit den nächsten Studio-Bausteinen ergänzt. Deine Systemauswahl bleibt erhalten.
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="activeStep = 1">
+        <v-btn
+          class="studio-touch-target"
+          @click="activeStep = 1"
+        >
           Zurück zum Debian-System
         </v-btn>
       </v-card-actions>

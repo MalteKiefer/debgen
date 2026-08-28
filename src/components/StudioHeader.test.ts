@@ -9,5 +9,6 @@ describe('StudioHeader', () => {
     expect(wrapper.get('h1').text()).toBe('Debian Studio')
     expect(wrapper.text()).toContain('Nur offizielle Paketquellen')
     expect(wrapper.get('header').attributes('role')).toBe('banner')
+    expect(wrapper.findAll('a').every((link) => link.classes().includes('studio-touch-target'))).toBe(true)
   })
 })

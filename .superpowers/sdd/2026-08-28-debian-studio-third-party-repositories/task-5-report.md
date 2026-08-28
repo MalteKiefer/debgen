@@ -37,3 +37,26 @@
 - Brief und UI-Abschnitt der freigegebenen Spec abgeglichen: drei Schritte, Architekturzustand, deutsche Texte, Tastaturbedienung und responsive Zusammenfassung sind abgedeckt.
 - Keine Vendor-Generator- oder Katalogdatei wurde verändert.
 - Bekannte Einschränkung: Die Inhalte für die Schritte „Offizielle Software“ und „Prüfen und exportieren“ sind bewusst Platzhalter für die nachfolgenden Tasks; die Systemauswahl bleibt beim Wechsel erhalten.
+
+## Fix-Runde 1
+
+### RED
+
+- Der semantische Responsive-Test fand keine separate Desktop-Zusammenfassung und zeigte, dass die mobile Variante nur Quellenanzahl und Architektur enthielt.
+- Die Tests für Kopfbereich und Generator-Aktionen belegten, dass die einheitliche Touchziel-Klasse fehlte.
+
+### GREEN
+
+- Desktop und Mobil zeigen nun jeweils Release, Architektur, Repository-Anzahl und Ausgabemodus als eigene sichtbare Zusammenfassungen.
+- Alle in Task 5 eingeführten `v-btn`-Aktionen im Kopfbereich und Generator nutzen `studio-touch-target`; die CSS-Regel garantiert mindestens 44 Pixel Höhe.
+- Tests decken Space-Tastennavigation sowie den Erhalt von Release und Architektur nach einem Schrittwechsel ab.
+
+### Prüfung
+
+- Fokussiert: 4 Dateien, 22 Tests erfolgreich.
+- Gesamt: `npm run test:run` – 16 Dateien, 165 Tests erfolgreich.
+- `npm run typecheck`, `npm run lint` und `git diff --check` erfolgreich.
+
+### Commit
+
+- `fix: complete mobile studio summary`

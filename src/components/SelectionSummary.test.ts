@@ -16,10 +16,14 @@ describe('SelectionSummary', () => {
 
     expect(wrapper.get('[data-testid="auswahl-zusammenfassung"]').attributes('aria-label'))
       .toBe('Aktuelle Auswahl')
-    expect(wrapper.text()).toContain('Trixie')
-    expect(wrapper.text()).toContain('arm64')
-    expect(wrapper.text()).toContain('3 Paketquellen ausgewählt')
-    expect(wrapper.text()).toContain('Je Anbieter')
-    expect(wrapper.find('[data-testid="mobile-zusammenfassung"]').exists()).toBe(true)
+    const desktopSummary = wrapper.get('[data-testid="desktop-zusammenfassung"]')
+    const mobileSummary = wrapper.get('[data-testid="mobile-zusammenfassung"]')
+
+    for (const summary of [desktopSummary, mobileSummary]) {
+      expect(summary.text()).toContain('Trixie')
+      expect(summary.text()).toContain('arm64')
+      expect(summary.text()).toContain('3 Paketquellen ausgewählt')
+      expect(summary.text()).toContain('Je Anbieter')
+    }
   })
 })

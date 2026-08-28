@@ -43,6 +43,10 @@ body {
   margin-top: 0.3rem;
 }
 
+.studio-touch-target.v-btn {
+  min-block-size: 44px;
+}
+
 .studio-header:focus-visible,
 .v-btn:focus-visible,
 .v-field:has(input:focus-visible),
@@ -263,9 +267,15 @@ body {
   }
 
   .selection-summary__mobile {
-    display: block;
-    font-weight: 700;
-    text-align: center;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .selection-summary__mobile span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
   }
 
   .source-output__preview {

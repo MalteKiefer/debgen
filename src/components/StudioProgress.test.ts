@@ -18,4 +18,15 @@ describe('StudioProgress', () => {
 
     expect(wrapper.emitted('update:modelValue')).toEqual([[2]])
   })
+
+  it('aktiviert einen Schritt auch mit der Leertaste', async () => {
+    const wrapper = mount(StudioProgress, {
+      props: { modelValue: 1 },
+      global: { plugins: [vuetify] },
+    })
+
+    await wrapper.get('[aria-label="Schritt 3: Prüfen und exportieren"]').trigger('keydown.space')
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[3]])
+  })
 })

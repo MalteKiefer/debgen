@@ -21,7 +21,10 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     class="selection-summary"
     data-testid="auswahl-zusammenfassung"
   >
-    <div class="selection-summary__content">
+    <div
+      class="selection-summary__content"
+      data-testid="desktop-zusammenfassung"
+    >
       <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
       <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
       <span><v-icon icon="mdi-package-variant-closed-check" /> {{ repositoryCount }} Paketquellen ausgewählt</span>
@@ -31,7 +34,10 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
       class="selection-summary__mobile"
       data-testid="mobile-zusammenfassung"
     >
-      {{ repositoryCount }} Quellen · {{ architecture }}
+      <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
+      <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
+      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ repositoryCount }} Paketquellen ausgewählt</span>
+      <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
     </div>
   </aside>
 </template>

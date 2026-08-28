@@ -196,6 +196,34 @@ describe('SourceGenerator', () => {
     expect(enabledDownload?.attributes()).not.toHaveProperty('disabled')
   })
 
+  it('markiert Studio-Aktionen konsistent als mindestens 44 Pixel große Touchziele', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    const systemActions = wrapper.findAll('button')
+      .filter((button) => ['Paketquellen erzeugen', 'Weiter zur Software', 'Kopieren', 'Herunterladen']
+        .some((label) => button.text().includes(label)))
+    expect(systemActions).not.toHaveLength(0)
+    expect(systemActions.every((button) => button.classes().includes('studio-touch-target'))).toBe(true)
+
+    await clickButton(wrapper, 'Weiter zur Software')
+    const back = wrapper.findAll('button').find((button) => button.text().includes('Zurück zum Debian-System'))
+    expect(back?.classes()).toContain('studio-touch-target')
+  })
+
+  it('behält Version und Architektur beim Wechsel zwischen Studio-Schritten bei', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await choose(wrapper, 'Debian-Version', 'Bookworm')
+    await choose(wrapper, 'Architektur', 'arm64')
+    await clickButton(wrapper, 'Weiter zur Software')
+    await clickButton(wrapper, 'Zurück zum Debian-System')
+
+    expect(control(wrapper, 'Debian-Version').attributes('value')).toBe('Bookworm')
+    expect(control(wrapper, 'Architektur').attributes('value')).toContain('arm64')
+  })
+
   it('reports copied only after the generated text is copied', async () => {
     let resolveCopy: (() => void) | undefined
     copyTextMock.mockImplementation(() => new Promise<void>((resolve) => { resolveCopy = resolve }))

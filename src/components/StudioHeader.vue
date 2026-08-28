@@ -17,6 +17,7 @@
 
     <nav aria-label="Projektlinks">
       <v-btn
+        class="studio-touch-target"
         href="https://de.liberapay.com/beli3ver"
         rel="noopener noreferrer"
         target="_blank"
@@ -25,6 +26,7 @@
         Liberapay
       </v-btn>
       <v-btn
+        class="studio-touch-target"
         href="https://github.com/maltekiefer/debgen"
         rel="noopener noreferrer"
         target="_blank"
