@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { SystemArchitecture } from '../features/vendors/model'
 
 defineProps<{
@@ -7,6 +8,21 @@ defineProps<{
   repositoryCount: number
   outputMode: 'perVendor' | 'combined' | 'byCategory'
 }>()
+
+const mobileViewport = window.matchMedia('(max-width: 700px)')
+const isMobile = ref(mobileViewport.matches)
+
+function updateViewport(event: MediaQueryListEvent): void {
+  isMobile.value = event.matches
+}
+
+onMounted(() => {
+  mobileViewport.addEventListener('change', updateViewport)
+})
+
+onUnmounted(() => {
+  mobileViewport.removeEventListener('change', updateViewport)
+})
 
 function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string {
   if (mode === 'combined') return 'Kombiniert'
@@ -22,6 +38,7 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     data-testid="auswahl-zusammenfassung"
   >
     <div
+      v-if="!isMobile"
       class="selection-summary__content"
       data-testid="desktop-zusammenfassung"
     >
@@ -31,6 +48,7 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
     </div>
     <div
+      v-else
       class="selection-summary__mobile"
       data-testid="mobile-zusammenfassung"
     >

@@ -60,3 +60,27 @@
 ### Commit
 
 - `fix: complete mobile studio summary`
+
+## Fix-Runde 2
+
+### RED
+
+- Der Viewport-Test mit einem `matchMedia('(max-width: 700px)')`-Stub zeigte, dass Desktop- und mobile Zusammenfassung gleichzeitig im DOM lagen. Damit ließ sich ihre tatsächliche Sichtbarkeit bei kleinen Ansichten nicht nachweisen.
+
+### GREEN
+
+- `SelectionSummary` bindet die Ansicht an die Media Query und reagiert auf deren Änderungsereignis.
+- Bei Desktop-Breite wird ausschließlich die vollständige Desktop-Zusammenfassung gerendert; bei maximal 700 Pixeln ausschließlich die vollständige mobile Zusammenfassung.
+- Der mobile Test prüft Release, Architektur, Repository-Anzahl und Ausgabemodus im einzigen gerenderten Mobile-Block.
+- Der fehlende ESLint-Global für den DOM-Typ `MediaQueryListEvent` wurde analog zu `ResizeObserver` ergänzt.
+
+### Prüfung
+
+- RED: `npm run test:run -- src/components/SelectionSummary.test.ts` – zwei erwartete Sichtbarkeitsfehler.
+- GREEN, fokussiert: 2 Tests erfolgreich.
+- Gesamt: `npm run test:run` – 16 Dateien, 166 Tests erfolgreich.
+- `npm run typecheck`, `npm run lint` und `git diff --check` erfolgreich.
+
+### Commit
+
+- `fix: render one responsive studio summary`

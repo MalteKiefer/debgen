@@ -19,6 +19,7 @@ export default tseslint.config(
       globals: {
         document: 'readonly',
         window: 'readonly',
+        MediaQueryListEvent: 'readonly',
         ResizeObserver: 'readonly',
       },
     },
