@@ -7,7 +7,7 @@ import type {
   VendorRepositoryUrl,
 } from './model'
 import type { ReleaseCodename } from '../sources/model'
-import { validateVendorCatalog } from './validate'
+import { normalizeOpenPgpFingerprint, validateVendorCatalog } from './validate'
 
 export interface VendorGenerationConfig {
   readonly release: ReleaseCodename
@@ -82,6 +82,7 @@ function sourceArtifact(product: VendorProduct, config: VendorGenerationConfig):
     content: withOneTrailingNewline(fields.join('\n')),
     category: product.category,
     productId: product.id,
+    productName: product.name,
     ...(product.warning ? { riskNotes: [product.warning] } : {}),
   }
 }
@@ -95,6 +96,7 @@ function preferenceArtifact(product: VendorProduct): GeneratedArtifact | undefin
     content: withOneTrailingNewline(product.preferences),
     category: product.category,
     productId: product.id,
+    productName: product.name,
     ...(product.warning ? { riskNotes: [product.warning] } : {}),
   }
 }
@@ -123,28 +125,23 @@ function shellComment(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').replace(/[\t ]+/g, ' ').trim()
 }
 
-function normalizedFingerprint(fingerprint: string): string {
-  return fingerprint.replace(/\s/g, '').toUpperCase()
-}
-
 function keyInstallCommands(product: VendorProduct, index: number): string[] {
   const lines = [
-    '# ' + shellComment(product.name) + ' signing key',
+    '# Signaturschlüssel für ' + shellComment(product.name),
     'temporary_key="$temporary_directory/key-' + index + '"',
     'curl --fail --location --proto \'=https\' --tlsv1.2 --output "$temporary_key" ' + shellQuote(product.keyUrl),
   ]
-  if (product.fingerprint) {
+  if (product.fingerprints) {
+    const expectedFingerprints = product.fingerprints
+      .map(normalizeOpenPgpFingerprint)
+      .sort(compareCodePoints)
+      .join('\n')
     lines.push(
-      'expected_fingerprint=' + shellQuote(normalizedFingerprint(product.fingerprint)),
+      'expected_fingerprints=' + shellQuote(expectedFingerprints),
       'key_metadata="$(gpg --show-keys --with-colons "$temporary_key")"',
-      'primary_key_count="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { count++ } END { print count + 0 }\')"',
-      'if [ "$primary_key_count" -ne 1 ]; then',
-      '  echo "Expected exactly one primary signing key." >&2',
-      '  exit 1',
-      'fi',
-      'actual_fingerprint="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print $10; exit }\')"',
-      'if [ "$actual_fingerprint" != "$expected_fingerprint" ]; then',
-      '  echo "Signing-key fingerprint verification failed." >&2',
+      'actual_fingerprints="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"',
+      'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then',
+      '  echo "Die Fingerprints der Signaturschlüssel stimmen nicht mit den erwarteten Werten überein." >&2',
       '  exit 1',
       'fi',
     )

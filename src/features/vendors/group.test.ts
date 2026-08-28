@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { composeArtifacts, groupArtifacts } from './group'
 import type { GeneratedArtifact } from './model'
 
+type ArtifactWithProductName = GeneratedArtifact & { readonly productName?: string }
+
 const debian: GeneratedArtifact = {
   filename: 'debian.sources', mediaType: 'text/plain', description: 'Debian-Basis', content: 'Types: deb\n',
 }
@@ -31,6 +33,45 @@ describe('artifact grouping', () => {
   it('keeps per-vendor files in Debian-base, category, product, auxiliary order', () => {
     expect(groupArtifacts([installScript, firefoxPreferences, docker, debian, firefox], 'perVendor').map(({ filename }) => filename))
       .toEqual(['debian.sources', 'mozilla-firefox.sources', 'mozilla-firefox.pref', 'docker-engine.sources', 'install-vendor-repositories.sh'])
+  })
+
+  it('orders across products by category, display name, and then auxiliary kind', () => {
+    const artifact = (
+      filename: string,
+      category: GeneratedArtifact['category'],
+      productId: string,
+      productName: string,
+    ): ArtifactWithProductName => ({
+      filename,
+      mediaType: 'text/plain',
+      description: filename,
+      content: `${filename}\n`,
+      category,
+      productId,
+      productName,
+    })
+
+    const result = groupArtifacts([
+      installScript,
+      artifact('a-zulu.pref', 'browser', 'a-zulu', 'Zulu'),
+      artifact('communication-beta.pref', 'communication', 'communication-beta', 'Beta'),
+      artifact('z-alpha.sources', 'browser', 'z-alpha', 'Alpha'),
+      artifact('a-zulu.sources', 'browser', 'a-zulu', 'Zulu'),
+      artifact('communication-beta.sources', 'communication', 'communication-beta', 'Beta'),
+      artifact('z-alpha.pref', 'browser', 'z-alpha', 'Alpha'),
+      debian,
+    ], 'perVendor')
+
+    expect(result.map(({ filename }) => filename)).toEqual([
+      'debian.sources',
+      'z-alpha.sources',
+      'z-alpha.pref',
+      'a-zulu.sources',
+      'a-zulu.pref',
+      'communication-beta.sources',
+      'communication-beta.pref',
+      'install-vendor-repositories.sh',
+    ])
   })
 
   it('combines complete DEB822 source stanzas while retaining separate auxiliary files', () => {

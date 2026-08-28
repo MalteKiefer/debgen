@@ -70,7 +70,7 @@ function updateMode(event: Event): void {
     <header class="review-step__heading">
       <div>
         <p class="review-step__eyebrow">Schritt 3 von 3</p>
-        <h2 id="review-step-title">Prüfen und exportieren</h2>
+        <h2 id="review-step-title" tabindex="-1">Prüfen und exportieren</h2>
         <p>Kontrolliere jede Datei und jeden Befehl, bevor du sie auf deinem Debian-System verwendest.</p>
       </div>
       <v-chip color="primary" prepend-icon="mdi-shield-check-outline" variant="tonal">

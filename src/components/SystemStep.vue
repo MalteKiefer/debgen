@@ -40,7 +40,7 @@ const emit = defineEmits<{
         <p class="system-step__eyebrow">
           Schritt 1 von 3
         </p>
-        <h2 id="system-step-title">
+        <h2 id="system-step-title" tabindex="-1">
           Debian-System
         </h2>
         <p>

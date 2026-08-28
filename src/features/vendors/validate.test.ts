@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { VendorProduct } from './model'
 import { validateVendorCatalog } from './validate'
 
+type ProductWithFingerprints = VendorProduct & { readonly fingerprints?: readonly string[] }
+
 const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   id: 'example',
   name: 'Example',
@@ -135,5 +137,32 @@ describe('validateVendorCatalog', () => {
   it('requires components for normal suites', () => {
     expect(() => validateVendorCatalog([product({ suite: 'stable', components: [] })]))
       .toThrow(/example.*component/i)
+  })
+
+  it.each([
+    ['a spaced 40-character OpenPGP v4 fingerprint', 'A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB'],
+    ['a 64-character OpenPGP v5 fingerprint', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'],
+  ])('accepts %s', (_description, fingerprint) => {
+    const entry = { ...product(), fingerprints: [fingerprint] } as ProductWithFingerprints
+
+    expect(() => validateVendorCatalog([entry])).not.toThrow()
+  })
+
+  it.each([
+    ['an empty allowlist', []],
+    ['a short fingerprint', ['A1B2C3D4']],
+    ['a 39-character fingerprint', ['A'.repeat(39)]],
+    ['a 41-character fingerprint', ['A'.repeat(41)]],
+    ['a 63-character fingerprint', ['A'.repeat(63)]],
+    ['a 65-character fingerprint', ['A'.repeat(65)]],
+    ['a non-hexadecimal fingerprint', ['G'.repeat(40)]],
+    ['duplicate normalized fingerprints', [
+      'A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB',
+      'a1b2c3d4e5f60123456789abcdef0123456789ab',
+    ]],
+  ])('rejects %s', (_description, fingerprints) => {
+    const entry = { ...product(), fingerprints } as ProductWithFingerprints
+
+    expect(() => validateVendorCatalog([entry])).toThrow(/example.*fingerprint/i)
   })
 })

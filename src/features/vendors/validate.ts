@@ -5,6 +5,11 @@ const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
 const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
 const CATEGORIES = new Set(['browser', 'communication', 'privacy', 'containers', 'cloud', 'development', 'database', 'monitoring'])
 const SAFE_VENDOR_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const FULL_OPENPGP_FINGERPRINT = /^(?:[A-F0-9]{40}|[A-F0-9]{64})$/
+
+export function normalizeOpenPgpFingerprint(fingerprint: string): string {
+  return fingerprint.replace(/[\t\n\r ]/g, '').toUpperCase()
+}
 
 const requireText = (product: VendorProduct, field: string, value: unknown): void => {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -92,8 +97,23 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
       throw new Error(`Vendor "${id}" keyring path is unsafe; use /etc/apt/keyrings or /usr/share/keyrings.`)
     }
     requireText(product, 'verification date', product.verifiedAt)
-    if (product.fingerprint !== undefined && !/^[A-Fa-f0-9\s]+$/.test(product.fingerprint)) {
-      throw new Error('Vendor "' + id + '" fingerprint must contain hexadecimal characters only.')
+    if (product.fingerprints !== undefined) {
+      if (!Array.isArray(product.fingerprints) || product.fingerprints.length === 0) {
+        throw new Error(`Vendor "${id}" fingerprints must define a non-empty allowlist.`)
+      }
+      const normalizedFingerprints = new Set<string>()
+      for (const fingerprint of product.fingerprints) {
+        const normalized = typeof fingerprint === 'string'
+          ? normalizeOpenPgpFingerprint(fingerprint)
+          : ''
+        if (!FULL_OPENPGP_FINGERPRINT.test(normalized)) {
+          throw new Error(`Vendor "${id}" fingerprint must contain exactly 40 or 64 hexadecimal characters.`)
+        }
+        if (normalizedFingerprints.has(normalized)) {
+          throw new Error(`Vendor "${id}" fingerprints must be unique after normalization.`)
+        }
+        normalizedFingerprints.add(normalized)
+      }
     }
 
     if (!Array.isArray(product.packages) || product.packages.length === 0 || product.packages.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {

@@ -224,6 +224,30 @@ describe('SourceGenerator', () => {
     expect(control(wrapper, 'Architektur').attributes('value')).toContain('arm64')
   })
 
+  it('fokussiert nach jeder Vorwärts- und Rückwärtsnavigation die neue Schrittüberschrift', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    for (const [buttonLabel, headingId] of [
+      ['Weiter zur Software', 'vendor-step-title'],
+      ['Auswahl prüfen', 'review-step-title'],
+      ['Auswahl bearbeiten', 'vendor-step-title'],
+      ['Zurück zum Debian-System', 'system-step-title'],
+    ] as const) {
+      await clickButton(wrapper, buttonLabel)
+      const heading = wrapper.get(`#${headingId}`)
+      expect(heading.attributes('tabindex')).toBe('-1')
+      expect(document.activeElement).toBe(heading.element)
+    }
+
+    await control(wrapper, 'Schritt 3: Prüfen und exportieren').trigger('click')
+    await settle()
+    expect(document.activeElement).toBe(wrapper.get('#review-step-title').element)
+
+    await clickButton(wrapper, 'System bearbeiten')
+    expect(document.activeElement).toBe(wrapper.get('#system-step-title').element)
+  })
+
   it('führt Softwareauswahl und Systemzustand in den Review-Schritt', async () => {
     const wrapper = mountGenerator()
     await settle()

@@ -7,7 +7,7 @@ import {
 } from './generate'
 import type { VendorProduct } from './model'
 
-type ProductWithFingerprint = VendorProduct & { readonly fingerprint?: string }
+type ProductWithFingerprint = VendorProduct & { readonly fingerprints?: readonly string[] }
 
 function product(overrides: Partial<ProductWithFingerprint> = {}): ProductWithFingerprint {
   return {
@@ -57,6 +57,7 @@ describe('vendor artifact generation', () => {
         ].join('\n'),
         category: 'development',
         productId: 'example-tool',
+        productName: 'Example Tool',
       },
     ])
   })
@@ -93,6 +94,7 @@ describe('vendor artifact generation', () => {
     })] }))
 
     expect(artifacts.map((artifact) => artifact.filename)).toEqual(['example-tool.sources', 'example-tool.pref'])
+    expect(artifacts.map((artifact) => artifact.productName)).toEqual(['Example Tool', 'Example Tool'])
     expect(artifacts[0]?.riskNotes).toEqual(['Hat eine wichtige Betriebswirkung.'])
     expect(artifacts[1]?.content).toBe('Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n')
   })
@@ -118,7 +120,7 @@ describe('vendor artifact generation', () => {
     const selected = product({
       name: "Vendor's Tool",
       keyUrl: "https://vendor.example/keys/vendor's.asc",
-      fingerprint: 'A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB',
+      fingerprints: ['A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB'],
       packages: ['vendor-tool', 'vendor-tools-extra'],
       warning: 'Dienst aktiviert Netzwerkzugriff.',
     })
@@ -133,7 +135,7 @@ describe('vendor artifact generation', () => {
     })
     expect(script.content).toContain('#!/usr/bin/env bash\nset -euo pipefail\n')
     expect(script.content).toContain("curl --fail --location --proto '=https' --tlsv1.2 --output \"$temporary_key\" 'https://vendor.example/keys/vendor'\"'\"'s.asc'")
-    expect(script.content).toContain("expected_fingerprint='A1B2C3D4E5F60123456789ABCDEF0123456789AB'")
+    expect(script.content).toContain("expected_fingerprints='A1B2C3D4E5F60123456789ABCDEF0123456789AB'")
     expect(script.content).toContain('gpg --show-keys --with-colons "$temporary_key"')
     expect(script.content).toContain('if grep -q -- \'-----BEGIN PGP PUBLIC KEY BLOCK-----\' "$temporary_key"; then')
     expect(script.content).toContain("apt-get install -y 'vendor-tool' 'vendor-tools-extra'")
@@ -182,20 +184,46 @@ describe('vendor artifact generation', () => {
     }]
     const script = generateInstallScript(selectedConfig, artifacts)
 
-    expect(script.content).toContain('# Example Tool rm -rf / signing key')
+    expect(script.content).toContain('# Signaturschlüssel für Example Tool rm -rf /')
     expect(script.content).toContain('# WARNUNG: Prüfen rm -rf /')
     expect(script.content).not.toContain('\nrm -rf /\n#')
     expect(script.content).toContain("<<'DEBGEN_ARTIFACT_0_1'\nDEBGEN_ARTIFACT_0\nrm -rf /\nDEBGEN_ARTIFACT_0_1")
   })
 
-  it('rejects multi-primary-key bundles before accepting a fingerprint', () => {
-    const selectedConfig = config({ products: [product({ fingerprint: 'A1B2C3D4' })] })
+  it('compares the complete normalized set of primary signing-key fingerprints', () => {
+    const selectedConfig = config({ products: [product({ fingerprints: [
+      'BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB',
+      'AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA',
+    ] })] })
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
-    expect(script.content).toContain('primary_key_count="$(printf')
-    expect(script.content).toContain('if [ "$primary_key_count" -ne 1 ]; then')
-    expect(script.content).toContain('Expected exactly one primary signing key.')
-    expect(script.content).not.toContain('$1 == "fpr" { print $10; exit }')
+    expect(script.content).toContain("expected_fingerprints='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'")
+    expect(script.content).toContain('actual_fingerprints="$(printf')
+    expect(script.content).toContain('LC_ALL=C sort -u')
+    expect(script.content).toContain('if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then')
+    expect(script.content).toContain('Die Fingerprints der Signaturschlüssel stimmen nicht mit den erwarteten Werten überein.')
+    expect(script.content).not.toContain('Expected exactly one primary signing key.')
+    expect(script.content).not.toContain('Signing-key fingerprint verification failed.')
+  })
+
+  it('embeds the officially published fingerprint allowlists for real catalog products', () => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: ['hashicorp-terraform', 'mariadb-community-11-8', 'grafana', 'influxdb-3-core'],
+    }
+    const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
+
+    for (const fingerprint of [
+      '798AEC654E5C15428C8E42EEAA16FCBCA621E701',
+      '177F4010FE56CA3336300305F1656F24C74CD1D8',
+      '4E40DDF6D76E284A4A6780E48C8C34C524098CB6',
+      '0E22EB88E39E12277A7760AE9E439B102CF3C0C6',
+      'B53AE77BADB630A683046005963FA27710458545',
+      '24C975CBA61A024EE1B631787C3D57159FC2F927',
+    ]) {
+      expect(script.content).toContain(fingerprint)
+    }
   })
 
   it.each([

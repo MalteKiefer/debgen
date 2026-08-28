@@ -135,7 +135,7 @@ watch(
         <p class="vendor-step__eyebrow">
           Schritt 2 von 3
         </p>
-        <h2 id="vendor-step-title">
+        <h2 id="vendor-step-title" tabindex="-1">
           Offizielle Software
         </h2>
         <p>

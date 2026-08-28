@@ -256,10 +256,7 @@ a:focus-visible {
   .system-step__heading, .review-step__heading, .generated-files__heading, .install-commands__heading,
   .generated-files__meta, .install-commands__block-heading { align-items: flex-start; flex-direction: column; }
   .system-step, .review-step { padding: 0.85rem; border-radius: 1rem; }
-  .selection-summary { top: auto; bottom: 0; }
   .selection-summary__content { display: none; }
-  .selection-summary__mobile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
-  .selection-summary__mobile span { display: flex; align-items: center; justify-content: flex-start; gap: 0.35rem; font-size: 0.8rem; }
   .source-output__preview { min-height: 14rem; font-size: 0.78rem; }
   .review-step__overview, .review-step__modes { grid-template-columns: 1fr; }
   .review-step__modes legend { grid-column: auto; }

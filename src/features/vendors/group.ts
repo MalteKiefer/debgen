@@ -29,8 +29,13 @@ function compareArtifacts(left: GeneratedArtifact, right: GeneratedArtifact): nu
   const category = (leftCategory < 0 ? categoryOrder.length : leftCategory)
     - (rightCategory < 0 ? categoryOrder.length : rightCategory)
   if (category !== 0) return category
-  const product = compareCodePoints(left.productId ?? '', right.productId ?? '')
-  if (product !== 0) return product
+  const productName = compareCodePoints(
+    left.productName ?? left.productId ?? '',
+    right.productName ?? right.productId ?? '',
+  )
+  if (productName !== 0) return productName
+  const productId = compareCodePoints(left.productId ?? '', right.productId ?? '')
+  if (productId !== 0) return productId
   const source = Number(left.filename.endsWith('.sources')) - Number(right.filename.endsWith('.sources'))
   if (source !== 0) return -source
   return compareCodePoints(left.filename, right.filename)

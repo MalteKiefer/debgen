@@ -21,7 +21,7 @@ Verfügbare Projektbefehle:
 - `npm run generate:api` — statische API unter `public/api/v1/` neu erzeugen.
 - `npm run build` — API erzeugen, typprüfen und die Produktionsseite in `dist/` bauen.
 - `npm run check` — Tests, Typprüfung, Linting und Produktions-Build ausführen.
-- `npm audit --audit-level=high` — bei Abhängigkeiten mit hohem oder kritischem Hinweis fehlschlagen.
+- `npm audit` — bei jedem gemeldeten Sicherheitshinweis fehlschlagen.
 
 Führen Sie vor einer Änderung `npm run check` aus.
 

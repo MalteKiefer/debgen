@@ -15,6 +15,7 @@ Signed-By: /etc/apt/keyrings/example-tool.gpg
     "filename": "example-tool.sources",
     "mediaType": "text/plain",
     "productId": "example-tool",
+    "productName": "Example Tool",
     "riskNotes": [
       "Hat eine wichtige Betriebswirkung.",
     ],
@@ -29,6 +30,7 @@ Pin-Priority: 1000
     "filename": "example-tool.pref",
     "mediaType": "text/plain",
     "productId": "example-tool",
+    "productName": "Example Tool",
     "riskNotes": [
       "Hat eine wichtige Betriebswirkung.",
     ],

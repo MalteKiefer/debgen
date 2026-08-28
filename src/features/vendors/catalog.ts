@@ -16,23 +16,23 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'mozilla-firefox', name: 'Mozilla Firefox', category: 'browser', icon: 'mdi-firefox', filename: 'mozilla-firefox.sources',
-    documentationUrl: 'https://support.mozilla.org/en-US/kb/install-firefox-linux', repositoryUrl: 'https://packages.mozilla.org/apt', keyUrl: 'https://packages.mozilla.org/apt/repo-signing-key.gpg', keyringPath: '/etc/apt/keyrings/packages.mozilla.org.asc', packages: ['firefox'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: 'mozilla', components: ['main'], verifiedAt: '2026-08-28', preferences: 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n',
+    documentationUrl: 'https://support.mozilla.org/en-US/kb/install-firefox-linux', repositoryUrl: 'https://packages.mozilla.org/apt', keyUrl: 'https://packages.mozilla.org/apt/repo-signing-key.gpg', keyringPath: '/etc/apt/keyrings/packages.mozilla.org.asc', packages: ['firefox'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: 'mozilla', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3'], preferences: 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n',
   },
   {
     id: 'google-chrome', name: 'Google Chrome', category: 'browser', icon: 'mdi-google-chrome', filename: 'google-chrome.sources',
-    documentationUrl: 'https://support.google.com/chrome/a/answer/9025903', repositoryUrl: 'https://dl.google.com/linux/chrome/deb/', keyUrl: 'https://dl.google.com/linux/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/google-chrome.asc', packages: ['google-chrome-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://support.google.com/chrome/a/answer/9025903', repositoryUrl: 'https://dl.google.com/linux/chrome/deb/', keyUrl: 'https://dl.google.com/linux/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/google-chrome.asc', packages: ['google-chrome-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['EB4C1BFD4F042F6DDDCCEC917721F63BD38B4796'],
   },
   {
     id: 'microsoft-edge', name: 'Microsoft Edge', category: 'browser', icon: 'mdi-microsoft-edge', filename: 'microsoft-edge.sources',
-    documentationUrl: 'https://learn.microsoft.com/en-us/linux/packages', repositoryUrl: 'https://packages.microsoft.com/repos/edge', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-edge.gpg', packages: ['microsoft-edge-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://learn.microsoft.com/en-us/linux/packages', repositoryUrl: 'https://packages.microsoft.com/repos/edge', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-edge.gpg', packages: ['microsoft-edge-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['BC528686B50D79E339D3721CEB3E94ADBE1229CF'],
   },
   {
     id: 'vivaldi', name: 'Vivaldi', category: 'browser', icon: 'mdi-compass-outline', filename: 'vivaldi.sources',
-    documentationUrl: 'https://help.vivaldi.com/desktop/install-update/install-vivaldi-on-linux/', repositoryUrl: 'https://repo.vivaldi.com/stable/deb/', keyUrl: 'https://repo.vivaldi.com/archive/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/vivaldi.gpg', packages: ['vivaldi-stable'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://help.vivaldi.com/desktop/install-update/obtaining-official-builds/', repositoryUrl: 'https://repo.vivaldi.com/stable/deb/', keyUrl: 'https://repo.vivaldi.com/stable/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/vivaldi.gpg', packages: ['vivaldi-stable'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
   },
   {
     id: 'opera', name: 'Opera', category: 'browser', icon: 'mdi-opera', filename: 'opera.sources',
-    documentationUrl: 'https://www.opera.com/download', repositoryUrl: 'https://deb.opera.com/opera-stable/', keyUrl: 'https://deb.opera.com/archive.key', keyringPath: '/etc/apt/keyrings/opera.gpg', packages: ['opera-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['non-free'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://deb.opera.com/manual.html', repositoryUrl: 'https://deb.opera.com/opera-stable/', keyUrl: 'https://deb.opera.com/archive.key', keyringPath: '/etc/apt/keyrings/opera.gpg', packages: ['opera-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['non-free'], verifiedAt: '2026-08-28', fingerprints: ['6C86BE214648376680CA957B11EE8C00B693A745'],
   },
   {
     id: 'signal-desktop', name: 'Signal Desktop', category: 'communication', icon: 'mdi-message-lock-outline', filename: 'signal-desktop.sources',
@@ -44,11 +44,11 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'mullvad-vpn', name: 'Mullvad VPN', category: 'privacy', icon: 'mdi-vpn', filename: 'mullvad-vpn.sources',
-    documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', repositoryUrl: 'https://repository.mullvad.net/deb/stable', keyUrl: 'https://repository.mullvad.net/deb/mullvad-keyring.asc', keyringPath: '/usr/share/keyrings/mullvad-keyring.asc', packages: ['mullvad-vpn'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', repositoryUrl: 'https://repository.mullvad.net/deb/stable', keyUrl: 'https://repository.mullvad.net/deb/mullvad-keyring.asc', keyringPath: '/usr/share/keyrings/mullvad-keyring.asc', packages: ['mullvad-vpn'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['A1198702FC3E0A09A9AE5B75D5A1D4F266DE8DDF'],
   },
   {
     id: 'tor', name: 'Tor', category: 'privacy', icon: 'mdi-incognito', filename: 'tor.sources',
-    documentationUrl: 'https://support.torproject.org/apt/tor-deb-repo/', repositoryUrl: 'https://deb.torproject.org/torproject.org', keyUrl: 'https://deb.torproject.org/torproject.org/keys/archive-keyring.gpg', keyringPath: '/usr/share/keyrings/deb.torproject.org-keyring.gpg', packages: ['tor'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', warning: 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
+    documentationUrl: 'https://support.torproject.org/little-t-tor/getting-started/installing/', repositoryUrl: 'https://deb.torproject.org/torproject.org', keyUrl: 'https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc', keyringPath: '/usr/share/keyrings/deb.torproject.org-keyring.gpg', packages: ['tor'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89'], warning: 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
   },
   {
     id: 'docker-engine', name: 'Docker Engine', category: 'containers', icon: 'mdi-docker', filename: 'docker-engine.sources',
@@ -64,19 +64,19 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'azure-cli', name: 'Microsoft Azure CLI', category: 'cloud', icon: 'mdi-microsoft-azure', filename: 'azure-cli.sources',
-    documentationUrl: 'https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux', repositoryUrl: 'https://packages.microsoft.com/repos/azure-cli/', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-azure-cli.gpg', packages: ['azure-cli'], architectures: ['amd64', 'arm64'], releases: ['bookworm', 'bullseye'], suite: { bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux', repositoryUrl: 'https://packages.microsoft.com/repos/azure-cli/', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-azure-cli.gpg', packages: ['azure-cli'], architectures: ['amd64', 'arm64'], releases: ['bookworm', 'bullseye'], suite: { bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['BC528686B50D79E339D3721CEB3E94ADBE1229CF'],
   },
   {
     id: 'github-cli', name: 'GitHub CLI', category: 'development', icon: 'mdi-github', filename: 'github-cli.sources',
-    documentationUrl: 'https://cli.github.com/manual/installation', repositoryUrl: 'https://cli.github.com/packages', keyUrl: 'https://cli.github.com/packages/githubcli-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/githubcli-archive-keyring.gpg', packages: ['gh'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://github.com/cli/cli/blob/trunk/docs/install_linux.md', repositoryUrl: 'https://cli.github.com/packages', keyUrl: 'https://cli.github.com/packages/githubcli-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/githubcli-archive-keyring.gpg', packages: ['gh'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['2C6106201985B60E6C7AC87323F3D4EA75716059', '7F38BBB59D064DBCB3D84D725612B36462313325'],
   },
   {
     id: 'hashicorp-terraform', name: 'HashiCorp Terraform', category: 'development', icon: 'mdi-terraform', filename: 'hashicorp-terraform.sources',
-    documentationUrl: 'https://developer.hashicorp.com/terraform/install', repositoryUrl: 'https://apt.releases.hashicorp.com', keyUrl: 'https://apt.releases.hashicorp.com/gpg', keyringPath: '/usr/share/keyrings/hashicorp-archive-keyring.gpg', packages: ['terraform'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://developer.hashicorp.com/terraform/install', repositoryUrl: 'https://apt.releases.hashicorp.com', keyUrl: 'https://apt.releases.hashicorp.com/gpg', keyringPath: '/usr/share/keyrings/hashicorp-archive-keyring.gpg', packages: ['terraform'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['798AEC654E5C15428C8E42EEAA16FCBCA621E701'],
   },
   {
     id: 'postgresql-pgdg', name: 'PostgreSQL PGDG', category: 'database', icon: 'mdi-elephant', filename: 'postgresql-pgdg.sources',
-    documentationUrl: 'https://wiki.postgresql.org/wiki/Apt', repositoryUrl: 'https://apt.postgresql.org/pub/repos/apt/', keyUrl: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc', keyringPath: '/usr/share/keyrings/postgresql-apt.gpg', packages: ['postgresql'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: { trixie: 'trixie-pgdg', bookworm: 'bookworm-pgdg', bullseye: 'bullseye-pgdg', forky: 'forky-pgdg', sid: 'sid-pgdg' }, components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://wiki.postgresql.org/wiki/Apt', repositoryUrl: 'https://apt.postgresql.org/pub/repos/apt/', keyUrl: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc', keyringPath: '/usr/share/keyrings/postgresql-apt.gpg', packages: ['postgresql'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: { trixie: 'trixie-pgdg', bookworm: 'bookworm-pgdg', bullseye: 'bullseye-pgdg', forky: 'forky-pgdg', sid: 'sid-pgdg' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8'],
   },
   {
     id: 'mongodb-community-8-0', name: 'MongoDB Community 8.0', category: 'database', icon: 'mdi-leaf', filename: 'mongodb-community-8-0.sources',
@@ -84,7 +84,7 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'grafana', name: 'Grafana', category: 'monitoring', icon: 'mdi-chart-timeline-variant', filename: 'grafana.sources',
-    documentationUrl: 'https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/', repositoryUrl: 'https://apt.grafana.com', keyUrl: 'https://apt.grafana.com/gpg-full.key', keyringPath: '/etc/apt/keyrings/grafana.asc', packages: ['grafana'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/', repositoryUrl: 'https://apt.grafana.com', keyUrl: 'https://apt.grafana.com/gpg-full.key', keyringPath: '/etc/apt/keyrings/grafana.asc', packages: ['grafana'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['4E40DDF6D76E284A4A6780E48C8C34C524098CB6', '0E22EB88E39E12277A7760AE9E439B102CF3C0C6', 'B53AE77BADB630A683046005963FA27710458545'],
   },
   {
     id: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', category: 'containers', icon: 'mdi-chip', filename: 'nvidia-container-toolkit.sources',
@@ -92,7 +92,7 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', category: 'database', icon: 'mdi-database-cog', filename: 'mariadb-community-11-8.sources',
-    documentationUrl: 'https://mariadb.com/docs/server/deploy/deployment-methods/installation-guides/debian-ubuntu-repository-configuration', repositoryUrl: 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian', keyUrl: 'https://mariadb.org/mariadb_release_signing_key.pgp', keyringPath: '/etc/apt/keyrings/mariadb-server-11-8.pgp', packages: ['mariadb-server'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'sid'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye', sid: 'sid' }, components: ['main'], verifiedAt: '2026-08-28', warning: 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
+    documentationUrl: 'https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/installing-mariadb/binary-packages/gpg', repositoryUrl: 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian', keyUrl: 'https://mariadb.org/mariadb_release_signing_key.pgp', keyringPath: '/etc/apt/keyrings/mariadb-server-11-8.pgp', packages: ['mariadb-server'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'sid'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye', sid: 'sid' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['177F4010FE56CA3336300305F1656F24C74CD1D8'], warning: 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
   },
   {
     id: 'redis-open-source', name: 'Redis Open Source', category: 'database', icon: 'mdi-database-outline', filename: 'redis-open-source.sources',
@@ -104,11 +104,11 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'influxdb-3-core', name: 'InfluxDB 3 Core', category: 'monitoring', icon: 'mdi-chart-areaspline', filename: 'influxdb-3-core.sources',
-    documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', repositoryUrl: 'https://repos.influxdata.com/debian', keyUrl: 'https://repos.influxdata.com/influxdata-archive.key', keyringPath: '/usr/share/keyrings/influxdata-archive.gpg', packages: ['influxdb3-core'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', repositoryUrl: 'https://repos.influxdata.com/debian', keyUrl: 'https://repos.influxdata.com/influxdata-archive.key', keyringPath: '/usr/share/keyrings/influxdata-archive.gpg', packages: ['influxdb3-core'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['24C975CBA61A024EE1B631787C3D57159FC2F927'],
   },
   {
     id: 'zabbix-7-4', name: 'Zabbix 7.4', category: 'monitoring', icon: 'mdi-server-security', filename: 'zabbix-7-4.sources',
-    documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages/debian_ubuntu', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
   },
 ]
 

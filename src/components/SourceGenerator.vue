@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
@@ -30,6 +30,12 @@ const activeStep = ref(1)
 const selectedIds = ref<string[]>([])
 const outputMode = ref<OutputMode>('perVendor')
 let feedbackVersion = 0
+
+const stepFocusTargets: Readonly<Record<number, string>> = {
+  1: 'system-step-title',
+  2: 'vendor-step-title',
+  3: 'review-step-title',
+}
 
 const filename = computed(() => getOutputFilename(format.value))
 const components = computed(() => [
@@ -115,6 +121,11 @@ watch([release, architecture], ([nextRelease, nextArchitecture], previousSystem)
   }
 }, { flush: 'post' })
 
+watch(activeStep, async (step) => {
+  await nextTick()
+  document.getElementById(stepFocusTargets[step] ?? '')?.focus()
+}, { flush: 'post' })
+
 function generate(): void {
   feedbackVersion += 1
   feedback.value = null
@@ -171,6 +182,8 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       :repository-count="selectedIds.length"
       :release="release"
       :output-mode="outputMode"
+      :current-step="activeStep"
+      @navigate="activeStep = $event"
     />
 
     <template v-if="activeStep === 1">
