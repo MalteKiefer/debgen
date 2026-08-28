@@ -1,0 +1,74 @@
+import type { VendorProduct } from './model'
+
+const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
+const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
+const CATEGORIES = new Set(['browser', 'communication', 'privacy', 'containers', 'cloud', 'development', 'database', 'monitoring'])
+
+const requireText = (product: VendorProduct, field: string, value: unknown): void => {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`Vendor "${product.id}" is missing ${field} metadata.`)
+  }
+}
+
+const requireHttps = (product: VendorProduct, field: string, value: unknown): void => {
+  requireText(product, field, value)
+  if (typeof value !== 'string' || !value.startsWith('https://')) {
+    throw new Error(`Vendor "${product.id}" ${field} must use HTTPS.`)
+  }
+}
+
+export function validateVendorCatalog(products: readonly VendorProduct[]): void {
+  if (!Array.isArray(products)) throw new Error('Vendor catalog must be an array.')
+
+  const ids = new Set<string>()
+  const filenames = new Set<string>()
+  const keyrings = new Set<string>()
+
+  for (const product of products) {
+    const id = typeof product?.id === 'string' ? product.id : '<unknown>'
+    requireText(product, 'id', product?.id)
+    requireText(product, 'name', product?.name)
+    requireText(product, 'filename', product?.filename)
+    requireText(product, 'category', product?.category)
+    if (!CATEGORIES.has(product.category)) throw new Error(`Vendor "${id}" has an unknown category.`)
+
+    if (ids.has(product.id)) throw new Error(`Vendor "${id}" has a duplicate ID.`)
+    ids.add(product.id)
+    if (filenames.has(product.filename)) throw new Error(`Vendor "${id}" has a duplicate filename.`)
+    filenames.add(product.filename)
+    if (keyrings.has(product.keyringPath)) throw new Error(`Vendor "${id}" has a duplicate keyring path.`)
+    keyrings.add(product.keyringPath)
+
+    requireHttps(product, 'documentation URL', product.documentationUrl)
+    requireHttps(product, 'repository URL', product.repositoryUrl)
+    requireHttps(product, 'key URL', product.keyUrl)
+    requireText(product, 'keyring path', product.keyringPath)
+    if (!product.keyringPath.startsWith('/etc/apt/keyrings/') && !product.keyringPath.startsWith('/usr/share/keyrings/')) {
+      throw new Error(`Vendor "${id}" keyring path is unsafe; use /etc/apt/keyrings or /usr/share/keyrings.`)
+    }
+    requireText(product, 'verification date', product.verifiedAt)
+
+    if (!Array.isArray(product.packages) || product.packages.length === 0 || product.packages.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
+      throw new Error(`Vendor "${id}" must define at least one package.`)
+    }
+    if (!Array.isArray(product.components) || product.components.length === 0 || product.components.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
+      throw new Error(`Vendor "${id}" must define at least one component.`)
+    }
+    if (!Array.isArray(product.architectures) || product.architectures.length === 0) {
+      throw new Error(`Vendor "${id}" must define at least one architecture.`)
+    }
+    for (const architecture of product.architectures) {
+      if (!ARCHITECTURES.has(architecture)) throw new Error(`Vendor "${id}" has an unknown architecture: ${String(architecture)}.`)
+    }
+    if (!Array.isArray(product.releases) || product.releases.length === 0) {
+      throw new Error(`Vendor "${id}" must define at least one release.`)
+    }
+    for (const release of product.releases) {
+      if (!RELEASES.has(release)) throw new Error(`Vendor "${id}" has an unknown release: ${String(release)}.`)
+    }
+    if (typeof product.suite === 'string') requireText(product, 'suite', product.suite)
+    else if (!product.suite || typeof product.suite !== 'object' || Object.values(product.suite).some((suite) => typeof suite !== 'string' || suite.trim() === '')) {
+      throw new Error(`Vendor "${id}" must define a suite.`)
+    }
+  }
+}
