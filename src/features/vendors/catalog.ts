@@ -47,7 +47,7 @@ const catalog: VendorProduct[] = [
     documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', repositoryUrl: 'https://repository.mullvad.net/deb/stable', keyUrl: 'https://repository.mullvad.net/deb/mullvad-keyring.asc', keyringPath: '/usr/share/keyrings/mullvad-keyring.asc', packages: ['mullvad-vpn'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
   },
   {
-    id: 'tor', name: 'Tor', category: 'privacy', icon: 'mdi-onion', filename: 'tor.sources',
+    id: 'tor', name: 'Tor', category: 'privacy', icon: 'mdi-incognito', filename: 'tor.sources',
     documentationUrl: 'https://support.torproject.org/apt/tor-deb-repo/', repositoryUrl: 'https://deb.torproject.org/torproject.org', keyUrl: 'https://deb.torproject.org/torproject.org/keys/archive-keyring.gpg', keyringPath: '/usr/share/keyrings/deb.torproject.org-keyring.gpg', packages: ['tor'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', warning: 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
   },
   {

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
 import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
+import type { VendorMdiIcon } from '../features/vendors/icons'
 
 const props = defineProps<{
   product: VendorProduct
@@ -15,7 +16,7 @@ const emit = defineEmits<{
   'update:selected': [value: boolean]
 }>()
 
-const categoryIcons: Record<VendorCategory, string> = {
+const categoryIcons: Record<VendorCategory, VendorMdiIcon> = {
   browser: 'mdi-web',
   communication: 'mdi-message-text-outline',
   privacy: 'mdi-shield-lock-outline',
@@ -113,6 +114,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
         <span>{{ selected ? 'Ausgewählt' : 'Auswählen' }}</span>
       </label>
       <a
+        :aria-label="`${product.name}: offizielle Anleitung (öffnet in neuem Tab)`"
         :href="product.documentationUrl"
         rel="noreferrer"
         target="_blank"

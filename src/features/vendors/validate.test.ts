@@ -79,6 +79,11 @@ describe('validateVendorCatalog', () => {
     expect(() => validateVendorCatalog([product({ documentationUrl: '' })])).toThrow(/example.*documentation/i)
   })
 
+  it('rejects an unknown Material-Design-Icon', () => {
+    expect(() => validateVendorCatalog([product({ icon: 'mdi-nicht-vorhanden' as VendorProduct['icon'] })]))
+      .toThrow(/example.*icon/i)
+  })
+
   it('rejects unknown releases', () => {
     expect(() => validateVendorCatalog([product({ releases: ['jessie' as VendorProduct['releases'][number]] })]))
       .toThrow(/example.*release/i)

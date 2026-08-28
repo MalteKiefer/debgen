@@ -25,6 +25,29 @@ describe('VendorStep', () => {
     expect(wrapper.get('[role="status"]').text()).toContain('2 Paketquellen ausgewählt')
   })
 
+  it('normalisiert beim ersten Rendern inkompatible und unbekannte Auswahl-IDs', () => {
+    const wrapper = mountStep({
+      architecture: 'arm64',
+      selectedIds: ['brave-browser', 'google-chrome', 'unbekanntes-produkt'],
+    })
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+    expect(wrapper.get('[role="status"]').text()).toContain('Google Chrome')
+    expect(wrapper.get('[role="status"]').text()).toContain('unbekannte Auswahl')
+  })
+
+  it('normalisiert nachträgliche Auswahl-Updates einmalig ohne Emit-Schleife', async () => {
+    const wrapper = mountStep({ architecture: 'arm64' })
+
+    await wrapper.setProps({ selectedIds: ['brave-browser', 'google-chrome', 'unbekanntes-produkt'] })
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+
+    await wrapper.setProps({ selectedIds: ['brave-browser'] })
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+  })
+
   it('filtert Produkte nach Suchbegriff ohne die Auswahl zu verändern', async () => {
     const wrapper = mountStep({ selectedIds: ['brave-browser'] })
 

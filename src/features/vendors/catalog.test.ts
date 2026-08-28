@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { VENDOR_PRODUCTS, getVendorProduct } from './catalog'
 import { validateVendorCatalog } from './validate'
 
@@ -55,6 +57,16 @@ describe('official vendor catalog', () => {
       expect(product.packages.length).toBeGreaterThan(0)
       expect(product.releases.length).toBeGreaterThan(0)
       expect(product.architectures.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('uses product icons included in the bundled Material-Design font', () => {
+    const require = createRequire(import.meta.url)
+    const mdiCss = readFileSync(require.resolve('@mdi/font/css/materialdesignicons.css'), 'utf8')
+
+    for (const product of VENDOR_PRODUCTS) {
+      expect(product.icon).toBeDefined()
+      expect(mdiCss).toContain(`.${product.icon}::before`)
     }
   })
 

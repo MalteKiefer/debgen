@@ -32,7 +32,10 @@ describe('VendorCard', () => {
     expect(wrapper.text()).toContain('Offizielle Quelle')
     expect(wrapper.text()).toContain('amd64')
     expect(wrapper.text()).toContain('arm64')
-    expect(wrapper.get('a').attributes('href')).toBe('https://brave.com/linux/')
+    const documentation = wrapper.get('a')
+    expect(documentation.attributes('href')).toBe('https://brave.com/linux/')
+    expect(documentation.attributes('aria-label'))
+      .toBe('Brave Browser: offizielle Anleitung (öffnet in neuem Tab)')
   })
 
   it('verwendet bei fehlendem Produkt-Icon das Kategorie-Icon als Rückfall', () => {

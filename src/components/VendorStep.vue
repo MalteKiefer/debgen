@@ -4,6 +4,7 @@ import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
 import type { SystemArchitecture, VendorCategory } from '../features/vendors/model'
+import type { VendorMdiIcon } from '../features/vendors/icons'
 import VendorCard from './VendorCard.vue'
 
 const props = defineProps<{
@@ -20,7 +21,7 @@ const searchTerm = ref('')
 const activeCategory = ref<VendorCategory | null>(null)
 const cleanupMessage = ref('')
 
-const categories: readonly { readonly id: VendorCategory, readonly label: string, readonly icon: string }[] = [
+const categories: readonly { readonly id: VendorCategory, readonly label: string, readonly icon: VendorMdiIcon }[] = [
   { id: 'browser', label: 'Browser', icon: 'mdi-web' },
   { id: 'communication', label: 'Kommunikation', icon: 'mdi-message-text-outline' },
   { id: 'privacy', label: 'Privatsphäre', icon: 'mdi-shield-lock-outline' },
@@ -62,31 +63,61 @@ function updateProductSelection(productId: string, selected: boolean): void {
   emit('update:selectedIds', [...next])
 }
 
-watch(
-  () => [props.release, props.architecture] as const,
-  ([release, architecture], previous) => {
-    if (!previous) {
-      return
+function normalizeSelection(release: ReleaseCodename, architecture: SystemArchitecture) {
+  const seenIds = new Set<string>()
+  const normalizedIds: string[] = []
+  const incompatibleNames: string[] = []
+  let unknownCount = 0
+
+  for (const id of props.selectedIds) {
+    if (seenIds.has(id)) continue
+    seenIds.add(id)
+
+    const product = VENDOR_PRODUCTS.find((candidate) => candidate.id === id)
+    if (!product) {
+      unknownCount += 1
+      continue
     }
+    if (!getVendorCompatibility(product, release, architecture).compatible) {
+      incompatibleNames.push(product.name)
+      continue
+    }
+    normalizedIds.push(id)
+  }
 
-    const removedProducts = VENDOR_PRODUCTS.filter((product) =>
-      props.selectedIds.includes(product.id)
-      && !getVendorCompatibility(product, release, architecture).compatible,
-    )
+  return { normalizedIds, incompatibleNames, unknownCount }
+}
 
-    if (removedProducts.length === 0) {
+function hasSameIds(first: readonly string[], second: readonly string[]): boolean {
+  return first.length === second.length && first.every((id, index) => id === second[index])
+}
+
+watch(
+  () => [props.release, props.architecture, props.selectedIds] as const,
+  ([release, architecture], previous) => {
+    const result = normalizeSelection(release, architecture)
+    if (hasSameIds(props.selectedIds, result.normalizedIds)) {
       cleanupMessage.value = ''
       return
     }
 
-    const removedIds = new Set(removedProducts.map((product) => product.id))
-    emit('update:selectedIds', props.selectedIds.filter((id) => !removedIds.has(id)))
-
-    const changedSystem = previous[0] !== release
-      ? `Release ${release.charAt(0).toUpperCase()}${release.slice(1)}`
-      : `Architektur ${architecture}`
-    cleanupMessage.value = `${changedSystem}: ${removedProducts.map((product) => product.name).join(', ')} wurde aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`
+    emit('update:selectedIds', result.normalizedIds)
+    const changedSystem = !previous
+      ? 'Die Auswahl wurde geprüft'
+      : previous[0] !== release
+        ? `Release ${release.charAt(0).toUpperCase()}${release.slice(1)}`
+        : previous[1] !== architecture
+          ? `Architektur ${architecture}`
+          : 'Auswahl aktualisiert'
+    const incompatiblePart = result.incompatibleNames.length > 0
+      ? `${result.incompatibleNames.join(', ')} wurde aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`
+      : ''
+    const unknownPart = result.unknownCount > 0
+      ? `${result.unknownCount === 1 ? 'Eine unbekannte Auswahl wurde' : `${result.unknownCount} unbekannte Auswahlen wurden`} entfernt.`
+      : ''
+    cleanupMessage.value = `${changedSystem}: ${[incompatiblePart, unknownPart].filter(Boolean).join(' ')}`
   },
+  { immediate: true },
 )
 </script>
 

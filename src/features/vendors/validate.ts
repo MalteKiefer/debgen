@@ -1,4 +1,5 @@
 import type { VendorProduct } from './model'
+import { isVendorMdiIcon } from './icons'
 
 const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
 const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
@@ -67,6 +68,9 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     }
     requireText(product, 'category', product?.category)
     if (!CATEGORIES.has(product.category)) throw new Error(`Vendor "${id}" has an unknown category.`)
+    if (product.icon !== undefined && !isVendorMdiIcon(product.icon)) {
+      throw new Error(`Vendor "${id}" has an unknown Material Design icon.`)
+    }
 
     if (ids.has(product.id)) throw new Error(`Vendor "${id}" has a duplicate ID.`)
     ids.add(product.id)
