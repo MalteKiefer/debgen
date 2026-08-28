@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH ?? '/',
@@ -19,6 +19,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
   },
   test: {
+    exclude: [...configDefaults.exclude, '**/.worktrees/**'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
