@@ -1,5 +1,275 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`versioned static API generation > publishes deterministic compatible vendor resources with resolvable manifest URLs 1`] = `
+{
+  "catalog": {
+    "debian": {
+      "url": "releases.json",
+    },
+    "vendors": {
+      "url": "vendors.json",
+    },
+  },
+  "representativeVendorEndpoints": [
+    {
+      "compatibility": [
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/brave-browser/bookworm/amd64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/brave-browser/bookworm/amd64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/brave-browser/bookworm/arm64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/brave-browser/bookworm/arm64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/brave-browser/bullseye/amd64/install.sh",
+          },
+          "release": "bullseye",
+          "source": {
+            "url": "vendors/brave-browser/bullseye/amd64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/brave-browser/bullseye/arm64/install.sh",
+          },
+          "release": "bullseye",
+          "source": {
+            "url": "vendors/brave-browser/bullseye/arm64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/brave-browser/forky/amd64/install.sh",
+          },
+          "release": "forky",
+          "source": {
+            "url": "vendors/brave-browser/forky/amd64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/brave-browser/forky/arm64/install.sh",
+          },
+          "release": "forky",
+          "source": {
+            "url": "vendors/brave-browser/forky/arm64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/brave-browser/sid/amd64/install.sh",
+          },
+          "release": "sid",
+          "source": {
+            "url": "vendors/brave-browser/sid/amd64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/brave-browser/sid/arm64/install.sh",
+          },
+          "release": "sid",
+          "source": {
+            "url": "vendors/brave-browser/sid/arm64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/brave-browser/trixie/amd64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/brave-browser/trixie/amd64/brave-browser.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/brave-browser/trixie/arm64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/brave-browser/trixie/arm64/brave-browser.sources",
+          },
+        },
+      ],
+      "id": "brave-browser",
+    },
+    {
+      "compatibility": [
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mozilla-firefox/bookworm/amd64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/mozilla-firefox/bookworm/amd64/mozilla-firefox.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mozilla-firefox/bookworm/arm64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/mozilla-firefox/bookworm/arm64/mozilla-firefox.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mozilla-firefox/bullseye/amd64/install.sh",
+          },
+          "release": "bullseye",
+          "source": {
+            "url": "vendors/mozilla-firefox/bullseye/amd64/mozilla-firefox.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mozilla-firefox/bullseye/arm64/install.sh",
+          },
+          "release": "bullseye",
+          "source": {
+            "url": "vendors/mozilla-firefox/bullseye/arm64/mozilla-firefox.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mozilla-firefox/trixie/amd64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/mozilla-firefox/trixie/amd64/mozilla-firefox.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mozilla-firefox/trixie/arm64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/mozilla-firefox/trixie/arm64/mozilla-firefox.sources",
+          },
+        },
+      ],
+      "id": "mozilla-firefox",
+    },
+    {
+      "compatibility": [
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mullvad-vpn/bookworm/amd64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/mullvad-vpn/bookworm/amd64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mullvad-vpn/bookworm/arm64/install.sh",
+          },
+          "release": "bookworm",
+          "source": {
+            "url": "vendors/mullvad-vpn/bookworm/arm64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mullvad-vpn/forky/amd64/install.sh",
+          },
+          "release": "forky",
+          "source": {
+            "url": "vendors/mullvad-vpn/forky/amd64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mullvad-vpn/forky/arm64/install.sh",
+          },
+          "release": "forky",
+          "source": {
+            "url": "vendors/mullvad-vpn/forky/arm64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mullvad-vpn/sid/amd64/install.sh",
+          },
+          "release": "sid",
+          "source": {
+            "url": "vendors/mullvad-vpn/sid/amd64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mullvad-vpn/sid/arm64/install.sh",
+          },
+          "release": "sid",
+          "source": {
+            "url": "vendors/mullvad-vpn/sid/arm64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "amd64",
+          "install": {
+            "url": "vendors/mullvad-vpn/trixie/amd64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/mullvad-vpn/trixie/amd64/mullvad-vpn.sources",
+          },
+        },
+        {
+          "architecture": "arm64",
+          "install": {
+            "url": "vendors/mullvad-vpn/trixie/arm64/install.sh",
+          },
+          "release": "trixie",
+          "source": {
+            "url": "vendors/mullvad-vpn/trixie/arm64/mullvad-vpn.sources",
+          },
+        },
+      ],
+      "id": "mullvad-vpn",
+    },
+  ],
+}
+`;
+
 exports[`versioned static API generation > writes the exact canonical profiles and manifest 1`] = `
 {
   "fileMap": {

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
+import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -117,10 +117,13 @@ describe('versioned static API generation', () => {
     expect((await readdir(outputRoot)).sort()).toEqual([
       'bookworm',
       'bullseye',
+      'catalog.json',
       'forky',
       'releases.json',
       'sid',
       'trixie',
+      'vendors',
+      'vendors.json',
     ])
     expect(generatedProfileFiles).toEqual(expectedProfileFiles)
     expect(manifestText).toMatch(/[^\n]\n$/)
@@ -187,5 +190,119 @@ describe('versioned static API generation', () => {
     expect(bullseyeProfiles).not.toContain('bullseye-backports')
     expect(Object.values(fileMap).join('\n')).not.toMatch(/-backports/)
     expect({ manifest, fileMap }).toMatchSnapshot()
+  })
+
+  it('publishes deterministic compatible vendor resources with resolvable manifest URLs', async () => {
+    const firstOutputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
+    const secondOutputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
+    outputRoots.push(firstOutputRoot, secondOutputRoot)
+
+    await generateApi(firstOutputRoot)
+    await generateApi(secondOutputRoot)
+
+    const [catalogText, releasesText, vendorsText] = await Promise.all([
+      readFile(join(firstOutputRoot, 'catalog.json'), 'utf8'),
+      readFile(join(firstOutputRoot, 'releases.json'), 'utf8'),
+      readFile(join(firstOutputRoot, 'vendors.json'), 'utf8'),
+    ])
+    const catalog = JSON.parse(catalogText) as {
+      debian: { url: string }
+      vendors: { url: string }
+    }
+    const releases = JSON.parse(releasesText) as Array<{ files: Array<{ url: string }> }>
+    const vendors = JSON.parse(vendorsText) as Array<{
+      id: string
+      documentationUrl: string
+      verifiedAt: string
+      compatibility: Array<{
+        release: string
+        architecture: string
+        source: { url: string }
+        install: { url: string }
+      }>
+    }>
+    const manifestUrls = [
+      catalog.debian.url,
+      catalog.vendors.url,
+      ...releases.flatMap((release) => release.files.map((file) => file.url)),
+      ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((combination) => [
+        combination.source.url,
+        combination.install.url,
+      ])),
+    ]
+
+    expect(catalog).toEqual({
+      debian: { url: 'releases.json' },
+      vendors: { url: 'vendors.json' },
+    })
+    expect(vendors.map((vendor) => vendor.id)).toEqual([...vendors.map((vendor) => vendor.id)].sort())
+    expect(vendors.find((vendor) => vendor.id === 'brave-browser')).toMatchObject({
+      documentationUrl: 'https://brave.com/linux/',
+      verifiedAt: '2026-08-28',
+      compatibility: expect.arrayContaining([
+        {
+          release: 'trixie',
+          architecture: 'amd64',
+          source: { url: 'vendors/brave-browser/trixie/amd64/brave-browser.sources' },
+          install: { url: 'vendors/brave-browser/trixie/amd64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mozilla-firefox')).toMatchObject({
+      compatibility: expect.arrayContaining([
+        {
+          release: 'bookworm',
+          architecture: 'arm64',
+          source: { url: 'vendors/mozilla-firefox/bookworm/arm64/mozilla-firefox.sources' },
+          install: { url: 'vendors/mozilla-firefox/bookworm/arm64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mullvad-vpn')).toMatchObject({
+      compatibility: expect.arrayContaining([
+        {
+          release: 'sid',
+          architecture: 'amd64',
+          source: { url: 'vendors/mullvad-vpn/sid/amd64/mullvad-vpn.sources' },
+          install: { url: 'vendors/mullvad-vpn/sid/amd64/install.sh' },
+        },
+      ]),
+    })
+    expect(vendors.find((vendor) => vendor.id === 'mozilla-firefox')?.compatibility)
+      .not.toContainEqual(expect.objectContaining({ release: 'sid' }))
+    expect(vendors.find((vendor) => vendor.id === 'mullvad-vpn')?.compatibility)
+      .not.toContainEqual(expect.objectContaining({ release: 'bullseye' }))
+    await expect(access(join(firstOutputRoot, 'vendors', 'mozilla-firefox', 'sid', 'amd64', 'mozilla-firefox.sources'))).rejects.toThrow()
+    await expect(access(join(firstOutputRoot, 'vendors', 'mullvad-vpn', 'bullseye', 'amd64', 'mullvad-vpn.sources'))).rejects.toThrow()
+    await Promise.all(manifestUrls.map((relativeUrl) => access(join(firstOutputRoot, relativeUrl))))
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'brave-browser', 'trixie', 'amd64', 'brave-browser.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://brave-browser-apt-release.s3.brave.com/
+Suites: stable
+Architectures: amd64
+Components: main
+Signed-By: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+`)
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'mozilla-firefox', 'bookworm', 'arm64', 'mozilla-firefox.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Architectures: arm64
+Components: main
+Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
+`)
+    await expect(readFile(join(firstOutputRoot, 'vendors', 'mullvad-vpn', 'sid', 'amd64', 'mullvad-vpn.sources'), 'utf8')).resolves.toBe(`Types: deb
+URIs: https://repository.mullvad.net/deb/stable
+Suites: stable
+Architectures: amd64
+Components: main
+Signed-By: /usr/share/keyrings/mullvad-keyring.asc
+`)
+    expect({
+      catalog,
+      representativeVendorEndpoints: vendors
+        .filter((vendor) => ['brave-browser', 'mozilla-firefox', 'mullvad-vpn'].includes(vendor.id))
+        .map((vendor) => ({ id: vendor.id, compatibility: vendor.compatibility })),
+    }).toMatchSnapshot()
+    await expect(readFile(join(secondOutputRoot, 'catalog.json'), 'utf8')).resolves.toBe(catalogText)
+    await expect(readFile(join(secondOutputRoot, 'vendors.json'), 'utf8')).resolves.toBe(vendorsText)
   })
 })
