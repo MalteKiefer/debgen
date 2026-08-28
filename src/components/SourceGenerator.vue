@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
 import { getRelease } from '../features/sources/releases'
@@ -16,6 +17,8 @@ const includeSecurity = ref(true)
 const includeUpdates = ref(true)
 const includeBackports = ref(false)
 const generatedText = ref('')
+const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
+let feedbackVersion = 0
 
 const filename = computed(() => getOutputFilename(format.value))
 const components = computed(() => [
@@ -62,7 +65,9 @@ watch([
   includeUpdates,
   includeBackports,
 ], () => {
+  feedbackVersion += 1
   generatedText.value = ''
+  feedback.value = null
 })
 
 function generate(): void {
@@ -77,6 +82,42 @@ function generate(): void {
   }
 
   generatedText.value = generateSources(options)
+}
+
+async function copyGeneratedText(): Promise<void> {
+  const copyVersion = ++feedbackVersion
+  feedback.value = null
+
+  try {
+    await copyText(generatedText.value)
+    if (copyVersion !== feedbackVersion) {
+      return
+    }
+    feedback.value = { kind: 'success', message: 'Copied generated configuration.' }
+  } catch {
+    if (copyVersion !== feedbackVersion) {
+      return
+    }
+    feedback.value = {
+      kind: 'error',
+      message: 'Copy failed. Please select the generated configuration and copy the configuration manually.',
+    }
+  }
+}
+
+function downloadGeneratedText(): void {
+  feedbackVersion += 1
+  feedback.value = null
+
+  try {
+    downloadText(filename.value, generatedText.value)
+    feedback.value = { kind: 'success', message: `Downloaded ${filename.value}.` }
+  } catch {
+    feedback.value = {
+      kind: 'error',
+      message: 'Download failed. Please select the generated configuration and save the configuration manually.',
+    }
+  }
 }
 </script>
 
@@ -138,12 +179,39 @@ function generate(): void {
       :filename="filename"
     >
       <template #actions>
-        <slot
-          name="actions"
-          :content="generatedText"
-          :filename="filename"
-        />
+        <v-btn
+          prepend-icon="mdi-content-copy"
+          variant="tonal"
+          @click="copyGeneratedText"
+        >
+          Copy
+        </v-btn>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-download"
+          @click="downloadGeneratedText"
+        >
+          Download
+        </v-btn>
       </template>
     </SourceOutput>
+
+    <div
+      aria-live="polite"
+      class="source-generator__feedback"
+    >
+      <p
+        v-if="feedback?.kind === 'success'"
+        role="status"
+      >
+        {{ feedback.message }}
+      </p>
+      <p
+        v-else-if="feedback?.kind === 'error'"
+        role="alert"
+      >
+        {{ feedback.message }}
+      </p>
+    </div>
   </section>
 </template>

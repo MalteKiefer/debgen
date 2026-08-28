@@ -1,7 +1,18 @@
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { beforeEach, vi } from 'vitest'
 import SourceGenerator from './SourceGenerator.vue'
 import vuetify from '../plugins/vuetify'
+
+const { copyTextMock, downloadTextMock } = vi.hoisted(() => ({
+  copyTextMock: vi.fn<(text: string) => Promise<void>>(),
+  downloadTextMock: vi.fn<(filename: string, text: string) => void>(),
+}))
+
+vi.mock('../features/sources/download', () => ({
+  copyText: copyTextMock,
+  downloadText: downloadTextMock,
+}))
 
 async function settle(): Promise<void> {
   await nextTick()
@@ -47,6 +58,11 @@ async function clickButton(wrapper: VueWrapper, name: string): Promise<void> {
 }
 
 describe('SourceGenerator', () => {
+  beforeEach(() => {
+    copyTextMock.mockReset().mockResolvedValue(undefined)
+    downloadTextMock.mockReset()
+  })
+
   it('defaults to Trixie and DEB822 and generates a current sources stanza', async () => {
     const wrapper = mountGenerator()
     await settle()
@@ -144,5 +160,117 @@ describe('SourceGenerator', () => {
     const explanationId = control(wrapper, 'Non-free firmware').attributes('aria-describedby')
     expect(explanationId).toBeTruthy()
     expect(wrapper.get(`#${explanationId}`).attributes('role')).toBe('status')
+  })
+
+  it('does not offer active copy or download actions before generating valid output', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    expect(wrapper.findAll('button').some((button) => button.text().includes('Copy'))).toBe(false)
+    expect(wrapper.findAll('button').some((button) => button.text().includes('Download'))).toBe(false)
+  })
+
+  it('reports copied only after the generated text is copied', async () => {
+    let resolveCopy: (() => void) | undefined
+    copyTextMock.mockImplementation(() => new Promise<void>((resolve) => { resolveCopy = resolve }))
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    const expectedContent = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
+
+    await clickButton(wrapper, 'Copy')
+
+    expect(copyTextMock).toHaveBeenCalledWith(expectedContent)
+    expect(wrapper.text()).not.toContain('Copied generated configuration.')
+
+    resolveCopy?.()
+    await flushPromises()
+    await settle()
+
+    expect(wrapper.findAll('[role="status"]')
+      .some((status) => status.text() === 'Copied generated configuration.')).toBe(true)
+  })
+
+  it('shows an actionable alert when copying is rejected', async () => {
+    copyTextMock.mockRejectedValue(new Error('Clipboard permission denied'))
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Copy')
+    await flushPromises()
+    await settle()
+
+    const alerts = wrapper.findAll('[role="alert"]').map((alert) => alert.text()).join(' ')
+    expect(alerts).toContain('Copy failed')
+    expect(alerts).toContain('copy the configuration manually')
+  })
+
+  it('downloads the generated text using the format-specific filename', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    const deb822Content = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
+    await clickButton(wrapper, 'Download')
+
+    expect(downloadTextMock).toHaveBeenLastCalledWith('debian.sources', deb822Content)
+
+    await choose(wrapper, 'Debian release', 'Bullseye')
+    await choose(wrapper, 'Output format', 'Legacy sources.list')
+    await clickButton(wrapper, 'Generate sources')
+    const legacyContent = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
+    await clickButton(wrapper, 'Download')
+
+    expect(downloadTextMock).toHaveBeenLastCalledWith('debian.list', legacyContent)
+  })
+
+  it('shows an actionable alert when downloading fails', async () => {
+    downloadTextMock.mockImplementation(() => { throw new Error('Browser download blocked') })
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Download')
+
+    const alerts = wrapper.findAll('[role="alert"]').map((alert) => alert.text()).join(' ')
+    expect(alerts).toContain('Download failed')
+    expect(alerts).toContain('save the configuration manually')
+  })
+
+  it('clears action feedback when generation options change', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Copy')
+    await flushPromises()
+    await settle()
+    expect(wrapper.findAll('[role="status"]')
+      .some((status) => status.text() === 'Copied generated configuration.')).toBe(true)
+
+    await control(wrapper, 'Source packages').setValue(true)
+
+    expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
+    expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
+  })
+
+  it('does not restore copy feedback after the options change during a pending copy', async () => {
+    let resolveCopy: (() => void) | undefined
+    copyTextMock.mockImplementation(() => new Promise<void>((resolve) => { resolveCopy = resolve }))
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Copy')
+    await control(wrapper, 'Source packages').setValue(true)
+
+    resolveCopy?.()
+    await flushPromises()
+    await settle()
+
+    expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
+    expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
   })
 })

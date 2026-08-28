@@ -25,6 +25,7 @@ defineProps<{
       ><code>{{ content }}</code></pre>
       <div
         v-if="$slots.actions"
+        aria-label="Generated configuration actions"
         class="source-output__actions"
       >
         <slot name="actions" />

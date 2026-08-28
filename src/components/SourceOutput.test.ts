@@ -33,4 +33,19 @@ describe('SourceOutput', () => {
     expect(wrapper.text()).not.toContain('Copy')
     expect(wrapper.text()).not.toContain('Download')
   })
+
+  it('groups caller-provided actions in a labelled region', () => {
+    const wrapper = mount(SourceOutput, {
+      props: {
+        filename: 'debian.sources',
+        content: 'Types: deb\nSuites: trixie\n',
+      },
+      slots: {
+        actions: '<button type="button">Copy</button>',
+      },
+      global: { plugins: [vuetify] },
+    })
+
+    expect(wrapper.get('[aria-label="Generated configuration actions"] button').text()).toBe('Copy')
+  })
 })
