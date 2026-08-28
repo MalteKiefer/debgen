@@ -26,8 +26,25 @@ describe('validateVendorCatalog', () => {
   })
 
   it.each([
-    ['duplicate IDs', [product(), product({ name: 'Other', filename: 'other.sources' })], /example.*duplicate id/i],
-    ['duplicate filenames', [product(), product({ id: 'other' })], /other.*filename/i],
+    ['uppercase letters', 'Example'],
+    ['a fragment marker', 'example#fragment'],
+    ['a query marker', 'example?query'],
+    ['percent encoding', 'example%2fescape'],
+    ['a backslash', 'example\\escape'],
+    ['a path separator', 'example/escape'],
+    ['a leading separator', '/example'],
+  ])('rejects an ID containing %s', (_reason, id) => {
+    expect(() => validateVendorCatalog([product({ id, filename: 'example.sources' })]))
+      .toThrow(/id.*safe.*slug/i)
+  })
+
+  it('requires the source filename to be derived exactly from the product ID', () => {
+    expect(() => validateVendorCatalog([product({ id: 'example-product', filename: 'example.sources' })]))
+      .toThrow(/filename.*example-product\.sources/i)
+  })
+
+  it.each([
+    ['duplicate IDs', [product(), product({ name: 'Other' })], /example.*duplicate id/i],
     ['duplicate keyrings', [product(), product({ id: 'other', filename: 'other.sources' })], /other.*keyring/i],
   ])('rejects %s', (_name, entries, message) => {
     expect(() => validateVendorCatalog(entries)).toThrow(message)

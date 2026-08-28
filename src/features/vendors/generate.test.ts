@@ -111,7 +111,7 @@ describe('vendor artifact generation', () => {
 
   it('rejects a filename that could escape the deterministic sources directory', () => {
     expect(() => generateVendorArtifacts(config({ products: [product({ filename: '../outside.sources' })] })))
-      .toThrow(/example-tool.*filename.*safe/i)
+      .toThrow(/example-tool.*filename.*exact/i)
   })
 
   it('creates a reviewable installation script with safe key download, verification, and quoting', () => {
@@ -242,21 +242,21 @@ describe('vendor artifact generation', () => {
       .toThrow(/duplicate.*example-tool/i)
   })
 
-  it('orders selected product IDs by code point instead of the host locale', () => {
+  it('orders safe selected product IDs deterministically', () => {
     const zProduct = product({
       id: 'z-tool',
       filename: 'z-tool.sources',
       keyringPath: '/etc/apt/keyrings/z-tool.gpg',
     })
-    const umlautProduct = product({
-      id: 'ä-tool',
-      filename: 'umlaut-tool.sources',
-      keyringPath: '/etc/apt/keyrings/umlaut-tool.gpg',
+    const alphaProduct = product({
+      id: 'a-tool',
+      filename: 'a-tool.sources',
+      keyringPath: '/etc/apt/keyrings/a-tool.gpg',
     })
 
     expect(generateVendorArtifacts(config({
-      productIds: ['ä-tool', 'z-tool'],
-      products: [umlautProduct, zProduct],
-    })).map(({ filename }) => filename)).toEqual(['z-tool.sources', 'umlaut-tool.sources'])
+      productIds: ['z-tool', 'a-tool'],
+      products: [zProduct, alphaProduct],
+    })).map(({ filename }) => filename)).toEqual(['a-tool.sources', 'z-tool.sources'])
   })
 })

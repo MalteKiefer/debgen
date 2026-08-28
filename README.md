@@ -45,32 +45,32 @@ Erzeugte Konfigurationen können Paketquellen eines Systems verändern. Wählen 
 
 Der eingebaute Herstellerkatalog ist eine manuell geprüfte, statische Liste. Er enthält nur Repositories des genannten Herstellers oder Upstream-Projekts; PPAs, Community-Mirrors, `apt-key`, unsignierte Quellen und Hersteller-Setup-Skripte sind ausgeschlossen. Jeder Katalogeintrag verweist auf die Installationsdokumentation des Herstellers und wurde am **2026-08-28** verifiziert. Ein Drittanbieter-Repository erweitert die Vertrauensgrenze über Debian hinaus und kann sich unabhängig ändern. Prüfen Sie daher Quellen und Installationsanweisungen immer vor der Verwendung.
 
-| Product | Compatible DebGen releases | Architectures / limitation |
+| Produkt | Kompatible DebGen-Releases | Architekturen / Einschränkung |
 | --- | --- | --- |
 | Brave Browser | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
-| Mozilla Firefox | Trixie, Bookworm, Bullseye | amd64, arm64; Mozilla pinning is included |
+| Mozilla Firefox | Trixie, Bookworm, Bullseye | amd64, arm64; Mozilla-Pinning ist enthalten |
 | Google Chrome | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
 | Microsoft Edge | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
-| Vivaldi | Trixie, Forky, Sid | amd64, arm64; Debian 13 or newer |
+| Vivaldi | Trixie, Forky, Sid | amd64, arm64; Debian 13 oder neuer |
 | Opera | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
 | Signal Desktop | Trixie, Bookworm, Bullseye, Forky, Sid | amd64 |
-| Proton VPN | Trixie | amd64, arm64; GNOME desktop only, not headless |
-| Mullvad VPN | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 or newer |
-| Tor | Trixie, Bookworm, Bullseye | amd64, arm64; daemon/client, not Tor Browser |
-| Docker Engine | Trixie, Bookworm, Bullseye | amd64, arm64, armhf; can affect firewall rules |
-| Kubernetes tools v1.36 | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; versioned `pkgs.k8s.io` channel |
+| Proton VPN | Trixie | amd64, arm64; nur GNOME-Desktop, kein Headless-Betrieb |
+| Mullvad VPN | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 oder neuer |
+| Tor | Trixie, Bookworm, Bullseye | amd64, arm64; Daemon/Client, nicht Tor Browser |
+| Docker Engine | Trixie, Bookworm, Bullseye | amd64, arm64, armhf; kann Firewall-Regeln beeinflussen |
+| Kubernetes tools v1.36 | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; versionierter `pkgs.k8s.io`-Kanal |
 | Google Cloud CLI | Trixie, Bookworm, Bullseye | amd64, arm64 |
-| Microsoft Azure CLI | Bookworm, Bullseye | amd64, arm64; no verified Trixie suite |
+| Microsoft Azure CLI | Bookworm, Bullseye | amd64, arm64; keine verifizierte Trixie-Suite |
 | GitHub CLI | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
 | HashiCorp Terraform | Trixie, Bookworm, Bullseye | amd64, arm64 |
-| PostgreSQL PGDG | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; `<codename>-pgdg` suites |
-| MongoDB Community 8.0 | Bookworm | amd64 only |
+| PostgreSQL PGDG | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; `<codename>-pgdg`-Suites |
+| MongoDB Community 8.0 | Bookworm | nur amd64 |
 | Grafana | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64 |
-| NVIDIA Container Toolkit | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; supported NVIDIA GPU, driver, and runtime required |
-| MariaDB Community 11.8 | Trixie, Bookworm, Bullseye, Sid | amd64, arm64; no vendor setup script |
+| NVIDIA Container Toolkit | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; unterstützte NVIDIA-GPU, Treiber und Laufzeit erforderlich |
+| MariaDB Community 11.8 | Trixie, Bookworm, Bullseye, Sid | amd64, arm64; kein Hersteller-Setup-Skript |
 | Redis Open Source | Trixie, Bookworm | amd64, arm64 |
-| ClickHouse | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; distribution-independent repository |
-| InfluxDB 3 Core | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 or newer |
+| ClickHouse | Trixie, Bookworm, Bullseye, Forky, Sid | amd64, arm64; distributionsunabhängiges Repository |
+| InfluxDB 3 Core | Trixie, Bookworm, Forky, Sid | amd64, arm64; Debian 12 oder neuer |
 | Zabbix 7.4 | Trixie, Bookworm, Bullseye | amd64, arm64 |
 
 ### Katalogpflege

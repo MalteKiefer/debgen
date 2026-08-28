@@ -4,6 +4,7 @@ import { isVendorMdiIcon } from './icons'
 const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
 const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
 const CATEGORIES = new Set(['browser', 'communication', 'privacy', 'containers', 'cloud', 'development', 'database', 'monitoring'])
+const SAFE_VENDOR_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const requireText = (product: VendorProduct, field: string, value: unknown): void => {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -61,10 +62,13 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
   for (const product of products) {
     const id = typeof product?.id === 'string' ? product.id : '<unknown>'
     requireText(product, 'id', product?.id)
+    if (!SAFE_VENDOR_ID.test(product.id)) {
+      throw new Error(`Vendor "${id}" ID must be a safe lowercase ASCII slug.`)
+    }
     requireText(product, 'name', product?.name)
     requireText(product, 'filename', product?.filename)
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*\.sources$/.test(product.filename)) {
-      throw new Error('Vendor "' + id + '" filename must be a safe lowercase .sources slug.')
+    if (product.filename !== `${product.id}.sources`) {
+      throw new Error(`Vendor "${id}" filename must be exactly ${product.id}.sources.`)
     }
     requireText(product, 'category', product?.category)
     if (!CATEGORIES.has(product.category)) throw new Error(`Vendor "${id}" has an unknown category.`)

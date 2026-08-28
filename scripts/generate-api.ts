@@ -45,6 +45,8 @@ interface ApiCatalog {
 }
 
 const API_ARCHITECTURES: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
+const API_MANIFEST_BASE = 'https://debgen.invalid/api/v1/'
+const SAFE_MANIFEST_RELATIVE_URL = /^[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?)*$/
 
 function withSingleTrailingNewline(content: string): string {
   return `${content.replace(/\n+$/, '')}\n`
@@ -68,6 +70,23 @@ function canonicalSource(release: typeof RELEASES[number], format: SourceFormat)
 
 function artifactRelativeUrl(product: VendorProduct, release: ReleaseCodename, architecture: SystemArchitecture, filename: string): string {
   return `vendors/${product.id}/${release}/${architecture}/${filename}`
+}
+
+export function resolveManifestUrl(relativeUrl: string, manifestUrl: string): URL {
+  if (!SAFE_MANIFEST_RELATIVE_URL.test(relativeUrl)) {
+    throw new Error('Manifest URL must be a safe lowercase ASCII relative path: ' + relativeUrl + '.')
+  }
+  const base = new URL(manifestUrl)
+  const manifestDirectory = new URL('.', base)
+  const resolved = new URL(relativeUrl, base)
+  const expectedPathname = manifestDirectory.pathname + relativeUrl
+  if (resolved.origin !== base.origin
+    || resolved.pathname !== expectedPathname
+    || resolved.search !== ''
+    || resolved.hash !== '') {
+    throw new Error('Manifest URL must resolve directly beneath its manifest directory: ' + relativeUrl + '.')
+  }
+  return resolved
 }
 
 async function writeArtifact(outputRoot: string, relativeUrl: string, content: string): Promise<void> {
@@ -120,9 +139,9 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
   return entries
 }
 
-async function assertManifestUrlsExist(outputRoot: string, urls: readonly string[]): Promise<void> {
+async function assertManifestUrlsExist(outputRoot: string, manifestUrl: string, urls: readonly string[]): Promise<void> {
   await Promise.all(urls.map(async (url) => {
-    if (url.startsWith('/') || url.includes('..')) throw new Error('Manifest URL must be a safe relative URL: ' + url + '.')
+    resolveManifestUrl(url, manifestUrl)
     await access(resolve(outputRoot, url))
   }))
 }
@@ -159,10 +178,14 @@ async function writeApi(outputRoot: string): Promise<void> {
   }
   await writeFile(resolve(outputRoot, 'vendors.json'), withSingleTrailingNewline(JSON.stringify(vendors, null, 2)), 'utf8')
   await writeFile(resolve(outputRoot, 'catalog.json'), withSingleTrailingNewline(JSON.stringify(catalog, null, 2)), 'utf8')
-  await assertManifestUrlsExist(outputRoot, [
+  await assertManifestUrlsExist(outputRoot, new URL('catalog.json', API_MANIFEST_BASE).href, [
     catalog.debian.url,
     catalog.vendors.url,
+  ])
+  await assertManifestUrlsExist(outputRoot, new URL('releases.json', API_MANIFEST_BASE).href, [
     ...manifest.flatMap((release) => release.files.map((file) => file.url)),
+  ])
+  await assertManifestUrlsExist(outputRoot, new URL('vendors.json', API_MANIFEST_BASE).href, [
     ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((resource) => [resource.source.url, resource.install.url])),
   ])
 }
