@@ -285,4 +285,38 @@ describe('SourceGenerator', () => {
     expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
     expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
   })
+
+  it('clears copy feedback when the sources are generated again', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Copy')
+    await flushPromises()
+    await settle()
+    expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(true)
+
+    await clickButton(wrapper, 'Generate sources')
+
+    expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
+    expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
+  })
+
+  it('does not restore copy feedback after regeneration during a pending copy', async () => {
+    let resolveCopy: (() => void) | undefined
+    copyTextMock.mockImplementation(() => new Promise<void>((resolve) => { resolveCopy = resolve }))
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Copy')
+    await clickButton(wrapper, 'Generate sources')
+
+    resolveCopy?.()
+    await flushPromises()
+    await settle()
+
+    expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
+    expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
+  })
 })

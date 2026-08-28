@@ -71,6 +71,9 @@ watch([
 })
 
 function generate(): void {
+  feedbackVersion += 1
+  feedback.value = null
+
   const options: SourceOptions = {
     release: release.value,
     format: format.value,
