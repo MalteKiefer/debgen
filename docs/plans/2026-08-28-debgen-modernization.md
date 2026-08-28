@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - The supported release set is exactly `trixie`, `bookworm`, `bullseye`, `forky`, and `sid` as of 2026-08-28.
-- Official APT sources use HTTPS and `Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp`.
+- Official APT sources use HTTPS and the release-compatible Debian archive keyring: `.gpg` for Bookworm/Bullseye and `.pgp` for Trixie/Forky/Sid.
 - Bullseye has `main contrib non-free`, security, and updates, but no `non-free-firmware` and no backports.
 - Forky and Sid generate base sources only because testing/unstable do not receive normal timely Debian Security Team support.
 - Legacy one-line output is available only for Bookworm and Bullseye and is labeled deprecated.
@@ -105,11 +105,11 @@ git commit -m "build: migrate application toolchain"
 Use literal, hand-checked expected output. Cover:
 
 - Trixie DEB822 with base+updates, separate security stanza, all selected components, and `.pgp` Signed-By.
-- Bookworm with optional backports.
+- Trixie with optional backports and Bookworm rejecting backports after support ended on 2026-08-09.
 - Bullseye rejecting `non-free-firmware` and backports.
 - Forky and Sid emitting base-only output for valid options and rejecting security, updates, or backports flags.
 - `deb deb-src` when source indexes are enabled.
-- Bookworm/Bullseye legacy lines with `[signed-by=/usr/share/keyrings/debian-archive-keyring.pgp]`.
+- Bookworm/Bullseye legacy lines with `[signed-by=/usr/share/keyrings/debian-archive-keyring.gpg]`.
 - Legacy format rejection for Trixie, Forky, and Sid.
 - Empty or unknown release/component input rejection.
 - Catalog rejection for duplicate codenames, malformed HTTPS URIs, invalid suite names, missing keyring, recommended components not present in the release, and contradictory capability flags.
@@ -125,7 +125,7 @@ Expected: FAIL because the domain modules do not exist.
 
 - [ ] **Step 3: Implement immutable release data**
 
-Model capabilities explicitly. Trixie: security, updates, backports, four components. Bookworm: the same. Bullseye: security and updates, three components, no backports. Forky and Sid: base only and four components. Default release is Trixie. Use `https://deb.debian.org/debian` for base/update/backports and `https://security.debian.org/debian-security` for security. `validateReleaseCatalog()` enforces uniqueness, HTTPS, suite-name shape, keyring presence, component membership, and capability/suite consistency; call it at module initialization so malformed catalog edits fail tests and builds.
+Model capabilities explicitly. Trixie: security, updates, backports, four components. Bookworm: security and updates, four components, no backports after support ended on 2026-08-09. Bullseye: security and updates, three components, no backports. Forky and Sid: base only and four components. Default release is Trixie. Use `https://deb.debian.org/debian` for base/update/backports and `https://security.debian.org/debian-security` for security. Model the release-compatible keyring path explicitly. `validateReleaseCatalog()` enforces uniqueness, HTTPS, suite-name shape, keyring presence, component membership, and capability/suite consistency; call it at module initialization so malformed catalog edits fail tests and builds.
 
 - [ ] **Step 4: Implement pure generators**
 
@@ -163,7 +163,7 @@ git commit -m "feat: generate current Debian sources"
 **Interfaces:**
 - Consumes: `RELEASES`, `generateSources()`, and `getOutputFilename()` from Task 2.
 - Produces: `generateApi(outputRoot: string): Promise<void>` and the exact `/api/v1/` paths defined by the specification.
-- Produces manifest entries `{ codename, status, formats, files }`, where each file is `{ format: 'deb822' | 'legacy', filename: 'debian.sources' | 'debian.list', url: 'api/v1/<codename>/<filename>' }`.
+- Produces manifest entries `{ codename, status, formats, files }`, where each file is `{ format: 'deb822' | 'legacy', filename: 'debian.sources' | 'debian.list', url: '<codename>/<filename>' }`; URLs are relative to `releases.json`.
 
 - [ ] **Step 1: Write the failing API-generation test**
 
@@ -219,7 +219,8 @@ Mount the real component with Vuetify and assert behavior, not Vuetify internals
 
 - defaults to Trixie and DEB822;
 - generating shows a Trixie DEB822 stanza;
-- selecting Bullseye disables firmware and backports and offers legacy format;
+- selecting Bookworm disables backports and explains the 2026-08-09 support end date;
+- selecting Bullseye disables firmware and backports and offers the deprecated legacy format;
 - selecting Sid disables security, updates, and backports;
 - selecting Trixie does not offer legacy format;
 - source-package selection changes `Types: deb` to `Types: deb deb-src`;
@@ -329,7 +330,7 @@ Update Dependabot to target npm on the default branch, group routine development
 
 - [ ] **Step 2: Replace documentation**
 
-Document the exact Node requirement `>=24.15.0 <25`, npm commands, supported releases/formats, `.pgp` keyring behavior, GitHub Pages setup, all static API URLs, and safe `curl -fsSL | sudo tee` examples. State that Bullseye LTS ends 2026-08-31, testing/unstable do not provide stable-grade security support, legacy format is deprecated, and users must inspect output before installation.
+Document the exact Node requirement `>=24.15.0 <25`, npm commands, supported releases/formats, release-specific `.gpg`/`.pgp` keyring behavior, GitHub Pages setup, all static API URLs, and safe `curl -fsSL | sudo tee` examples. State that Bookworm Backports support ended on 2026-08-09, Bullseye LTS ends 2026-08-31, testing/unstable do not provide stable-grade security support, legacy format is deprecated, and users must inspect output before installation.
 
 - [ ] **Step 3: Remove unverified third-party data**
 

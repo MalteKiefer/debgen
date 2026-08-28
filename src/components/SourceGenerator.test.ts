@@ -93,7 +93,19 @@ describe('SourceGenerator', () => {
     await openSelect(wrapper, 'Output format')
     const formatOptions = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'))
       .map((option) => option.textContent ?? '')
-    expect(formatOptions.some((option) => option.includes('Legacy sources.list'))).toBe(true)
+    expect(formatOptions.some((option) => option.includes('Legacy sources.list') && option.includes('deprecated'))).toBe(true)
+  })
+
+  it('disables ended Bookworm backports and explains the support date', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await control(wrapper, 'Backports').setValue(true)
+    await choose(wrapper, 'Debian release', 'Bookworm')
+
+    expect(control(wrapper, 'Backports').attributes()).toHaveProperty('disabled')
+    expect((control(wrapper, 'Backports').element as HTMLInputElement).checked).toBe(false)
+    expect(wrapper.text()).toContain('Backports support ended on 2026-08-09')
   })
 
   it('disables unsupported suites for Sid and explains the base-only configuration', async () => {
@@ -173,6 +185,7 @@ describe('SourceGenerator', () => {
     expect(download, 'Download button').toBeTruthy()
     expect(copy?.attributes()).toHaveProperty('disabled')
     expect(download?.attributes()).toHaveProperty('disabled')
+    expect(wrapper.get('[aria-label="Generated configuration actions"]').attributes('role')).toBe('group')
 
     await clickButton(wrapper, 'Generate sources')
 

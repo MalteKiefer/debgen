@@ -2,7 +2,8 @@ import type { DebianRelease, ReleaseCodename } from './model'
 
 const BASE_URI = 'https://deb.debian.org/debian'
 const SECURITY_URI = 'https://security.debian.org/debian-security'
-const KEYRING = '/usr/share/keyrings/debian-archive-keyring.pgp'
+const GPG_KEYRING = '/usr/share/keyrings/debian-archive-keyring.gpg'
+const PGP_KEYRING = '/usr/share/keyrings/debian-archive-keyring.pgp'
 
 function release(
   codename: ReleaseCodename,
@@ -10,6 +11,7 @@ function release(
   components: string[],
   recommendedComponents: string[],
   formats: DebianRelease['formats'],
+  keyring: string,
   capabilities: DebianRelease['capabilities'],
 ): DebianRelease {
   return {
@@ -18,7 +20,7 @@ function release(
     formats,
     components,
     recommendedComponents,
-    keyring: KEYRING,
+    keyring,
     baseUri: BASE_URI,
     securityUri: SECURITY_URI,
     suites: {
@@ -40,11 +42,11 @@ function deepFreeze<T>(value: T): T {
 }
 
 const catalog: DebianRelease[] = [
-  release('trixie', 'stable', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], { security: true, updates: true, backports: true }),
-  release('bookworm', 'oldstable / LTS', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822', 'legacy'], { security: true, updates: true, backports: true }),
-  release('bullseye', 'oldoldstable / LTS', ['main', 'contrib', 'non-free'], ['main'], ['deb822', 'legacy'], { security: true, updates: true, backports: false }),
-  release('forky', 'testing', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], { security: false, updates: false, backports: false }),
-  release('sid', 'unstable', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], { security: false, updates: false, backports: false }),
+  release('trixie', 'stable', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], PGP_KEYRING, { security: true, updates: true, backports: true }),
+  release('bookworm', 'oldstable / LTS', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822', 'legacy'], GPG_KEYRING, { security: true, updates: true, backports: false }),
+  release('bullseye', 'oldoldstable / LTS', ['main', 'contrib', 'non-free'], ['main'], ['deb822', 'legacy'], GPG_KEYRING, { security: true, updates: true, backports: false }),
+  release('forky', 'testing', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], PGP_KEYRING, { security: false, updates: false, backports: false }),
+  release('sid', 'unstable', ['main', 'contrib', 'non-free', 'non-free-firmware'], ['main', 'non-free-firmware'], ['deb822'], PGP_KEYRING, { security: false, updates: false, backports: false }),
 ]
 
 const suitePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/

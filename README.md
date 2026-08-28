@@ -30,14 +30,14 @@ Run `npm run check` before submitting a change.
 | Release | Debian status | Formats | Notes |
 | --- | --- | --- | --- |
 | Trixie | stable | DEB822 `.sources` | Includes stable security, updates, and optional backports. |
-| Bookworm | oldstable / LTS | DEB822 `.sources`, legacy `.list` | Includes security, updates, and optional backports. |
+| Bookworm | oldstable / LTS | DEB822 `.sources`, legacy `.list` | Includes security and updates. Backports support ended on 2026-08-09 and is unavailable. |
 | Bullseye | oldoldstable / LTS | DEB822 `.sources`, legacy `.list` | LTS ends 2026-08-31; includes security and updates, but not backports. |
 | Forky | testing | DEB822 `.sources` | Does not provide stable-grade security support. |
 | Sid | unstable | DEB822 `.sources` | Does not provide stable-grade security support. |
 
 DEB822 is the preferred format. The legacy one-line format is deprecated and is provided only for Bookworm and Bullseye compatibility.
 
-Every generated entry uses HTTPS and scopes archive verification with `Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp` (or the equivalent `signed-by` option in legacy output). The `.pgp` keyring is installed by Debian's `debian-archive-keyring` package; debgen does not download, modify, or replace trust keys.
+Every generated entry uses HTTPS and scopes archive verification to the keyring filename shipped by that Debian release (or the equivalent `signed-by` option in legacy output). Bookworm and Bullseye use `/usr/share/keyrings/debian-archive-keyring.gpg`; Trixie, Forky, and Sid use `/usr/share/keyrings/debian-archive-keyring.pgp`. Both files come from Debian's `debian-archive-keyring` package for the applicable release; debgen does not download, modify, or replace trust keys.
 
 Generated configurations can change package sources on a system. Choose the release that matches the installed Debian version, review the selected components and suites, and inspect the complete output before installing it. Testing and unstable are rolling suites and do not provide stable-grade security support.
 
@@ -54,7 +54,7 @@ The public GitHub Pages API root is `https://maltekiefer.github.io/debgen/api/v1
 - `https://maltekiefer.github.io/debgen/api/v1/forky/debian.sources`
 - `https://maltekiefer.github.io/debgen/api/v1/sid/debian.sources`
 
-The manifest at `releases.json` reports the release status, supported formats, filenames, and relative URLs.
+The manifest at `releases.json` reports the release status, supported formats, filenames, and manifest-relative URLs such as `trixie/debian.sources`. Resolve each `url` against the manifest URL itself; for example, `new URL(file.url, manifestUrl)` resolves beneath `/api/v1/` on both the primary site and forks.
 
 ### Installing a reviewed configuration
 

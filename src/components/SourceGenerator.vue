@@ -203,6 +203,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       v-else
       aria-label="Generated configuration actions"
       class="source-output__actions"
+      role="group"
     >
       <v-btn
         disabled

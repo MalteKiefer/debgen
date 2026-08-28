@@ -50,7 +50,7 @@ export async function generateApi(outputRoot: string): Promise<void> {
 
     for (const format of [...release.formats].sort(compareText)) {
       const filename = getOutputFilename(format)
-      const relativeUrl = `api/v1/${release.codename}/${filename}`
+      const relativeUrl = `${release.codename}/${filename}`
       await writeFile(resolve(releaseDirectory, filename), withSingleTrailingNewline(canonicalSource(release, format)), 'utf8')
       files.push({ format, filename, url: relativeUrl })
     }

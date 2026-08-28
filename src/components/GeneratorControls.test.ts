@@ -34,6 +34,21 @@ describe('GeneratorControls', () => {
     expect(wrapper.get('#release-capability-status').text()).toContain('does not provide non-free-firmware or backports')
   })
 
+  it('marks Bookworm backports unavailable and its legacy format deprecated', async () => {
+    const wrapper = mount(GeneratorControls, {
+      props: props('bookworm', 'legacy'),
+      global: { plugins: [vuetify] },
+    })
+    await nextTick()
+
+    const backports = wrapper.get('[aria-label="Backports"]')
+    expect(backports.attributes()).toHaveProperty('disabled')
+    expect(backports.attributes('aria-describedby')).toBe('release-capability-status')
+    expect(wrapper.get('[aria-label="Output format"]').attributes('value')).toContain('deprecated')
+    expect(wrapper.get('#release-capability-status').text()).toContain('Backports support ended on 2026-08-09')
+    expect(wrapper.get('#release-capability-status').text()).toContain('deprecated legacy sources.list format')
+  })
+
   it('emits a source-package selection from the labeled switch', async () => {
     const wrapper = mount(GeneratorControls, {
       props: props(),

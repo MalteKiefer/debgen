@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: master
+    schedule:
+      interval: weekly
+
   - package-ecosystem: npm
     directory: /
     target-branch: master

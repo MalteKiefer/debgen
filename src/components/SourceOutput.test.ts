@@ -47,7 +47,9 @@ describe('SourceOutput', () => {
       global: { plugins: [vuetify] },
     })
 
-    expect(wrapper.get('[aria-label="Generated configuration actions"] button').text()).toBe('Copy')
+    const actions = wrapper.get('[aria-label="Generated configuration actions"]')
+    expect(actions.attributes('role')).toBe('group')
+    expect(actions.get('button').text()).toBe('Copy')
   })
 
   it('passes the exact content and filename to the scoped actions slot', () => {

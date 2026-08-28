@@ -27,6 +27,7 @@ defineProps<{
         v-if="$slots.actions"
         aria-label="Generated configuration actions"
         class="source-output__actions"
+        role="group"
       >
         <slot
           name="actions"

@@ -22,7 +22,7 @@ const releaseItems = RELEASES.map((entry) => ({
 }))
 
 const formatItems = computed(() => selectedRelease.value.formats.map((entry) => ({
-  title: entry === 'deb822' ? 'DEB822 (.sources)' : 'Legacy sources.list (.list)',
+  title: entry === 'deb822' ? 'DEB822 (.sources)' : 'Legacy sources.list (.list, deprecated)',
   value: entry,
 })))
 
@@ -36,7 +36,10 @@ const availabilityMessage = computed(() => {
     + selectedRelease.value.codename.slice(1)
 
   if (selectedRelease.value.codename === 'bullseye') {
-    return 'Bullseye does not provide non-free-firmware or backports. Those controls are disabled.'
+    return 'Bullseye does not provide non-free-firmware or backports. Those controls are disabled. The legacy sources.list format is deprecated.'
+  }
+  if (selectedRelease.value.codename === 'bookworm') {
+    return 'Bookworm supports DEB822 and the deprecated legacy sources.list format. Backports support ended on 2026-08-09, so that control is disabled.'
   }
   if (!supportsSecurity.value && !supportsUpdates.value && !supportsBackports.value) {
     return `${name} is base-only: security, updates, and backports suites are unavailable.`
@@ -44,7 +47,7 @@ const availabilityMessage = computed(() => {
   if (selectedRelease.value.formats.length === 1) {
     return `${name} uses the recommended DEB822 format. Security, updates, and backports are available.`
   }
-  return `${name} supports DEB822 and the legacy sources.list format.`
+  return `${name} supports DEB822 and the deprecated legacy sources.list format.`
 })
 
 function describedBy(supported: boolean): string | undefined {

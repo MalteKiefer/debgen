@@ -27,26 +27,26 @@ const bookwormSources = `Types: deb
 URIs: https://deb.debian.org/debian
 Suites: bookworm bookworm-updates
 Components: main non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 URIs: https://security.debian.org/debian-security
 Suites: bookworm-security
 Components: main non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 `
 
 const bullseyeSources = `Types: deb
 URIs: https://deb.debian.org/debian
 Suites: bullseye bullseye-updates
 Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 URIs: https://security.debian.org/debian-security
 Suites: bullseye-security
 Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 `
 
 const forkySources = `Types: deb
@@ -63,14 +63,14 @@ Components: main non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
 `
 
-const bookwormList = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm main non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bookworm-security main non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm-updates main non-free-firmware
+const bookwormList = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bookworm-security main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main non-free-firmware
 `
 
-const bullseyeList = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye main
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bullseye-security main
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye-updates main
+const bullseyeList = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bullseye-security main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye-updates main
 `
 
 const expectedFiles = {
@@ -103,7 +103,12 @@ describe('versioned static API generation', () => {
       (await readdir(join(outputRoot, codename))).sort(),
     ])))
     const manifestText = await readFile(join(outputRoot, 'releases.json'), 'utf8')
-    const manifest = JSON.parse(manifestText) as unknown
+    const manifest = JSON.parse(manifestText) as Array<{
+      codename: string
+      status: string
+      formats: string[]
+      files: Array<{ format: string, filename: string, url: string }>
+    }>
     const fileMap = Object.fromEntries(await Promise.all(Object.keys(expectedFiles).map(async (relativePath) => [
       relativePath,
       await readFile(join(outputRoot, relativePath), 'utf8'),
@@ -125,8 +130,8 @@ describe('versioned static API generation', () => {
         status: 'oldstable / LTS',
         formats: ['deb822', 'legacy'],
         files: [
-          { format: 'deb822', filename: 'debian.sources', url: 'api/v1/bookworm/debian.sources' },
-          { format: 'legacy', filename: 'debian.list', url: 'api/v1/bookworm/debian.list' },
+          { format: 'deb822', filename: 'debian.sources', url: 'bookworm/debian.sources' },
+          { format: 'legacy', filename: 'debian.list', url: 'bookworm/debian.list' },
         ],
       },
       {
@@ -134,8 +139,8 @@ describe('versioned static API generation', () => {
         status: 'oldoldstable / LTS',
         formats: ['deb822', 'legacy'],
         files: [
-          { format: 'deb822', filename: 'debian.sources', url: 'api/v1/bullseye/debian.sources' },
-          { format: 'legacy', filename: 'debian.list', url: 'api/v1/bullseye/debian.list' },
+          { format: 'deb822', filename: 'debian.sources', url: 'bullseye/debian.sources' },
+          { format: 'legacy', filename: 'debian.list', url: 'bullseye/debian.list' },
         ],
       },
       {
@@ -143,7 +148,7 @@ describe('versioned static API generation', () => {
         status: 'testing',
         formats: ['deb822'],
         files: [
-          { format: 'deb822', filename: 'debian.sources', url: 'api/v1/forky/debian.sources' },
+          { format: 'deb822', filename: 'debian.sources', url: 'forky/debian.sources' },
         ],
       },
       {
@@ -151,7 +156,7 @@ describe('versioned static API generation', () => {
         status: 'unstable',
         formats: ['deb822'],
         files: [
-          { format: 'deb822', filename: 'debian.sources', url: 'api/v1/sid/debian.sources' },
+          { format: 'deb822', filename: 'debian.sources', url: 'sid/debian.sources' },
         ],
       },
       {
@@ -159,9 +164,19 @@ describe('versioned static API generation', () => {
         status: 'stable',
         formats: ['deb822'],
         files: [
-          { format: 'deb822', filename: 'debian.sources', url: 'api/v1/trixie/debian.sources' },
+          { format: 'deb822', filename: 'debian.sources', url: 'trixie/debian.sources' },
         ],
       },
+    ])
+    const manifestUrl = 'https://maltekiefer.github.io/debgen/api/v1/releases.json'
+    expect(manifest.flatMap((release) => release.files.map((file) => new URL(file.url, manifestUrl).href))).toEqual([
+      'https://maltekiefer.github.io/debgen/api/v1/bookworm/debian.sources',
+      'https://maltekiefer.github.io/debgen/api/v1/bookworm/debian.list',
+      'https://maltekiefer.github.io/debgen/api/v1/bullseye/debian.sources',
+      'https://maltekiefer.github.io/debgen/api/v1/bullseye/debian.list',
+      'https://maltekiefer.github.io/debgen/api/v1/forky/debian.sources',
+      'https://maltekiefer.github.io/debgen/api/v1/sid/debian.sources',
+      'https://maltekiefer.github.io/debgen/api/v1/trixie/debian.sources',
     ])
     expect(fileMap).toEqual(expectedFiles)
     const bullseyeProfiles = Object.entries(fileMap)

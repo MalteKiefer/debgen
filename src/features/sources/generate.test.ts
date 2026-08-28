@@ -20,9 +20,9 @@ Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
 `
 
-const bookwormBackportsDeb822 = `Types: deb
+const trixieBackportsDeb822 = `Types: deb
 URIs: https://deb.debian.org/debian
-Suites: bookworm bookworm-backports
+Suites: trixie trixie-backports
 Components: main non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
 `
@@ -41,17 +41,17 @@ Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
 `
 
-const bookwormLegacy = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
-deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
-deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
-deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+const bookwormLegacy = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+deb-src [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
 `
 
-const bullseyeLegacy = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye main contrib non-free
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bullseye-security main contrib non-free
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye-updates main contrib non-free
+const bullseyeLegacy = `deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye main contrib non-free
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bullseye-security main contrib non-free
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye-updates main contrib non-free
 `
 
 function options(overrides: Partial<SourceOptions> = {}): SourceOptions {
@@ -88,6 +88,16 @@ describe('Debian release catalog', () => {
   })
 
   it.each([
+    ['trixie', '/usr/share/keyrings/debian-archive-keyring.pgp'],
+    ['bookworm', '/usr/share/keyrings/debian-archive-keyring.gpg'],
+    ['bullseye', '/usr/share/keyrings/debian-archive-keyring.gpg'],
+    ['forky', '/usr/share/keyrings/debian-archive-keyring.pgp'],
+    ['sid', '/usr/share/keyrings/debian-archive-keyring.pgp'],
+  ] as const)('generates the archive keyring filename shipped by %s', (release, keyring) => {
+    expect(generateSources(options({ release }))).toContain(`Signed-By: ${keyring}`)
+  })
+
+  it.each([
     ['duplicate codenames', catalogWith((catalog) => { catalog[1].codename = 'trixie' as DebianRelease['codename'] }), /duplicate codename/i],
     ['malformed HTTPS repository URIs', catalogWith((catalog) => { catalog[0].baseUri = 'deb.debian.org/debian' }), /HTTPS/i],
     ['invalid suite names', catalogWith((catalog) => { catalog[0].suites.base = 'Trixie' }), /suite/i],
@@ -116,12 +126,11 @@ describe('DEB822 generation', () => {
     }))).toBe(trixieDeb822)
   })
 
-  it('generates Bookworm backports when selected', () => {
+  it('generates Trixie backports when selected', () => {
     expect(generateDeb822(options({
-      release: 'bookworm',
       includeBackports: true,
       components: ['non-free-firmware'],
-    }))).toBe(bookwormBackportsDeb822)
+    }))).toBe(trixieBackportsDeb822)
   })
 
   it('emits deb and deb-src when source indexes are selected', () => {
@@ -144,6 +153,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
 describe('strict source option validation', () => {
   it.each([
     ['Bullseye firmware', options({ release: 'bullseye', components: ['non-free-firmware'] }), /non-free-firmware/i],
+    ['Bookworm backports', options({ release: 'bookworm', includeBackports: true }), /backports/i],
     ['Bullseye backports', options({ release: 'bullseye', includeBackports: true }), /backports/i],
     ['Forky security', options({ release: 'forky', includeSecurity: true }), /security/i],
     ['Forky updates', options({ release: 'forky', includeUpdates: true }), /updates/i],

@@ -3,37 +3,37 @@
 exports[`versioned static API generation > writes the exact canonical profiles and manifest 1`] = `
 {
   "fileMap": {
-    "bookworm/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm main non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bookworm-security main non-free-firmware
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm-updates main non-free-firmware
+    "bookworm/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bookworm-security main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main non-free-firmware
 ",
     "bookworm/debian.sources": "Types: deb
 URIs: https://deb.debian.org/debian
 Suites: bookworm bookworm-updates
 Components: main non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 URIs: https://security.debian.org/debian-security
 Suites: bookworm-security
 Components: main non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 ",
-    "bullseye/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye main
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bullseye-security main
-deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye-updates main
+    "bullseye/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://security.debian.org/debian-security bullseye-security main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bullseye-updates main
 ",
     "bullseye/debian.sources": "Types: deb
 URIs: https://deb.debian.org/debian
 Suites: bullseye bullseye-updates
 Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
 URIs: https://security.debian.org/debian-security
 Suites: bullseye-security
 Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 ",
     "forky/debian.sources": "Types: deb
 URIs: https://deb.debian.org/debian
@@ -67,12 +67,12 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
         {
           "filename": "debian.sources",
           "format": "deb822",
-          "url": "api/v1/bookworm/debian.sources",
+          "url": "bookworm/debian.sources",
         },
         {
           "filename": "debian.list",
           "format": "legacy",
-          "url": "api/v1/bookworm/debian.list",
+          "url": "bookworm/debian.list",
         },
       ],
       "formats": [
@@ -87,12 +87,12 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
         {
           "filename": "debian.sources",
           "format": "deb822",
-          "url": "api/v1/bullseye/debian.sources",
+          "url": "bullseye/debian.sources",
         },
         {
           "filename": "debian.list",
           "format": "legacy",
-          "url": "api/v1/bullseye/debian.list",
+          "url": "bullseye/debian.list",
         },
       ],
       "formats": [
@@ -107,7 +107,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
         {
           "filename": "debian.sources",
           "format": "deb822",
-          "url": "api/v1/forky/debian.sources",
+          "url": "forky/debian.sources",
         },
       ],
       "formats": [
@@ -121,7 +121,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
         {
           "filename": "debian.sources",
           "format": "deb822",
-          "url": "api/v1/sid/debian.sources",
+          "url": "sid/debian.sources",
         },
       ],
       "formats": [
@@ -135,7 +135,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
         {
           "filename": "debian.sources",
           "format": "deb822",
-          "url": "api/v1/trixie/debian.sources",
+          "url": "trixie/debian.sources",
         },
       ],
       "formats": [

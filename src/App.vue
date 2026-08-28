@@ -1,39 +1,38 @@
 <template>
   <v-app>
-    <header class="app-header">
-      <v-app-bar elevation="1">
-        <v-app-bar-title>
-          <v-icon icon="mdi-debian" />
-          DebGen
-        </v-app-bar-title>
+    <v-app-bar
+      class="app-header"
+      elevation="1"
+    >
+      <v-app-bar-title>
+        <v-icon icon="mdi-debian" />
+        DebGen
+      </v-app-bar-title>
 
-        <v-spacer />
+      <v-spacer />
 
-        <v-btn
-          class="app-header__link"
-          href="https://de.liberapay.com/beli3ver"
-          variant="text"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Liberapay
-        </v-btn>
-        <v-btn
-          class="app-header__link"
-          href="https://github.com/maltekiefer/debgen"
-          variant="text"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub
-        </v-btn>
-      </v-app-bar>
-    </header>
+      <v-btn
+        class="app-header__link"
+        href="https://de.liberapay.com/beli3ver"
+        variant="text"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Liberapay
+      </v-btn>
+      <v-btn
+        class="app-header__link"
+        href="https://github.com/maltekiefer/debgen"
+        variant="text"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub
+      </v-btn>
+    </v-app-bar>
 
-    <v-main>
-      <main class="app-main">
-        <SourceGenerator />
-      </main>
+    <v-main class="app-main">
+      <SourceGenerator />
     </v-main>
   </v-app>
 </template>
