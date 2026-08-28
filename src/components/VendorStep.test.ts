@@ -1,0 +1,75 @@
+import { mount } from '@vue/test-utils'
+import VendorStep from './VendorStep.vue'
+import vuetify from '../plugins/vuetify'
+
+function mountStep(options: Partial<{
+  release: 'trixie' | 'bookworm'
+  architecture: 'amd64' | 'arm64'
+  selectedIds: string[]
+}> = {}) {
+  return mount(VendorStep, {
+    props: {
+      release: options.release ?? 'trixie',
+      architecture: options.architecture ?? 'amd64',
+      selectedIds: options.selectedIds ?? [],
+    },
+    global: { plugins: [vuetify] },
+  })
+}
+
+describe('VendorStep', () => {
+  it('zeigt alle Katalogprodukte und die Anzahl der ausgewählten Paketquellen', () => {
+    const wrapper = mountStep({ selectedIds: ['brave-browser', 'github-cli'] })
+
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(25)
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Paketquellen ausgewählt')
+  })
+
+  it('filtert Produkte nach Suchbegriff ohne die Auswahl zu verändern', async () => {
+    const wrapper = mountStep({ selectedIds: ['brave-browser'] })
+
+    await wrapper.get('input[type="search"]').setValue('Docker')
+
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(1)
+    expect(wrapper.text()).toContain('Docker Engine')
+    expect(wrapper.emitted('update:selectedIds')).toBeUndefined()
+  })
+
+  it('filtert Produkte nach deutscher Kategorie', async () => {
+    const wrapper = mountStep()
+
+    await wrapper.get('[aria-label="Kategorie Browser"]').trigger('click')
+
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(6)
+    expect(wrapper.text()).toContain('Brave Browser')
+    expect(wrapper.text()).not.toContain('Docker Engine')
+  })
+
+  it('übernimmt nur die Auswahl kompatibler Produktkarten', async () => {
+    const wrapper = mountStep()
+
+    await wrapper.get('input[aria-label="Brave Browser auswählen"]').setValue(true)
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+  })
+
+  it('entfernt nach einem Architekturwechsel inkompatible Auswahl und erklärt die Änderung', async () => {
+    const wrapper = mountStep({ selectedIds: ['brave-browser', 'google-chrome'] })
+
+    await wrapper.setProps({ architecture: 'arm64' })
+
+    expect(wrapper.emitted('update:selectedIds')).toContainEqual([['brave-browser']])
+    expect(wrapper.get('[role="status"]').text()).toContain('Architektur')
+    expect(wrapper.get('[role="status"]').text()).toContain('Google Chrome')
+  })
+
+  it('entfernt nach einem Releasewechsel inkompatible Auswahl und nennt das Release', async () => {
+    const wrapper = mountStep({ release: 'bookworm', selectedIds: ['brave-browser', 'azure-cli'] })
+
+    await wrapper.setProps({ release: 'trixie' })
+
+    expect(wrapper.emitted('update:selectedIds')).toContainEqual([['brave-browser']])
+    expect(wrapper.get('[role="status"]').text()).toContain('Trixie')
+    expect(wrapper.get('[role="status"]').text()).toContain('Microsoft Azure CLI')
+  })
+})

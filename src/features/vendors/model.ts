@@ -20,6 +20,8 @@ export interface VendorProduct {
   readonly id: string
   readonly name: string
   readonly category: VendorCategory
+  /** Optional product pictogram for the selection UI; category icons remain the fallback. */
+  readonly icon?: string
   readonly filename: string
   readonly documentationUrl: string
   readonly repositoryUrl: VendorRepositoryUrl
