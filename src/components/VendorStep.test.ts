@@ -48,6 +48,29 @@ describe('VendorStep', () => {
     expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
   })
 
+  it('behält die Bereinigungserklärung, wenn ein Parent die normalisierte Auswahl zurückspiegelt', async () => {
+    const wrapper = mountStep({ selectedIds: ['brave-browser', 'google-chrome'] })
+
+    await wrapper.setProps({ architecture: 'arm64' })
+    await wrapper.setProps({ selectedIds: ['brave-browser'] })
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+    expect(wrapper.get('[role="status"]').text()).toContain('Architektur arm64')
+    expect(wrapper.get('[role="status"]').text()).toContain('Google Chrome')
+  })
+
+  it('löscht eine alte Bereinigungserklärung bei einer neuen kompatiblen externen Auswahl', async () => {
+    const wrapper = mountStep({ selectedIds: ['brave-browser', 'google-chrome'] })
+
+    await wrapper.setProps({ architecture: 'arm64' })
+    await wrapper.setProps({ selectedIds: ['brave-browser'] })
+    await wrapper.setProps({ selectedIds: ['brave-browser', 'github-cli'] })
+
+    expect(wrapper.emitted('update:selectedIds')).toEqual([[['brave-browser']]])
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Paketquellen ausgewählt')
+    expect(wrapper.get('[role="status"]').text()).not.toContain('Google Chrome')
+  })
+
   it('filtert Produkte nach Suchbegriff ohne die Auswahl zu verändern', async () => {
     const wrapper = mountStep({ selectedIds: ['brave-browser'] })
 

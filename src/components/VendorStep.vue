@@ -20,6 +20,7 @@ const emit = defineEmits<{
 const searchTerm = ref('')
 const activeCategory = ref<VendorCategory | null>(null)
 const cleanupMessage = ref('')
+const pendingCleanupIds = ref<readonly string[] | null>(null)
 
 const categories: readonly { readonly id: VendorCategory, readonly label: string, readonly icon: VendorMdiIcon }[] = [
   { id: 'browser', label: 'Browser', icon: 'mdi-web' },
@@ -97,10 +98,16 @@ watch(
   ([release, architecture], previous) => {
     const result = normalizeSelection(release, architecture)
     if (hasSameIds(props.selectedIds, result.normalizedIds)) {
+      if (pendingCleanupIds.value && hasSameIds(props.selectedIds, pendingCleanupIds.value)) {
+        pendingCleanupIds.value = null
+        return
+      }
+      pendingCleanupIds.value = null
       cleanupMessage.value = ''
       return
     }
 
+    pendingCleanupIds.value = result.normalizedIds
     emit('update:selectedIds', result.normalizedIds)
     const changedSystem = !previous
       ? 'Die Auswahl wurde geprüft'
