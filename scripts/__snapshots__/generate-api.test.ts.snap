@@ -1,0 +1,148 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`versioned static API generation > writes the exact canonical profiles and manifest 1`] = `
+{
+  "fileMap": {
+    "bookworm/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bookworm-security main non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bookworm-updates main non-free-firmware
+",
+    "bookworm/debian.sources": "Types: deb
+URIs: https://deb.debian.org/debian
+Suites: bookworm bookworm-updates
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+
+Types: deb
+URIs: https://security.debian.org/debian-security
+Suites: bookworm-security
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+",
+    "bullseye/debian.list": "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://security.debian.org/debian-security bullseye-security main
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.pgp] https://deb.debian.org/debian bullseye-updates main
+",
+    "bullseye/debian.sources": "Types: deb
+URIs: https://deb.debian.org/debian
+Suites: bullseye bullseye-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+
+Types: deb
+URIs: https://security.debian.org/debian-security
+Suites: bullseye-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+",
+    "forky/debian.sources": "Types: deb
+URIs: https://deb.debian.org/debian
+Suites: forky
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+",
+    "sid/debian.sources": "Types: deb
+URIs: https://deb.debian.org/debian
+Suites: sid
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+",
+    "trixie/debian.sources": "Types: deb
+URIs: https://deb.debian.org/debian
+Suites: trixie trixie-updates
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+
+Types: deb
+URIs: https://security.debian.org/debian-security
+Suites: trixie-security
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp
+",
+  },
+  "manifest": [
+    {
+      "codename": "bookworm",
+      "files": [
+        {
+          "filename": "debian.sources",
+          "format": "deb822",
+          "url": "api/v1/bookworm/debian.sources",
+        },
+        {
+          "filename": "debian.list",
+          "format": "legacy",
+          "url": "api/v1/bookworm/debian.list",
+        },
+      ],
+      "formats": [
+        "deb822",
+        "legacy",
+      ],
+      "status": "oldstable / LTS",
+    },
+    {
+      "codename": "bullseye",
+      "files": [
+        {
+          "filename": "debian.sources",
+          "format": "deb822",
+          "url": "api/v1/bullseye/debian.sources",
+        },
+        {
+          "filename": "debian.list",
+          "format": "legacy",
+          "url": "api/v1/bullseye/debian.list",
+        },
+      ],
+      "formats": [
+        "deb822",
+        "legacy",
+      ],
+      "status": "oldoldstable / LTS",
+    },
+    {
+      "codename": "forky",
+      "files": [
+        {
+          "filename": "debian.sources",
+          "format": "deb822",
+          "url": "api/v1/forky/debian.sources",
+        },
+      ],
+      "formats": [
+        "deb822",
+      ],
+      "status": "testing",
+    },
+    {
+      "codename": "sid",
+      "files": [
+        {
+          "filename": "debian.sources",
+          "format": "deb822",
+          "url": "api/v1/sid/debian.sources",
+        },
+      ],
+      "formats": [
+        "deb822",
+      ],
+      "status": "unstable",
+    },
+    {
+      "codename": "trixie",
+      "files": [
+        {
+          "filename": "debian.sources",
+          "format": "deb822",
+          "url": "api/v1/trixie/debian.sources",
+        },
+      ],
+      "formats": [
+        "deb822",
+      ],
+      "status": "stable",
+    },
+  ],
+}
+`;
