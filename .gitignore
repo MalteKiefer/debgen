@@ -287,3 +287,6 @@ yarn-error.log
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/node,vue,vuejs,vim,yarn,phpstorm+all
+
+# Local isolated development workspaces
+.worktrees/
