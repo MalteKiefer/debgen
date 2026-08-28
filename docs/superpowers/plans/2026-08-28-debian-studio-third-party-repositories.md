@@ -18,7 +18,7 @@
 - Never emit `apt-key`, PPAs, community mirrors, opaque `curl | sh`, or executable browser behavior.
 - Default output mode is `perVendor`; also support `combined` and `byCategory`.
 - User-facing copy is German; technical identifiers remain exact.
-- Commit messages contain no references to implementation assistants or AI tools.
+- Commit messages remain neutral and describe only the delivered change.
 
 ---
 
