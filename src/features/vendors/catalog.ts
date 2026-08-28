@@ -56,7 +56,7 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'kubernetes-tools-v1-36', name: 'Kubernetes tools v1.36', category: 'containers', filename: 'kubernetes-tools-v1-36.sources',
-    documentationUrl: 'https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/', repositoryUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/', keyUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key', keyringPath: '/etc/apt/keyrings/kubernetes-apt-keyring.gpg', packages: ['kubectl'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://v1-36.docs.kubernetes.io/docs/tasks/tools/install-kubectl-linux/', repositoryUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/', keyUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key', keyringPath: '/etc/apt/keyrings/kubernetes-apt-keyring.gpg', packages: ['kubectl'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: [], verifiedAt: '2026-08-28',
   },
   {
     id: 'google-cloud-cli', name: 'Google Cloud CLI', category: 'cloud', filename: 'google-cloud-cli.sources',
@@ -88,7 +88,7 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', category: 'containers', filename: 'nvidia-container-toolkit.sources',
-    documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', repositoryUrl: 'https://nvidia.github.io/libnvidia-container/stable/deb/', keyUrl: 'https://nvidia.github.io/libnvidia-container/gpgkey', keyringPath: '/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg', packages: ['nvidia-container-toolkit'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: ['main'], verifiedAt: '2026-08-28', warning: 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
+    documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', repositoryUrl: { amd64: 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64', arm64: 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64' }, keyUrl: 'https://nvidia.github.io/libnvidia-container/gpgkey', keyringPath: '/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg', packages: ['nvidia-container-toolkit'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: [], verifiedAt: '2026-08-28', warning: 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
   },
   {
     id: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', category: 'database', filename: 'mariadb-community-11-8.sources',
@@ -108,7 +108,7 @@ const catalog: VendorProduct[] = [
   },
   {
     id: 'zabbix-7-4', name: 'Zabbix 7.4', category: 'monitoring', filename: 'zabbix-7-4.sources',
-    documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages/debian_ubuntu', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
+    documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages/debian_ubuntu', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
   },
 ]
 

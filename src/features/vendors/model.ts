@@ -12,6 +12,8 @@ export type VendorCategory =
 
 export type SystemArchitecture = 'amd64' | 'arm64' | 'armhf' | 'i386'
 
+export type VendorRepositoryUrl = string | Readonly<Partial<Record<SystemArchitecture, string>>>
+
 export type OutputMode = 'perVendor' | 'combined' | 'byCategory'
 
 export interface VendorProduct {
@@ -20,7 +22,7 @@ export interface VendorProduct {
   readonly category: VendorCategory
   readonly filename: string
   readonly documentationUrl: string
-  readonly repositoryUrl: string
+  readonly repositoryUrl: VendorRepositoryUrl
   readonly keyUrl: string
   readonly keyringPath: string
   readonly packages: readonly string[]

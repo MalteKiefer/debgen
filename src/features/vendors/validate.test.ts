@@ -42,6 +42,27 @@ describe('validateVendorCatalog', () => {
       .toThrow(/example.*repository.*https/i)
   })
 
+  it('accepts a closed architecture-specific repository URL mapping', () => {
+    expect(() => validateVendorCatalog([product({
+      architectures: ['amd64', 'arm64'],
+      repositoryUrl: {
+        amd64: 'https://vendor.example/debian/amd64',
+        arm64: 'https://vendor.example/debian/arm64',
+      } as VendorProduct['repositoryUrl'],
+    })])).not.toThrow()
+  })
+
+  it.each([
+    ['missing a supported architecture', { amd64: 'https://vendor.example/debian/amd64' }],
+    ['including an unsupported architecture', { amd64: 'https://vendor.example/debian/amd64', arm64: 'https://vendor.example/debian/arm64', i386: 'https://vendor.example/debian/i386' }],
+    ['using a non-HTTPS mapped URL', { amd64: 'http://vendor.example/debian/amd64', arm64: 'https://vendor.example/debian/arm64' }],
+  ])('rejects a repository URL mapping %s', (_reason, repositoryUrl) => {
+    expect(() => validateVendorCatalog([product({
+      architectures: ['amd64', 'arm64'],
+      repositoryUrl: repositoryUrl as VendorProduct['repositoryUrl'],
+    })])).toThrow(/example.*repository.*architecture|example.*repository.*https/i)
+  })
+
   it('rejects missing metadata', () => {
     expect(() => validateVendorCatalog([product({ documentationUrl: '' })])).toThrow(/example.*documentation/i)
   })
@@ -69,5 +90,16 @@ describe('validateVendorCatalog', () => {
       .toThrow(/example.*suite.*release|example.*unknown.*suite/i)
     expect(() => validateVendorCatalog([product({ releases: ['bookworm', 'trixie'], suite: { bookworm: 'bookworm' } })]))
       .toThrow(/example.*suite.*trixie/i)
+  })
+
+  it('requires empty components for exact-path suites', () => {
+    expect(() => validateVendorCatalog([product({ suite: '/', components: [] })])).not.toThrow()
+    expect(() => validateVendorCatalog([product({ suite: '/', components: ['main'] })]))
+      .toThrow(/example.*exact.*component/i)
+  })
+
+  it('requires components for normal suites', () => {
+    expect(() => validateVendorCatalog([product({ suite: 'stable', components: [] })]))
+      .toThrow(/example.*component/i)
   })
 })

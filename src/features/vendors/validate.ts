@@ -23,6 +23,33 @@ const requireHttps = (product: VendorProduct, field: string, value: unknown): vo
   }
 }
 
+const validateRepositoryUrl = (product: VendorProduct): void => {
+  if (typeof product.repositoryUrl === 'string') {
+    requireHttps(product, 'repository URL', product.repositoryUrl)
+    return
+  }
+
+  if (!product.repositoryUrl || typeof product.repositoryUrl !== 'object' || Array.isArray(product.repositoryUrl)) {
+    throw new Error(`Vendor "${product.id}" repository URL must be an HTTPS URL or architecture mapping.`)
+  }
+
+  const mappedArchitectures = Object.keys(product.repositoryUrl)
+  if (mappedArchitectures.length === 0) {
+    throw new Error(`Vendor "${product.id}" repository URL mapping must define every supported architecture.`)
+  }
+  for (const [architecture, url] of Object.entries(product.repositoryUrl)) {
+    if (!ARCHITECTURES.has(architecture) || !product.architectures.includes(architecture as VendorProduct['architectures'][number])) {
+      throw new Error(`Vendor "${product.id}" repository URL mapping has an unsupported architecture: ${architecture}.`)
+    }
+    requireHttps(product, `repository URL for ${architecture}`, url)
+  }
+  for (const architecture of product.architectures) {
+    if (!(architecture in product.repositoryUrl)) {
+      throw new Error(`Vendor "${product.id}" repository URL mapping is missing architecture ${architecture}.`)
+    }
+  }
+}
+
 export function validateVendorCatalog(products: readonly VendorProduct[]): void {
   if (!Array.isArray(products)) throw new Error('Vendor catalog must be an array.')
 
@@ -46,7 +73,6 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     keyrings.add(product.keyringPath)
 
     requireHttps(product, 'documentation URL', product.documentationUrl)
-    requireHttps(product, 'repository URL', product.repositoryUrl)
     requireHttps(product, 'key URL', product.keyUrl)
     requireText(product, 'keyring path', product.keyringPath)
     const hasPathTraversal = /(^|\/)\.\.?($|\/)/.test(product.keyringPath) || product.keyringPath.includes('//')
@@ -59,21 +85,20 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     if (!Array.isArray(product.packages) || product.packages.length === 0 || product.packages.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
       throw new Error(`Vendor "${id}" must define at least one package.`)
     }
-    if (!Array.isArray(product.components) || product.components.length === 0 || product.components.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
-      throw new Error(`Vendor "${id}" must define at least one component.`)
-    }
     if (!Array.isArray(product.architectures) || product.architectures.length === 0) {
       throw new Error(`Vendor "${id}" must define at least one architecture.`)
     }
     for (const architecture of product.architectures) {
       if (!ARCHITECTURES.has(architecture)) throw new Error(`Vendor "${id}" has an unknown architecture: ${String(architecture)}.`)
     }
+    validateRepositoryUrl(product)
     if (!Array.isArray(product.releases) || product.releases.length === 0) {
       throw new Error(`Vendor "${id}" must define at least one release.`)
     }
     for (const release of product.releases) {
       if (!RELEASES.has(release)) throw new Error(`Vendor "${id}" has an unknown release: ${String(release)}.`)
     }
+    const suites = typeof product.suite === 'string' ? [product.suite] : []
     if (typeof product.suite === 'string') requireText(product, 'suite', product.suite)
     else {
       if (!product.suite || typeof product.suite !== 'object' || Object.keys(product.suite).length === 0) {
@@ -87,6 +112,22 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
       for (const release of product.releases) {
         if (!(release in product.suite)) throw new Error(`Vendor "${id}" is missing a suite for release ${release}.`)
       }
+      suites.push(...Object.values(product.suite))
+    }
+
+    const usesExactPathSuite = suites.includes('/')
+    if (usesExactPathSuite && suites.some((suite) => suite !== '/')) {
+      throw new Error(`Vendor "${id}" cannot mix exact-path and component suites.`)
+    }
+    if (!Array.isArray(product.components)) {
+      throw new Error(`Vendor "${id}" must define components.`)
+    }
+    if (usesExactPathSuite) {
+      if (product.components.length !== 0) {
+        throw new Error(`Vendor "${id}" exact-path suites must not define components.`)
+      }
+    } else if (product.components.length === 0 || product.components.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
+      throw new Error(`Vendor "${id}" must define at least one component.`)
     }
   }
 }

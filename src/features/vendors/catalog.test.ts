@@ -3,43 +3,41 @@ import { VENDOR_PRODUCTS, getVendorProduct } from './catalog'
 import { validateVendorCatalog } from './validate'
 
 const expectedProducts = [
-  ['brave-browser', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['mozilla-firefox', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64']],
-  ['google-chrome', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64']],
-  ['microsoft-edge', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64']],
-  ['vivaldi', ['trixie', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['opera', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64']],
-  ['signal-desktop', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64']],
-  ['proton-vpn', ['trixie'], ['amd64', 'arm64']],
-  ['mullvad-vpn', ['trixie', 'bookworm', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['tor', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64']],
-  ['docker-engine', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64', 'armhf']],
-  ['kubernetes-tools-v1-36', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['google-cloud-cli', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64']],
-  ['azure-cli', ['bookworm', 'bullseye'], ['amd64', 'arm64']],
-  ['github-cli', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['hashicorp-terraform', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64']],
-  ['postgresql-pgdg', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['mongodb-community-8-0', ['bookworm'], ['amd64']],
-  ['grafana', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['nvidia-container-toolkit', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['mariadb-community-11-8', ['trixie', 'bookworm', 'bullseye', 'sid'], ['amd64', 'arm64']],
-  ['redis-open-source', ['trixie', 'bookworm'], ['amd64', 'arm64']],
-  ['clickhouse', ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['influxdb-3-core', ['trixie', 'bookworm', 'forky', 'sid'], ['amd64', 'arm64']],
-  ['zabbix-7-4', ['trixie', 'bookworm', 'bullseye'], ['amd64', 'arm64']],
+  { id: 'brave-browser', filename: 'brave-browser.sources', documentationUrl: 'https://brave.com/linux/', repositoryUrl: 'https://brave-browser-apt-release.s3.brave.com/', keyUrl: 'https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/brave-browser-archive-keyring.gpg', packages: ['brave-browser'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'mozilla-firefox', filename: 'mozilla-firefox.sources', documentationUrl: 'https://support.mozilla.org/en-US/kb/install-firefox-linux', repositoryUrl: 'https://packages.mozilla.org/apt', keyUrl: 'https://packages.mozilla.org/apt/repo-signing-key.gpg', keyringPath: '/etc/apt/keyrings/packages.mozilla.org.asc', packages: ['firefox'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: 'mozilla', components: ['main'] },
+  { id: 'google-chrome', filename: 'google-chrome.sources', documentationUrl: 'https://support.google.com/chrome/a/answer/9025903', repositoryUrl: 'https://dl.google.com/linux/chrome/deb/', keyUrl: 'https://dl.google.com/linux/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/google-chrome.asc', packages: ['google-chrome-stable'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64'], suite: 'stable', components: ['main'] },
+  { id: 'microsoft-edge', filename: 'microsoft-edge.sources', documentationUrl: 'https://learn.microsoft.com/en-us/linux/packages', repositoryUrl: 'https://packages.microsoft.com/repos/edge', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-edge.gpg', packages: ['microsoft-edge-stable'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64'], suite: 'stable', components: ['main'] },
+  { id: 'vivaldi', filename: 'vivaldi.sources', documentationUrl: 'https://help.vivaldi.com/desktop/install-update/install-vivaldi-on-linux/', repositoryUrl: 'https://repo.vivaldi.com/stable/deb/', keyUrl: 'https://repo.vivaldi.com/archive/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/vivaldi.gpg', packages: ['vivaldi-stable'], releases: ['trixie', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'opera', filename: 'opera.sources', documentationUrl: 'https://www.opera.com/download', repositoryUrl: 'https://deb.opera.com/opera-stable/', keyUrl: 'https://deb.opera.com/archive.key', keyringPath: '/etc/apt/keyrings/opera.gpg', packages: ['opera-stable'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64'], suite: 'stable', components: ['non-free'] },
+  { id: 'signal-desktop', filename: 'signal-desktop.sources', documentationUrl: 'https://signal.org/download/linux/', repositoryUrl: 'https://updates.signal.org/desktop/apt/', keyUrl: 'https://updates.signal.org/desktop/apt/keys.asc', keyringPath: '/usr/share/keyrings/signal-desktop-keyring.gpg', packages: ['signal-desktop'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64'], suite: 'xenial', components: ['main'] },
+  { id: 'proton-vpn', filename: 'proton-vpn.sources', documentationUrl: 'https://protonvpn.com/support/linux-vpn-setup', repositoryUrl: 'https://repo.protonvpn.com/debian', keyUrl: 'https://repo.protonvpn.com/debian/public_key.asc', keyringPath: '/etc/apt/keyrings/protonvpn-stable-archive-keyring.gpg', packages: ['proton-vpn-gnome-desktop'], releases: ['trixie'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'mullvad-vpn', filename: 'mullvad-vpn.sources', documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', repositoryUrl: 'https://repository.mullvad.net/deb/stable', keyUrl: 'https://repository.mullvad.net/deb/mullvad-keyring.asc', keyringPath: '/usr/share/keyrings/mullvad-keyring.asc', packages: ['mullvad-vpn'], releases: ['trixie', 'bookworm', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'tor', filename: 'tor.sources', documentationUrl: 'https://support.torproject.org/apt/tor-deb-repo/', repositoryUrl: 'https://deb.torproject.org/torproject.org', keyUrl: 'https://deb.torproject.org/torproject.org/keys/archive-keyring.gpg', keyringPath: '/usr/share/keyrings/deb.torproject.org-keyring.gpg', packages: ['tor'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] },
+  { id: 'docker-engine', filename: 'docker-engine.sources', documentationUrl: 'https://docs.docker.com/engine/install/debian/', repositoryUrl: 'https://download.docker.com/linux/debian', keyUrl: 'https://download.docker.com/linux/debian/gpg', keyringPath: '/etc/apt/keyrings/docker.asc', packages: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64', 'armhf'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['stable'] },
+  { id: 'kubernetes-tools-v1-36', filename: 'kubernetes-tools-v1-36.sources', documentationUrl: 'https://v1-36.docs.kubernetes.io/docs/tasks/tools/install-kubectl-linux/', repositoryUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/', keyUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key', keyringPath: '/etc/apt/keyrings/kubernetes-apt-keyring.gpg', packages: ['kubectl'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: '/', components: [] },
+  { id: 'google-cloud-cli', filename: 'google-cloud-cli.sources', documentationUrl: 'https://docs.cloud.google.com/sdk/docs/install-sdk', repositoryUrl: 'https://packages.cloud.google.com/apt', keyUrl: 'https://packages.cloud.google.com/apt/doc/apt-key.gpg', keyringPath: '/usr/share/keyrings/cloud.google.gpg', packages: ['google-cloud-cli'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: 'cloud-sdk', components: ['main'] },
+  { id: 'azure-cli', filename: 'azure-cli.sources', documentationUrl: 'https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux', repositoryUrl: 'https://packages.microsoft.com/repos/azure-cli/', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-azure-cli.gpg', packages: ['azure-cli'], releases: ['bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] },
+  { id: 'github-cli', filename: 'github-cli.sources', documentationUrl: 'https://cli.github.com/manual/installation', repositoryUrl: 'https://cli.github.com/packages', keyUrl: 'https://cli.github.com/packages/githubcli-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/githubcli-archive-keyring.gpg', packages: ['gh'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'hashicorp-terraform', filename: 'hashicorp-terraform.sources', documentationUrl: 'https://developer.hashicorp.com/terraform/install', repositoryUrl: 'https://apt.releases.hashicorp.com', keyUrl: 'https://apt.releases.hashicorp.com/gpg', keyringPath: '/usr/share/keyrings/hashicorp-archive-keyring.gpg', packages: ['terraform'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] },
+  { id: 'postgresql-pgdg', filename: 'postgresql-pgdg.sources', documentationUrl: 'https://wiki.postgresql.org/wiki/Apt', repositoryUrl: 'https://apt.postgresql.org/pub/repos/apt/', keyUrl: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc', keyringPath: '/usr/share/keyrings/postgresql-apt.gpg', packages: ['postgresql'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie-pgdg', bookworm: 'bookworm-pgdg', bullseye: 'bullseye-pgdg', forky: 'forky-pgdg', sid: 'sid-pgdg' }, components: ['main'] },
+  { id: 'mongodb-community-8-0', filename: 'mongodb-community-8-0.sources', documentationUrl: 'https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-debian/', repositoryUrl: 'https://repo.mongodb.org/apt/debian', keyUrl: 'https://pgp.mongodb.com/server-8.0.asc', keyringPath: '/usr/share/keyrings/mongodb-server-8.0.gpg', packages: ['mongodb-org'], releases: ['bookworm'], architectures: ['amd64'], suite: 'bookworm/mongodb-org/8.0', components: ['main'] },
+  { id: 'grafana', filename: 'grafana.sources', documentationUrl: 'https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/', repositoryUrl: 'https://apt.grafana.com', keyUrl: 'https://apt.grafana.com/gpg-full.key', keyringPath: '/etc/apt/keyrings/grafana.asc', packages: ['grafana'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'nvidia-container-toolkit', filename: 'nvidia-container-toolkit.sources', documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', repositoryUrl: { amd64: 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64', arm64: 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64' }, keyUrl: 'https://nvidia.github.io/libnvidia-container/gpgkey', keyringPath: '/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg', packages: ['nvidia-container-toolkit'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: '/', components: [] },
+  { id: 'mariadb-community-11-8', filename: 'mariadb-community-11-8.sources', documentationUrl: 'https://mariadb.com/docs/server/deploy/deployment-methods/installation-guides/debian-ubuntu-repository-configuration', repositoryUrl: 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian', keyUrl: 'https://mariadb.org/mariadb_release_signing_key.pgp', keyringPath: '/etc/apt/keyrings/mariadb-server-11-8.pgp', packages: ['mariadb-server'], releases: ['trixie', 'bookworm', 'bullseye', 'sid'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye', sid: 'sid' }, components: ['main'] },
+  { id: 'redis-open-source', filename: 'redis-open-source.sources', documentationUrl: 'https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/', repositoryUrl: 'https://packages.redis.io/deb', keyUrl: 'https://packages.redis.io/gpg', keyringPath: '/usr/share/keyrings/redis-archive-keyring.gpg', packages: ['redis'], releases: ['trixie', 'bookworm'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm' }, components: ['main'] },
+  { id: 'clickhouse', filename: 'clickhouse.sources', documentationUrl: 'https://clickhouse.com/docs/en/getting-started/install/', repositoryUrl: 'https://packages.clickhouse.com/deb', keyUrl: 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key', keyringPath: '/usr/share/keyrings/clickhouse-keyring.gpg', packages: ['clickhouse-server', 'clickhouse-client'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'influxdb-3-core', filename: 'influxdb-3-core.sources', documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', repositoryUrl: 'https://repos.influxdata.com/debian', keyUrl: 'https://repos.influxdata.com/influxdata-archive.key', keyringPath: '/usr/share/keyrings/influxdata-archive.gpg', packages: ['influxdb3-core'], releases: ['trixie', 'bookworm', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] },
+  { id: 'zabbix-7-4', filename: 'zabbix-7-4.sources', documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages/debian_ubuntu', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] },
 ] as const
 
 describe('official vendor catalog', () => {
   it('contains exactly the 25 approved products with explicit compatibility', () => {
     expect(VENDOR_PRODUCTS).toHaveLength(25)
-    expect(VENDOR_PRODUCTS.map((product) => product.id)).toEqual(expectedProducts.map(([id]) => id))
+    expect(VENDOR_PRODUCTS.map((product) => product.id)).toEqual(expectedProducts.map((product) => product.id))
 
-    for (const [id, releases, architectures] of expectedProducts) {
-      expect(getVendorProduct(id)).toMatchObject({
-        id,
-        releases,
-        architectures,
+    for (const expected of expectedProducts) {
+      expect(getVendorProduct(expected.id)).toMatchObject({
+        ...expected,
         verifiedAt: '2026-08-28',
       })
     }
@@ -51,7 +49,8 @@ describe('official vendor catalog', () => {
 
     for (const product of VENDOR_PRODUCTS) {
       expect(product.documentationUrl).toMatch(/^https:\/\//)
-      expect(product.repositoryUrl).toMatch(/^https:\/\//)
+      if (typeof product.repositoryUrl === 'string') expect(product.repositoryUrl).toMatch(/^https:\/\//)
+      else Object.values(product.repositoryUrl).forEach((url) => expect(url).toMatch(/^https:\/\//))
       expect(product.keyUrl).toMatch(/^https:\/\//)
       expect(product.packages.length).toBeGreaterThan(0)
       expect(product.releases.length).toBeGreaterThan(0)
