@@ -15,7 +15,7 @@ describe('App', () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
     expect(wrapper.text()).toContain('DebGen')
-    expect(wrapper.get('main')).toBeTruthy()
+    expect(wrapper.get('main').text()).toContain('Debian sources generator')
 
     const externalLinks = wrapper.findAll('a[target="_blank"]')
     expect(externalLinks).not.toHaveLength(0)

@@ -25,6 +25,21 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
+Object.defineProperty(globalThis, 'visualViewport', {
+  writable: true,
+  value: {
+    width: 1024,
+    height: 768,
+    scale: 1,
+    offsetLeft: 0,
+    offsetTop: 0,
+    pageLeft: 0,
+    pageTop: 0,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  },
+})
+
 afterEach(() => {
   document.body.innerHTML = ''
 })

@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <header>
-      <v-app-bar>
+    <header class="app-header">
+      <v-app-bar elevation="1">
         <v-app-bar-title>
           <v-icon icon="mdi-debian" />
           DebGen
@@ -9,23 +9,35 @@
 
         <v-spacer />
 
-        <a
+        <v-btn
+          class="app-header__link"
           href="https://de.liberapay.com/beli3ver"
+          variant="text"
           target="_blank"
           rel="noopener noreferrer"
         >
           Liberapay
-        </a>
-        <a
+        </v-btn>
+        <v-btn
+          class="app-header__link"
           href="https://github.com/maltekiefer/debgen"
+          variant="text"
           target="_blank"
           rel="noopener noreferrer"
         >
           GitHub
-        </a>
+        </v-btn>
       </v-app-bar>
     </header>
 
-    <main />
+    <v-main>
+      <main class="app-main">
+        <SourceGenerator />
+      </main>
+    </v-main>
   </v-app>
 </template>
+
+<script setup lang="ts">
+import SourceGenerator from './components/SourceGenerator.vue'
+</script>
