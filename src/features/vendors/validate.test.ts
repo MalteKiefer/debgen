@@ -63,6 +63,18 @@ describe('validateVendorCatalog', () => {
     })])).toThrow(/example.*repository.*architecture|example.*repository.*https/i)
   })
 
+  it('rejects inherited repository URL mappings for required architectures', () => {
+    const inheritedArm64 = { arm64: 'https://vendor.example/debian/arm64' }
+    const repositoryUrl = Object.assign(Object.create(inheritedArm64), {
+      amd64: 'https://vendor.example/debian/amd64',
+    })
+
+    expect(() => validateVendorCatalog([product({
+      architectures: ['amd64', 'arm64'],
+      repositoryUrl: repositoryUrl as VendorProduct['repositoryUrl'],
+    })])).toThrow(/example.*repository.*arm64/i)
+  })
+
   it('rejects missing metadata', () => {
     expect(() => validateVendorCatalog([product({ documentationUrl: '' })])).toThrow(/example.*documentation/i)
   })

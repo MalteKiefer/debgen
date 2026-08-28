@@ -44,7 +44,7 @@ const validateRepositoryUrl = (product: VendorProduct): void => {
     requireHttps(product, `repository URL for ${architecture}`, url)
   }
   for (const architecture of product.architectures) {
-    if (!(architecture in product.repositoryUrl)) {
+    if (!Object.hasOwn(product.repositoryUrl, architecture)) {
       throw new Error(`Vendor "${product.id}" repository URL mapping is missing architecture ${architecture}.`)
     }
   }
