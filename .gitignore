@@ -291,5 +291,8 @@ yarn-error.log
 # Local isolated development workspaces
 .worktrees/
 
+# Local design workspace
+.superpowers/
+
 # Generated versioned static API
 public/api/v1/
