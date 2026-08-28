@@ -145,4 +145,95 @@ describe('vendor artifact generation', () => {
     expect(generateVendorArtifacts(emptyConfig)).toEqual([])
     expect(generateInstallScript(emptyConfig, []).content).not.toContain('apt-get install -y \n')
   })
+
+  it('makes injected names, warnings, and heredoc markers inert', () => {
+    const selectedConfig = config({ products: [product({
+      name: 'Example Tool\nrm -rf /',
+      warning: 'Prüfen\nrm -rf /',
+    })] })
+    const artifacts = [{
+      filename: 'example-tool.sources',
+      mediaType: 'text/plain',
+      description: 'Quelle',
+      content: 'DEBGEN_ARTIFACT_0\nrm -rf /\n',
+    }]
+    const script = generateInstallScript(selectedConfig, artifacts)
+
+    expect(script.content).toContain('# Example Tool rm -rf / signing key')
+    expect(script.content).toContain('# WARNUNG: Prüfen rm -rf /')
+    expect(script.content).not.toContain('\nrm -rf /\n#')
+    expect(script.content).toContain("<<'DEBGEN_ARTIFACT_0_1'\nDEBGEN_ARTIFACT_0\nrm -rf /\nDEBGEN_ARTIFACT_0_1")
+  })
+
+  it('rejects multi-primary-key bundles before accepting a fingerprint', () => {
+    const selectedConfig = config({ products: [product({ fingerprint: 'A1B2C3D4' })] })
+    const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
+
+    expect(script.content).toContain('primary_key_count="$(printf')
+    expect(script.content).toContain('if [ "$primary_key_count" -ne 1 ]; then')
+    expect(script.content).toContain('Expected exactly one primary signing key.')
+    expect(script.content).not.toContain('$1 == "fpr" { print $10; exit }')
+  })
+
+  it.each([
+    '../escape.sources',
+    '/absolute.sources',
+    'nested/escape.sources',
+    'example-tool.list',
+  ])('rejects an unsafe artifact filename before shell generation: %s', (filename) => {
+    expect(() => generateInstallScript(config(), [{
+      filename,
+      mediaType: 'text/plain',
+      description: 'Unsafe',
+      content: 'Types: deb\n',
+    }])).toThrow(/artifact.*filename.*safe/i)
+  })
+
+  it('writes preferences to apt preferences.d, not the sources directory', () => {
+    const selectedConfig = config({ products: [product({ preferences: 'Package: example-tool\n' })] })
+    const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
+
+    expect(script.content).toContain("cat > '/etc/apt/preferences.d/example-tool.pref'")
+    expect(script.content).not.toContain("cat > '/etc/apt/sources.list.d/example-tool.pref'")
+  })
+
+  it('uses one restrictive temporary directory and a cleanup trap', () => {
+    const script = generateInstallScript(config(), generateVendorArtifacts(config()))
+
+    expect(script.content).toContain('temporary_directory="$(mktemp -d)"')
+    expect(script.content).toContain('trap \'rm -rf "$temporary_directory"\' EXIT')
+    expect(script.content).not.toContain('temporary_key="$(mktemp)"')
+  })
+
+  it('updates apt package indexes exactly once after installing repository files', () => {
+    const script = generateInstallScript(config(), generateVendorArtifacts(config()))
+
+    expect(script.content.match(/^apt-get update$/gm)).toHaveLength(1)
+    expect(script.content.indexOf('apt-get update')).toBeGreaterThan(
+      script.content.indexOf("cat > '/etc/apt/sources.list.d/example-tool.sources'"),
+    )
+  })
+
+  it('rejects duplicate product selections before emitting artifacts', () => {
+    expect(() => generateVendorArtifacts(config({ productIds: ['example-tool', 'example-tool'] })))
+      .toThrow(/duplicate.*example-tool/i)
+  })
+
+  it('orders selected product IDs by code point instead of the host locale', () => {
+    const zProduct = product({
+      id: 'z-tool',
+      filename: 'z-tool.sources',
+      keyringPath: '/etc/apt/keyrings/z-tool.gpg',
+    })
+    const umlautProduct = product({
+      id: 'ä-tool',
+      filename: 'umlaut-tool.sources',
+      keyringPath: '/etc/apt/keyrings/umlaut-tool.gpg',
+    })
+
+    expect(generateVendorArtifacts(config({
+      productIds: ['ä-tool', 'z-tool'],
+      products: [umlautProduct, zProduct],
+    })).map(({ filename }) => filename)).toEqual(['z-tool.sources', 'umlaut-tool.sources'])
+  })
 })

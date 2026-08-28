@@ -4,6 +4,12 @@ const categoryOrder: readonly VendorCategory[] = [
   'browser', 'communication', 'privacy', 'development', 'cloud', 'containers', 'database', 'monitoring',
 ]
 
+function compareCodePoints(left: string, right: string): number {
+  if (left < right) return -1
+  if (left > right) return 1
+  return 0
+}
+
 function compareArtifacts(left: GeneratedArtifact, right: GeneratedArtifact): number {
   if (left.filename === 'debian.sources') return -1
   if (right.filename === 'debian.sources') return 1
@@ -12,11 +18,11 @@ function compareArtifacts(left: GeneratedArtifact, right: GeneratedArtifact): nu
   const category = (leftCategory < 0 ? categoryOrder.length : leftCategory)
     - (rightCategory < 0 ? categoryOrder.length : rightCategory)
   if (category !== 0) return category
-  const product = (left.productId ?? '').localeCompare(right.productId ?? '')
+  const product = compareCodePoints(left.productId ?? '', right.productId ?? '')
   if (product !== 0) return product
   const source = Number(left.filename.endsWith('.sources')) - Number(right.filename.endsWith('.sources'))
   if (source !== 0) return -source
-  return left.filename.localeCompare(right.filename)
+  return compareCodePoints(left.filename, right.filename)
 }
 
 function withOneTrailingNewline(content: string): string {
@@ -43,31 +49,45 @@ function debianArtifacts(artifacts: readonly GeneratedArtifact[]): GeneratedArti
   return artifacts.filter((artifact) => artifact.filename === 'debian.sources')
 }
 
+function mergedRiskNotes(artifacts: readonly GeneratedArtifact[]): readonly string[] | undefined {
+  const notes = [...new Set(artifacts.flatMap((artifact) => artifact.riskNotes ?? []))]
+  return notes.length > 0 ? notes : undefined
+}
+
 function combinedArtifact(sources: readonly GeneratedArtifact[]): GeneratedArtifact | undefined {
   if (sources.length === 0) return undefined
+  const riskNotes = mergedRiskNotes(sources)
   return {
     filename: 'vendors.sources',
     mediaType: 'text/plain',
     description: 'Kombinierte Paketquellen von Herstellern',
     content: withOneTrailingNewline(sources.map((artifact) => artifact.content.replace(/\n+$/, '')).join('\n\n')),
+    ...(riskNotes ? { riskNotes } : {}),
   }
 }
 
 function categoryArtifacts(sources: readonly GeneratedArtifact[]): GeneratedArtifact[] {
+  for (const artifact of sources) {
+    if (!categoryOrder.includes(artifact.category as VendorCategory)) {
+      throw new Error('Missing or unsupported category for source artifact "' + (artifact.productId ?? artifact.filename) + '".')
+    }
+  }
   return categoryOrder.flatMap((category) => {
     const members = sources.filter((artifact) => artifact.category === category)
     if (members.length === 0) return []
+    const riskNotes = mergedRiskNotes(members)
     return [{
       filename: category + '.sources',
       mediaType: 'text/plain',
       description: 'Paketquellen: ' + category,
       content: withOneTrailingNewline(members.map((artifact) => artifact.content.replace(/\n+$/, '')).join('\n\n')),
       category,
+      ...(riskNotes ? { riskNotes } : {}),
     }]
   })
 }
 
-export function groupArtifacts(artifacts: readonly GeneratedArtifact[], mode: OutputMode): GeneratedArtifact[] {
+export function groupArtifacts(artifacts: readonly GeneratedArtifact[], mode: OutputMode = 'perVendor'): GeneratedArtifact[] {
   checkForCollisions(artifacts)
   const ordered = [...artifacts].sort(compareArtifacts)
   if (mode === 'perVendor') return ordered

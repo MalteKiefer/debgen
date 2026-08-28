@@ -70,4 +70,40 @@ describe('artifact grouping', () => {
     expect(() => groupArtifacts([firefox, { ...docker, filename: firefox.filename }], 'perVendor')).toThrow(/duplicate.*mozilla-firefox\.sources/i)
     expect(() => groupArtifacts([firefox], 'other' as 'perVendor')).toThrow(/unsupported.*other/i)
   })
+
+  it('defaults an omitted mode to per-vendor output', () => {
+    expect(groupArtifacts([docker, firefox]).map(({ filename }) => filename))
+      .toEqual(['mozilla-firefox.sources', 'docker-engine.sources'])
+  })
+
+  it('fails closed instead of dropping a source with a missing or unknown category', () => {
+    expect(() => groupArtifacts([{ ...firefox, category: undefined }], 'byCategory'))
+      .toThrow(/category.*mozilla-firefox/i)
+    expect(() => groupArtifacts([{ ...firefox, category: 'unknown' as typeof firefox.category }], 'byCategory'))
+      .toThrow(/category.*mozilla-firefox/i)
+  })
+
+  it('merges and deduplicates risk notes deterministically for grouped sources', () => {
+    const artifacts = [
+      { ...docker, riskNotes: ['Docker warning', 'Shared warning'] },
+      { ...firefox, riskNotes: ['Firefox warning', 'Shared warning'] },
+    ]
+
+    expect(groupArtifacts(artifacts, 'combined')[0]?.riskNotes)
+      .toEqual(['Firefox warning', 'Shared warning', 'Docker warning'])
+    expect(groupArtifacts(artifacts, 'byCategory').map(({ riskNotes }) => riskNotes))
+      .toEqual([
+        ['Firefox warning', 'Shared warning'],
+        ['Docker warning', 'Shared warning'],
+      ])
+  })
+
+  it('uses code-point ordering instead of locale-sensitive ordering', () => {
+    const result = groupArtifacts([
+      { ...firefox, filename: 'umlaut.sources', productId: 'ä-tool' },
+      { ...firefox, filename: 'zeta.sources', productId: 'z-tool' },
+    ], 'perVendor')
+
+    expect(result.map(({ filename }) => filename)).toEqual(['zeta.sources', 'umlaut.sources'])
+  })
 })
