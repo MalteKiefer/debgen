@@ -12,7 +12,13 @@ const requireText = (product: VendorProduct, field: string, value: unknown): voi
 
 const requireHttps = (product: VendorProduct, field: string, value: unknown): void => {
   requireText(product, field, value)
-  if (typeof value !== 'string' || !value.startsWith('https://')) {
+  let url: URL
+  try {
+    url = new URL(value as string)
+  } catch {
+    throw new Error(`Vendor "${product.id}" ${field} must be a valid HTTPS URL.`)
+  }
+  if (url.protocol !== 'https:' || !url.hostname) {
     throw new Error(`Vendor "${product.id}" ${field} must use HTTPS.`)
   }
 }
@@ -43,7 +49,9 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     requireHttps(product, 'repository URL', product.repositoryUrl)
     requireHttps(product, 'key URL', product.keyUrl)
     requireText(product, 'keyring path', product.keyringPath)
-    if (!product.keyringPath.startsWith('/etc/apt/keyrings/') && !product.keyringPath.startsWith('/usr/share/keyrings/')) {
+    const hasPathTraversal = /(^|\/)\.\.?($|\/)/.test(product.keyringPath) || product.keyringPath.includes('//')
+    if (hasPathTraversal
+      || (!product.keyringPath.startsWith('/etc/apt/keyrings/') && !product.keyringPath.startsWith('/usr/share/keyrings/'))) {
       throw new Error(`Vendor "${id}" keyring path is unsafe; use /etc/apt/keyrings or /usr/share/keyrings.`)
     }
     requireText(product, 'verification date', product.verifiedAt)
@@ -67,8 +75,18 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
       if (!RELEASES.has(release)) throw new Error(`Vendor "${id}" has an unknown release: ${String(release)}.`)
     }
     if (typeof product.suite === 'string') requireText(product, 'suite', product.suite)
-    else if (!product.suite || typeof product.suite !== 'object' || Object.values(product.suite).some((suite) => typeof suite !== 'string' || suite.trim() === '')) {
-      throw new Error(`Vendor "${id}" must define a suite.`)
+    else {
+      if (!product.suite || typeof product.suite !== 'object' || Object.keys(product.suite).length === 0) {
+        throw new Error(`Vendor "${id}" must define a suite.`)
+      }
+      for (const [release, suite] of Object.entries(product.suite)) {
+        if (!RELEASES.has(release) || typeof suite !== 'string' || suite.trim() === '') {
+          throw new Error(`Vendor "${id}" has an unknown or empty suite release: ${release}.`)
+        }
+      }
+      for (const release of product.releases) {
+        if (!(release in product.suite)) throw new Error(`Vendor "${id}" is missing a suite for release ${release}.`)
+      }
     }
   }
 }

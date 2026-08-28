@@ -36,6 +36,10 @@ describe('validateVendorCatalog', () => {
   it('rejects non-HTTPS URLs', () => {
     expect(() => validateVendorCatalog([product({ repositoryUrl: 'http://vendor.example/debian' })]))
       .toThrow(/example.*repository.*https/i)
+    expect(() => validateVendorCatalog([product({ repositoryUrl: 'https://' })]))
+      .toThrow(/example.*repository.*https/i)
+    expect(() => validateVendorCatalog([product({ repositoryUrl: 'https://%' })]))
+      .toThrow(/example.*repository.*https/i)
   })
 
   it('rejects missing metadata', () => {
@@ -50,10 +54,20 @@ describe('validateVendorCatalog', () => {
   it('rejects unsafe keyring paths', () => {
     expect(() => validateVendorCatalog([product({ keyringPath: '/tmp/example.gpg' })]))
       .toThrow(/example.*keyring/i)
+    expect(() => validateVendorCatalog([product({ keyringPath: '/etc/apt/keyrings/../trusted.gpg' })]))
+      .toThrow(/example.*keyring/i)
   })
 
   it('rejects empty compatibility sets', () => {
     expect(() => validateVendorCatalog([product({ releases: [] })])).toThrow(/example.*release/i)
     expect(() => validateVendorCatalog([product({ architectures: [] })])).toThrow(/example.*architect/i)
+  })
+
+  it('requires a suite for every supported release in a suite mapping', () => {
+    expect(() => validateVendorCatalog([product({ suite: {} })])).toThrow(/example.*suite/i)
+    expect(() => validateVendorCatalog([product({ suite: { bookworm: 'bookworm', nebula: 'nebula' } as VendorProduct['suite'] })]))
+      .toThrow(/example.*suite.*release|example.*unknown.*suite/i)
+    expect(() => validateVendorCatalog([product({ releases: ['bookworm', 'trixie'], suite: { bookworm: 'bookworm' } })]))
+      .toThrow(/example.*suite.*trixie/i)
   })
 })
