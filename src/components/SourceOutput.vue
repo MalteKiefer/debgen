@@ -28,7 +28,11 @@ defineProps<{
         aria-label="Generated configuration actions"
         class="source-output__actions"
       >
-        <slot name="actions" />
+        <slot
+          name="actions"
+          :content="content"
+          :filename="filename"
+        />
       </div>
     </v-card-text>
   </v-card>

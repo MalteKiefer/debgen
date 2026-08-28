@@ -162,12 +162,24 @@ describe('SourceGenerator', () => {
     expect(wrapper.get(`#${explanationId}`).attributes('role')).toBe('status')
   })
 
-  it('does not offer active copy or download actions before generating valid output', async () => {
+  it('renders disabled copy and download actions before generating valid output', async () => {
     const wrapper = mountGenerator()
     await settle()
 
-    expect(wrapper.findAll('button').some((button) => button.text().includes('Copy'))).toBe(false)
-    expect(wrapper.findAll('button').some((button) => button.text().includes('Download'))).toBe(false)
+    const copy = wrapper.findAll('button').find((button) => button.text().includes('Copy'))
+    const download = wrapper.findAll('button').find((button) => button.text().includes('Download'))
+
+    expect(copy, 'Copy button').toBeTruthy()
+    expect(download, 'Download button').toBeTruthy()
+    expect(copy?.attributes()).toHaveProperty('disabled')
+    expect(download?.attributes()).toHaveProperty('disabled')
+
+    await clickButton(wrapper, 'Generate sources')
+
+    const enabledCopy = wrapper.findAll('button').find((button) => button.text().includes('Copy'))
+    const enabledDownload = wrapper.findAll('button').find((button) => button.text().includes('Download'))
+    expect(enabledCopy?.attributes()).not.toHaveProperty('disabled')
+    expect(enabledDownload?.attributes()).not.toHaveProperty('disabled')
   })
 
   it('reports copied only after the generated text is copied', async () => {
@@ -207,7 +219,7 @@ describe('SourceGenerator', () => {
     expect(alerts).toContain('copy the configuration manually')
   })
 
-  it('downloads the generated text using the format-specific filename', async () => {
+  it('downloads the generated output slot content using the format-specific filename', async () => {
     const wrapper = mountGenerator()
     await settle()
 

@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { h } from 'vue'
 import vuetify from '../plugins/vuetify'
 import SourceOutput from './SourceOutput.vue'
 
@@ -47,5 +48,25 @@ describe('SourceOutput', () => {
     })
 
     expect(wrapper.get('[aria-label="Generated configuration actions"] button').text()).toBe('Copy')
+  })
+
+  it('passes the exact content and filename to the scoped actions slot', () => {
+    const content = 'Types: deb\nSuites: trixie\n'
+    const wrapper = mount(SourceOutput, {
+      props: {
+        filename: 'debian.sources',
+        content,
+      },
+      slots: {
+        actions: (slotProps?: { content: string, filename: string }) => h(
+          'button',
+          { type: 'button' },
+          `${slotProps?.filename}|${slotProps?.content}`,
+        ),
+      },
+      global: { plugins: [vuetify] },
+    })
+
+    expect(wrapper.get('.source-output__actions button').text()).toBe(`debian.sources|${content.trim()}`)
   })
 })

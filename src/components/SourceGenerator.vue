@@ -84,12 +84,12 @@ function generate(): void {
   generatedText.value = generateSources(options)
 }
 
-async function copyGeneratedText(): Promise<void> {
+async function copyGeneratedText(content: string): Promise<void> {
   const copyVersion = ++feedbackVersion
   feedback.value = null
 
   try {
-    await copyText(generatedText.value)
+    await copyText(content)
     if (copyVersion !== feedbackVersion) {
       return
     }
@@ -105,13 +105,13 @@ async function copyGeneratedText(): Promise<void> {
   }
 }
 
-function downloadGeneratedText(): void {
+function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list', content: string): void {
   feedbackVersion += 1
   feedback.value = null
 
   try {
-    downloadText(filename.value, generatedText.value)
-    feedback.value = { kind: 'success', message: `Downloaded ${filename.value}.` }
+    downloadText(outputFilename, content)
+    feedback.value = { kind: 'success', message: `Downloaded ${outputFilename}.` }
   } catch {
     feedback.value = {
       kind: 'error',
@@ -178,23 +178,44 @@ function downloadGeneratedText(): void {
       :content="generatedText"
       :filename="filename"
     >
-      <template #actions>
+      <template #actions="{ content, filename: outputFilename }">
         <v-btn
           prepend-icon="mdi-content-copy"
           variant="tonal"
-          @click="copyGeneratedText"
+          @click="copyGeneratedText(content)"
         >
           Copy
         </v-btn>
         <v-btn
           color="primary"
           prepend-icon="mdi-download"
-          @click="downloadGeneratedText"
+          @click="downloadGeneratedText(outputFilename, content)"
         >
           Download
         </v-btn>
       </template>
     </SourceOutput>
+
+    <div
+      v-else
+      aria-label="Generated configuration actions"
+      class="source-output__actions"
+    >
+      <v-btn
+        disabled
+        prepend-icon="mdi-content-copy"
+        variant="tonal"
+      >
+        Copy
+      </v-btn>
+      <v-btn
+        color="primary"
+        disabled
+        prepend-icon="mdi-download"
+      >
+        Download
+      </v-btn>
+    </div>
 
     <div
       aria-live="polite"
