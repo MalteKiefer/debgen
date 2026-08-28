@@ -15,7 +15,7 @@ describe('SourceOutput', () => {
     })
 
     expect(wrapper.text()).toContain('debian.sources')
-    expect(wrapper.get('[aria-label="Generated sources preview"]').text()).toBe(content.trim())
+    expect(wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').text()).toBe(content.trim())
   })
 
   it('renders caller-provided actions without defining copy or download controls', () => {
@@ -25,14 +25,14 @@ describe('SourceOutput', () => {
         content: 'deb https://deb.debian.org/debian bullseye main\n',
       },
       slots: {
-        actions: '<button type="button">Next task action</button>',
+        actions: '<button type="button">Aktion des nächsten Schritts</button>',
       },
       global: { plugins: [vuetify] },
     })
 
-    expect(wrapper.get('.source-output__actions button').text()).toBe('Next task action')
-    expect(wrapper.text()).not.toContain('Copy')
-    expect(wrapper.text()).not.toContain('Download')
+    expect(wrapper.get('.source-output__actions button').text()).toBe('Aktion des nächsten Schritts')
+    expect(wrapper.text()).not.toContain('Kopieren')
+    expect(wrapper.text()).not.toContain('Herunterladen')
   })
 
   it('groups caller-provided actions in a labelled region', () => {
@@ -42,14 +42,14 @@ describe('SourceOutput', () => {
         content: 'Types: deb\nSuites: trixie\n',
       },
       slots: {
-        actions: '<button type="button">Copy</button>',
+        actions: '<button type="button">Kopieren</button>',
       },
       global: { plugins: [vuetify] },
     })
 
-    const actions = wrapper.get('[aria-label="Generated configuration actions"]')
+    const actions = wrapper.get('[aria-label="Aktionen für die erzeugte Konfiguration"]')
     expect(actions.attributes('role')).toBe('group')
-    expect(actions.get('button').text()).toBe('Copy')
+    expect(actions.get('button').text()).toBe('Kopieren')
   })
 
   it('passes the exact content and filename to the scoped actions slot', () => {

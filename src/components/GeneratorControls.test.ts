@@ -7,6 +7,7 @@ import GeneratorControls from './GeneratorControls.vue'
 function props(release: ReleaseCodename = 'trixie', format: SourceFormat = 'deb822') {
   return {
     release,
+    architecture: 'amd64' as const,
     format,
     includeSource: false,
     includeContrib: false,
@@ -19,7 +20,7 @@ function props(release: ReleaseCodename = 'trixie', format: SourceFormat = 'deb8
 }
 
 describe('GeneratorControls', () => {
-  it('presents Bullseye capability limits as accessible control state', async () => {
+  it('stellt Bullseyes Einschränkungen als zugänglichen Steuerungszustand dar', async () => {
     const wrapper = mount(GeneratorControls, {
       props: props('bullseye'),
       global: { plugins: [vuetify] },
@@ -31,10 +32,10 @@ describe('GeneratorControls', () => {
     expect(firmware.attributes()).toHaveProperty('disabled')
     expect(backports.attributes()).toHaveProperty('disabled')
     expect(firmware.attributes('aria-describedby')).toBe('release-capability-status')
-    expect(wrapper.get('#release-capability-status').text()).toContain('does not provide non-free-firmware or backports')
+    expect(wrapper.get('#release-capability-status').text()).toContain('bietet weder non-free-firmware noch Backports')
   })
 
-  it('marks Bookworm backports unavailable and its legacy format deprecated', async () => {
+  it('kennzeichnet Bookworm-Backports als nicht verfügbar und das klassische Format als veraltet', async () => {
     const wrapper = mount(GeneratorControls, {
       props: props('bookworm', 'legacy'),
       global: { plugins: [vuetify] },
@@ -44,19 +45,39 @@ describe('GeneratorControls', () => {
     const backports = wrapper.get('[aria-label="Backports"]')
     expect(backports.attributes()).toHaveProperty('disabled')
     expect(backports.attributes('aria-describedby')).toBe('release-capability-status')
-    expect(wrapper.get('[aria-label="Output format"]').attributes('value')).toContain('deprecated')
-    expect(wrapper.get('#release-capability-status').text()).toContain('Backports support ended on 2026-08-09')
-    expect(wrapper.get('#release-capability-status').text()).toContain('deprecated legacy sources.list format')
+    expect(wrapper.get('[aria-label="Ausgabeformat"]').attributes('value')).toContain('veraltet')
+    expect(wrapper.get('#release-capability-status').text()).toContain('endete am 09.08.2026')
+    expect(wrapper.get('#release-capability-status').text()).toContain('veraltete klassische sources.list-Format')
   })
 
-  it('emits a source-package selection from the labeled switch', async () => {
+  it('gibt eine Quellpaket-Auswahl über den beschrifteten Schalter aus', async () => {
     const wrapper = mount(GeneratorControls, {
       props: props(),
       global: { plugins: [vuetify] },
     })
 
-    await wrapper.get('[aria-label="Source packages"]').setValue(true)
+    await wrapper.get('[aria-label="Quellpakete"]').setValue(true)
 
     expect(wrapper.emitted('update:includeSource')).toEqual([[true]])
+  })
+
+  it('bietet die Architekturauswahl als benanntes Kombinationsfeld an', () => {
+    const wrapper = mount(GeneratorControls, {
+      props: { ...props(), architecture: 'amd64' },
+      global: { plugins: [vuetify] },
+    })
+
+    expect(wrapper.get('[aria-label="Architektur"]').attributes('role')).toBe('combobox')
+    expect(wrapper.get('[aria-label="Architektur"]').attributes('value')).toContain('amd64')
+  })
+
+  it('übersetzt den Veröffentlichungsstatus für die Studio-Oberfläche', () => {
+    const wrapper = mount(GeneratorControls, {
+      props: props(),
+      global: { plugins: [vuetify] },
+    })
+
+    expect(wrapper.text()).toContain('stabil')
+    expect(wrapper.text()).not.toContain('stable')
   })
 })

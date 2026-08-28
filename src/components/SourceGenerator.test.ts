@@ -67,13 +67,13 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    expect(control(wrapper, 'Debian release').attributes('value')).toBe('Trixie')
-    expect(control(wrapper, 'Output format').attributes('value')).toBe('DEB822 (.sources)')
+    expect(control(wrapper, 'Debian-Version').attributes('value')).toBe('Trixie')
+    expect(control(wrapper, 'Ausgabeformat').attributes('value')).toBe('DEB822 (.sources)')
 
-    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
 
-    expect(wrapper.get('[aria-label="Generated sources preview"]').text()).toContain('Types: deb')
-    expect(wrapper.get('[aria-label="Generated sources preview"]').text()).toContain('Suites: trixie trixie-updates')
+    expect(wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').text()).toContain('Types: deb')
+    expect(wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').text()).toContain('Suites: trixie trixie-updates')
     expect(wrapper.text()).toContain('debian.sources')
   })
 
@@ -82,18 +82,18 @@ describe('SourceGenerator', () => {
     await settle()
 
     await control(wrapper, 'Backports').setValue(true)
-    await choose(wrapper, 'Debian release', 'Bullseye')
+    await choose(wrapper, 'Debian-Version', 'Bullseye')
 
     expect(control(wrapper, 'Non-free firmware').attributes()).toHaveProperty('disabled')
     expect(control(wrapper, 'Backports').attributes()).toHaveProperty('disabled')
     expect((control(wrapper, 'Non-free firmware').element as HTMLInputElement).checked).toBe(false)
     expect((control(wrapper, 'Backports').element as HTMLInputElement).checked).toBe(false)
-    expect(wrapper.text()).toContain('Bullseye does not provide non-free-firmware or backports')
+    expect(wrapper.text()).toContain('Bullseye bietet weder non-free-firmware noch Backports')
 
-    await openSelect(wrapper, 'Output format')
+    await openSelect(wrapper, 'Ausgabeformat')
     const formatOptions = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'))
       .map((option) => option.textContent ?? '')
-    expect(formatOptions.some((option) => option.includes('Legacy sources.list') && option.includes('deprecated'))).toBe(true)
+    expect(formatOptions.some((option) => option.includes('Klassische sources.list') && option.includes('veraltet'))).toBe(true)
   })
 
   it('disables ended Bookworm backports and explains the support date', async () => {
@@ -101,27 +101,27 @@ describe('SourceGenerator', () => {
     await settle()
 
     await control(wrapper, 'Backports').setValue(true)
-    await choose(wrapper, 'Debian release', 'Bookworm')
+    await choose(wrapper, 'Debian-Version', 'Bookworm')
 
     expect(control(wrapper, 'Backports').attributes()).toHaveProperty('disabled')
     expect((control(wrapper, 'Backports').element as HTMLInputElement).checked).toBe(false)
-    expect(wrapper.text()).toContain('Backports support ended on 2026-08-09')
+    expect(wrapper.text()).toContain('Backports-Unterstützung endete am 09.08.2026')
   })
 
   it('disables unsupported suites for Sid and explains the base-only configuration', async () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await choose(wrapper, 'Debian release', 'Sid')
+    await choose(wrapper, 'Debian-Version', 'Sid')
 
     for (const label of ['Security', 'Updates', 'Backports']) {
       expect(control(wrapper, label).attributes()).toHaveProperty('disabled')
       expect((control(wrapper, label).element as HTMLInputElement).checked).toBe(false)
     }
-    expect(wrapper.text()).toContain('Sid is base-only')
+    expect(wrapper.text()).toContain('Sid enthält nur die Basisquelle')
 
-    await clickButton(wrapper, 'Generate sources')
-    const preview = wrapper.get('[aria-label="Generated sources preview"]').text()
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    const preview = wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').text()
     expect(preview).toContain('Suites: sid')
     expect(preview).not.toContain('sid-security')
     expect(preview).not.toContain('sid-updates')
@@ -132,22 +132,22 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await openSelect(wrapper, 'Output format')
+    await openSelect(wrapper, 'Ausgabeformat')
 
     const formatOptions = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'))
       .map((option) => option.textContent ?? '')
     expect(formatOptions.some((option) => option.includes('DEB822'))).toBe(true)
-    expect(formatOptions.some((option) => option.includes('Legacy sources.list'))).toBe(false)
+    expect(formatOptions.some((option) => option.includes('Klassische sources.list'))).toBe(false)
   })
 
   it('includes source package indexes when selected', async () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await control(wrapper, 'Source packages').setValue(true)
-    await clickButton(wrapper, 'Generate sources')
+    await control(wrapper, 'Quellpakete').setValue(true)
+    await clickButton(wrapper, 'Paketquellen erzeugen')
 
-    expect(wrapper.get('[aria-label="Generated sources preview"]').text()).toContain('Types: deb deb-src')
+    expect(wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').text()).toContain('Types: deb deb-src')
   })
 
   it('labels every input and connects unavailable controls to a status explanation', async () => {
@@ -155,9 +155,10 @@ describe('SourceGenerator', () => {
     await settle()
 
     for (const label of [
-      'Debian release',
-      'Output format',
-      'Source packages',
+      'Debian-Version',
+      'Architektur',
+      'Ausgabeformat',
+      'Quellpakete',
       'Contrib',
       'Non-free',
       'Non-free firmware',
@@ -168,7 +169,7 @@ describe('SourceGenerator', () => {
       expect(wrapper.find(`[aria-label="${label}"]`).exists()).toBe(true)
     }
 
-    await choose(wrapper, 'Debian release', 'Bullseye')
+    await choose(wrapper, 'Debian-Version', 'Bullseye')
     const explanationId = control(wrapper, 'Non-free firmware').attributes('aria-describedby')
     expect(explanationId).toBeTruthy()
     expect(wrapper.get(`#${explanationId}`).attributes('role')).toBe('status')
@@ -178,19 +179,19 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    const copy = wrapper.findAll('button').find((button) => button.text().includes('Copy'))
-    const download = wrapper.findAll('button').find((button) => button.text().includes('Download'))
+    const copy = wrapper.findAll('button').find((button) => button.text().includes('Kopieren'))
+    const download = wrapper.findAll('button').find((button) => button.text().includes('Herunterladen'))
 
     expect(copy, 'Copy button').toBeTruthy()
     expect(download, 'Download button').toBeTruthy()
     expect(copy?.attributes()).toHaveProperty('disabled')
     expect(download?.attributes()).toHaveProperty('disabled')
-    expect(wrapper.get('[aria-label="Generated configuration actions"]').attributes('role')).toBe('group')
+    expect(wrapper.get('[aria-label="Aktionen für die erzeugte Konfiguration"]').attributes('role')).toBe('group')
 
-    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
 
-    const enabledCopy = wrapper.findAll('button').find((button) => button.text().includes('Copy'))
-    const enabledDownload = wrapper.findAll('button').find((button) => button.text().includes('Download'))
+    const enabledCopy = wrapper.findAll('button').find((button) => button.text().includes('Kopieren'))
+    const enabledDownload = wrapper.findAll('button').find((button) => button.text().includes('Herunterladen'))
     expect(enabledCopy?.attributes()).not.toHaveProperty('disabled')
     expect(enabledDownload?.attributes()).not.toHaveProperty('disabled')
   })
@@ -201,20 +202,20 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    const expectedContent = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    const expectedContent = wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').element.textContent
 
-    await clickButton(wrapper, 'Copy')
+    await clickButton(wrapper, 'Kopieren')
 
     expect(copyTextMock).toHaveBeenCalledWith(expectedContent)
-    expect(wrapper.text()).not.toContain('Copied generated configuration.')
+    expect(wrapper.text()).not.toContain('Die erzeugte Konfiguration wurde kopiert.')
 
     resolveCopy?.()
     await flushPromises()
     await settle()
 
     expect(wrapper.findAll('[role="status"]')
-      .some((status) => status.text() === 'Copied generated configuration.')).toBe(true)
+      .some((status) => status.text() === 'Die erzeugte Konfiguration wurde kopiert.')).toBe(true)
   })
 
   it('shows an actionable alert when copying is rejected', async () => {
@@ -222,31 +223,31 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Copy')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Kopieren')
     await flushPromises()
     await settle()
 
     const alerts = wrapper.findAll('[role="alert"]').map((alert) => alert.text()).join(' ')
-    expect(alerts).toContain('Copy failed')
-    expect(alerts).toContain('copy the configuration manually')
+    expect(alerts).toContain('Kopieren fehlgeschlagen')
+    expect(alerts).toContain('kopiere sie manuell')
   })
 
   it('downloads the generated output slot content using the format-specific filename', async () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    const deb822Content = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
-    await clickButton(wrapper, 'Download')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    const deb822Content = wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').element.textContent
+    await clickButton(wrapper, 'Herunterladen')
 
     expect(downloadTextMock).toHaveBeenLastCalledWith('debian.sources', deb822Content)
 
-    await choose(wrapper, 'Debian release', 'Bullseye')
-    await choose(wrapper, 'Output format', 'Legacy sources.list')
-    await clickButton(wrapper, 'Generate sources')
-    const legacyContent = wrapper.get('[aria-label="Generated sources preview"]').element.textContent
-    await clickButton(wrapper, 'Download')
+    await choose(wrapper, 'Debian-Version', 'Bullseye')
+    await choose(wrapper, 'Ausgabeformat', 'Klassische sources.list')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    const legacyContent = wrapper.get('[aria-label="Vorschau der erzeugten Paketquellen"]').element.textContent
+    await clickButton(wrapper, 'Herunterladen')
 
     expect(downloadTextMock).toHaveBeenLastCalledWith('debian.list', legacyContent)
   })
@@ -256,26 +257,26 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Download')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Herunterladen')
 
     const alerts = wrapper.findAll('[role="alert"]').map((alert) => alert.text()).join(' ')
-    expect(alerts).toContain('Download failed')
-    expect(alerts).toContain('save the configuration manually')
+    expect(alerts).toContain('Herunterladen fehlgeschlagen')
+    expect(alerts).toContain('speichere sie manuell')
   })
 
   it('clears action feedback when generation options change', async () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Copy')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Kopieren')
     await flushPromises()
     await settle()
     expect(wrapper.findAll('[role="status"]')
-      .some((status) => status.text() === 'Copied generated configuration.')).toBe(true)
+      .some((status) => status.text() === 'Die erzeugte Konfiguration wurde kopiert.')).toBe(true)
 
-    await control(wrapper, 'Source packages').setValue(true)
+    await control(wrapper, 'Quellpakete').setValue(true)
 
     expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
     expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
@@ -287,9 +288,9 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Copy')
-    await control(wrapper, 'Source packages').setValue(true)
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Kopieren')
+    await control(wrapper, 'Quellpakete').setValue(true)
 
     resolveCopy?.()
     await flushPromises()
@@ -303,13 +304,13 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Copy')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Kopieren')
     await flushPromises()
     await settle()
     expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(true)
 
-    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
 
     expect(wrapper.find('.source-generator__feedback [role="status"]').exists()).toBe(false)
     expect(wrapper.find('.source-generator__feedback [role="alert"]').exists()).toBe(false)
@@ -321,9 +322,9 @@ describe('SourceGenerator', () => {
     const wrapper = mountGenerator()
     await settle()
 
-    await clickButton(wrapper, 'Generate sources')
-    await clickButton(wrapper, 'Copy')
-    await clickButton(wrapper, 'Generate sources')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
+    await clickButton(wrapper, 'Kopieren')
+    await clickButton(wrapper, 'Paketquellen erzeugen')
 
     resolveCopy?.()
     await flushPromises()

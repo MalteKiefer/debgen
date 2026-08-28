@@ -4,7 +4,7 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify'
 
 describe('App', () => {
-  it('renders the application shell with safe external links', async () => {
+  it('rendert die Debian-Studio-Hülle mit sicheren externen Links', async () => {
     const wrapper = mount(App, {
       global: {
         plugins: [vuetify],
@@ -17,7 +17,7 @@ describe('App', () => {
     expect(wrapper.text()).toContain('DebGen')
     expect(wrapper.findAll('header')).toHaveLength(1)
     expect(wrapper.findAll('main')).toHaveLength(1)
-    expect(wrapper.get('main').text()).toContain('Debian sources generator')
+    expect(wrapper.get('main').text()).toContain('Debian-System')
 
     const externalLinks = wrapper.findAll('a[target="_blank"]')
     expect(externalLinks).not.toHaveLength(0)

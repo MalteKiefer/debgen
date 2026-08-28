@@ -3,11 +3,15 @@ import { computed, ref, watch } from 'vue'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
+import type { SystemArchitecture } from '../features/vendors/model'
 import { getRelease } from '../features/sources/releases'
-import GeneratorControls from './GeneratorControls.vue'
+import SelectionSummary from './SelectionSummary.vue'
 import SourceOutput from './SourceOutput.vue'
+import StudioProgress from './StudioProgress.vue'
+import SystemStep from './SystemStep.vue'
 
 const release = ref<ReleaseCodename>('trixie')
+const architecture = ref<SystemArchitecture>('amd64')
 const format = ref<SourceFormat>('deb822')
 const includeSource = ref(false)
 const includeContrib = ref(false)
@@ -18,6 +22,7 @@ const includeUpdates = ref(true)
 const includeBackports = ref(false)
 const generatedText = ref('')
 const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
+const activeStep = ref(1)
 let feedbackVersion = 0
 
 const filename = computed(() => getOutputFilename(format.value))
@@ -96,14 +101,14 @@ async function copyGeneratedText(content: string): Promise<void> {
     if (copyVersion !== feedbackVersion) {
       return
     }
-    feedback.value = { kind: 'success', message: 'Copied generated configuration.' }
+    feedback.value = { kind: 'success', message: 'Die erzeugte Konfiguration wurde kopiert.' }
   } catch {
     if (copyVersion !== feedbackVersion) {
       return
     }
     feedback.value = {
       kind: 'error',
-      message: 'Copy failed. Please select the generated configuration and copy the configuration manually.',
+      message: 'Kopieren fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und kopiere sie manuell.',
     }
   }
 }
@@ -114,11 +119,11 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
   try {
     downloadText(outputFilename, content)
-    feedback.value = { kind: 'success', message: `Downloaded ${outputFilename}.` }
+    feedback.value = { kind: 'success', message: `${outputFilename} wurde heruntergeladen.` }
   } catch {
     feedback.value = {
       kind: 'error',
-      message: 'Download failed. Please select the generated configuration and save the configuration manually.',
+      message: 'Herunterladen fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und speichere sie manuell.',
     }
   }
 }
@@ -126,35 +131,22 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
 <template>
   <section
+    aria-label="Debian Studio Arbeitsbereich"
     class="source-generator"
-    aria-labelledby="source-generator-title"
   >
-    <v-card
-      class="source-generator__intro"
-      color="primary"
-      variant="tonal"
-    >
-      <v-card-text>
-        <div class="source-generator__intro-content">
-          <v-icon
-            aria-hidden="true"
-            icon="mdi-debian"
-            size="48"
-          />
-          <div>
-            <h1 id="source-generator-title">
-              Debian sources generator
-            </h1>
-            <p>
-              Build an official Debian repository configuration from the release catalog bundled with DebGen.
-            </p>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+    <StudioProgress v-model="activeStep" />
 
-    <GeneratorControls
+    <SelectionSummary
+      :architecture="architecture"
+      :repository-count="0"
+      :release="release"
+      output-mode="perVendor"
+    />
+
+    <template v-if="activeStep === 1">
+      <SystemStep
       v-model:release="release"
+      v-model:architecture="architecture"
       v-model:format="format"
       v-model:include-source="includeSource"
       v-model:include-contrib="includeContrib"
@@ -163,63 +155,89 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
       v-model:include-security="includeSecurity"
       v-model:include-updates="includeUpdates"
       v-model:include-backports="includeBackports"
-    />
+      />
 
-    <div class="source-generator__submit">
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-file-document-plus-outline"
-        size="large"
-        @click="generate"
+      <div class="source-generator__submit">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-file-document-plus-outline"
+          size="large"
+          @click="generate"
+        >
+          Paketquellen erzeugen
+        </v-btn>
+        <v-btn
+          append-icon="mdi-arrow-right"
+          variant="tonal"
+          @click="activeStep = 2"
+        >
+          Weiter zur Software
+        </v-btn>
+      </div>
+
+      <SourceOutput
+        v-if="generatedText"
+        :content="generatedText"
+        :filename="filename"
       >
-        Generate sources
-      </v-btn>
-    </div>
+        <template #actions="{ content, filename: outputFilename }">
+          <v-btn
+            prepend-icon="mdi-content-copy"
+            variant="tonal"
+            @click="copyGeneratedText(content)"
+          >
+            Kopieren
+          </v-btn>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-download"
+            @click="downloadGeneratedText(outputFilename, content)"
+          >
+            Herunterladen
+          </v-btn>
+        </template>
+      </SourceOutput>
 
-    <SourceOutput
-      v-if="generatedText"
-      :content="generatedText"
-      :filename="filename"
-    >
-      <template #actions="{ content, filename: outputFilename }">
+      <div
+        v-else
+        aria-label="Aktionen für die erzeugte Konfiguration"
+        class="source-output__actions"
+        role="group"
+      >
         <v-btn
           prepend-icon="mdi-content-copy"
+          disabled
           variant="tonal"
-          @click="copyGeneratedText(content)"
         >
-          Copy
+          Kopieren
         </v-btn>
         <v-btn
           color="primary"
+          disabled
           prepend-icon="mdi-download"
-          @click="downloadGeneratedText(outputFilename, content)"
         >
-          Download
+          Herunterladen
         </v-btn>
-      </template>
-    </SourceOutput>
+      </div>
+    </template>
 
-    <div
+    <v-card
       v-else
-      aria-label="Generated configuration actions"
-      class="source-output__actions"
-      role="group"
+      class="source-generator__next-step"
+      variant="outlined"
     >
-      <v-btn
-        disabled
-        prepend-icon="mdi-content-copy"
-        variant="tonal"
-      >
-        Copy
-      </v-btn>
-      <v-btn
-        color="primary"
-        disabled
-        prepend-icon="mdi-download"
-      >
-        Download
-      </v-btn>
-    </div>
+      <v-card-title>
+        {{ activeStep === 2 ? 'Offizielle Software' : 'Prüfen und exportieren' }}
+      </v-card-title>
+      <v-card-text>
+        Dieser Schritt wird mit den nächsten Studio-Bausteinen ergänzt. Deine Systemauswahl bleibt erhalten.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="activeStep = 1">
+          Zurück zum Debian-System
+        </v-btn>
+      </v-card-actions>
+    </v-card>
 
     <div
       aria-live="polite"

@@ -11,21 +11,21 @@ defineProps<{
     variant="outlined"
   >
     <v-card-title id="source-output-title">
-      Generated configuration
+      Erzeugte Konfiguration
     </v-card-title>
     <v-card-text>
       <p class="source-output__filename">
-        <span>Filename</span>
+        <span>Dateiname</span>
         <code>{{ filename }}</code>
       </p>
       <pre
-        aria-label="Generated sources preview"
+        aria-label="Vorschau der erzeugten Paketquellen"
         class="source-output__preview"
         tabindex="0"
       ><code>{{ content }}</code></pre>
       <div
         v-if="$slots.actions"
-        aria-label="Generated configuration actions"
+        aria-label="Aktionen für die erzeugte Konfiguration"
         class="source-output__actions"
         role="group"
       >
