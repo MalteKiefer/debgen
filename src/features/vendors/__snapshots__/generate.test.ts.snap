@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`vendor artifact generation > keeps the generated source and preference bundle stable 1`] = `
+[
+  {
+    "category": "development",
+    "content": "Types: deb
+URIs: https://vendor.example/debian
+Suites: bookworm
+Architectures: amd64
+Components: main
+Signed-By: /etc/apt/keyrings/example-tool.gpg
+",
+    "description": "Paketquelle für Example Tool",
+    "filename": "example-tool.sources",
+    "mediaType": "text/plain",
+    "productId": "example-tool",
+    "riskNotes": [
+      "Hat eine wichtige Betriebswirkung.",
+    ],
+  },
+  {
+    "category": "development",
+    "content": "Package: example-tool
+Pin: origin vendor.example
+Pin-Priority: 1000
+",
+    "description": "Paketpriorität für Example Tool",
+    "filename": "example-tool.pref",
+    "mediaType": "text/plain",
+    "productId": "example-tool",
+    "riskNotes": [
+      "Hat eine wichtige Betriebswirkung.",
+    ],
+  },
+]
+`;

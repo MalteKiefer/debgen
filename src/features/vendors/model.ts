@@ -31,6 +31,8 @@ export interface VendorProduct {
   readonly suite: string | Readonly<Partial<Record<ReleaseCodename, string>>>
   readonly components: readonly string[]
   readonly verifiedAt: string
+  /** Vendor-published OpenPGP fingerprint, normalized during installation. */
+  readonly fingerprint?: string
   readonly warning?: string
   readonly preferences?: string
 }

@@ -62,6 +62,9 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     requireText(product, 'id', product?.id)
     requireText(product, 'name', product?.name)
     requireText(product, 'filename', product?.filename)
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*\.sources$/.test(product.filename)) {
+      throw new Error('Vendor "' + id + '" filename must be a safe lowercase .sources slug.')
+    }
     requireText(product, 'category', product?.category)
     if (!CATEGORIES.has(product.category)) throw new Error(`Vendor "${id}" has an unknown category.`)
 
@@ -81,6 +84,9 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
       throw new Error(`Vendor "${id}" keyring path is unsafe; use /etc/apt/keyrings or /usr/share/keyrings.`)
     }
     requireText(product, 'verification date', product.verifiedAt)
+    if (product.fingerprint !== undefined && !/^[A-Fa-f0-9\s]+$/.test(product.fingerprint)) {
+      throw new Error('Vendor "' + id + '" fingerprint must contain hexadecimal characters only.')
+    }
 
     if (!Array.isArray(product.packages) || product.packages.length === 0 || product.packages.some((value: unknown) => typeof value !== 'string' || value.trim() === '')) {
       throw new Error(`Vendor "${id}" must define at least one package.`)
