@@ -4,6 +4,13 @@ import { compatibleProducts, getVendorCompatibility } from './compatibility'
 import type { SystemArchitecture } from './model'
 import type { ReleaseCodename } from '../sources/model'
 
+const allReleases: readonly ReleaseCodename[] = ['trixie', 'bookworm', 'bullseye', 'forky', 'sid']
+const allArchitectures: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
+const boundaryProductIds = [
+  'brave-browser', 'mozilla-firefox', 'mullvad-vpn', 'docker-engine',
+  'azure-cli', 'postgresql-pgdg', 'mongodb-community-8-0',
+] as const
+
 function product(id: string) {
   const result = getVendorProduct(id)
   if (!result) throw new Error(`Unknown test product: ${id}`)
@@ -23,6 +30,31 @@ describe('vendor compatibility', () => {
     expect(getVendorCompatibility(product(id), release, architecture)).toEqual({ compatible: true })
   })
 
+  it.each(boundaryProductIds.flatMap((id) => {
+    const entry = product(id)
+    return allReleases
+      .filter((release) => !entry.releases.includes(release))
+      .map((release) => [id, release] as const)
+  }))('rejects every unsupported release for %s: %s', (id, release) => {
+    const result = getVendorCompatibility(product(id), release, 'amd64')
+
+    expect(result.compatible).toBe(false)
+    expect(result.reason).toMatch(new RegExp(`Release.*${release}.*nicht unterstützt`, 'i'))
+  })
+
+  it.each(boundaryProductIds.flatMap((id) => {
+    const entry = product(id)
+    return allArchitectures
+      .filter((architecture) => !entry.architectures.includes(architecture))
+      .map((architecture) => [id, architecture] as const)
+  }))('rejects every unsupported architecture for %s: %s', (id, architecture) => {
+    const release = product(id).releases[0]
+    const result = getVendorCompatibility(product(id), release, architecture)
+
+    expect(result.compatible).toBe(false)
+    expect(result.reason).toMatch(new RegExp(`Architektur.*${architecture}.*nicht unterstützt`, 'i'))
+  })
+
   it('rejects an unsupported release with a German explanation', () => {
     const result = getVendorCompatibility(product('azure-cli'), 'trixie', 'amd64')
 
@@ -40,7 +72,7 @@ describe('vendor compatibility', () => {
   it('reports release incompatibility before architecture incompatibility', () => {
     const result = getVendorCompatibility(product('mongodb-community-8-0'), 'sid', 'arm64')
 
-    expect(result.reason).toMatch(/Release/i)
+    expect(result.reason).toMatch(/Release.*sid.*nicht unterstützt/i)
   })
 
   it('filters the catalog to compatible products', () => {
