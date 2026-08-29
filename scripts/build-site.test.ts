@@ -19,6 +19,21 @@ afterEach(async () => {
 })
 
 describe('static site build', () => {
+  it('publishes the Structured Workbench at the project root', async () => {
+    const outputDir = await mkdtemp(join(tmpdir(), 'debgen-root-'))
+    temporaryDirectories.push(outputDir)
+    await buildSite({ outputDir, baseUrl: 'https://debgen.org/' })
+    const html = await readFile(join(outputDir, 'index.html'), 'utf8')
+    expect(html).toContain('data-step="system"')
+    expect(html).not.toContain('<div id="app"></div>')
+    expect(html).not.toContain('/src/main.ts')
+    expect(html).toContain('<link rel="canonical" href="https://debgen.org/">')
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://debgen.org/">')
+    expect(html).toContain('"url":"https://debgen.org/"')
+    expect(html).toContain('<nav aria-label="Language">')
+    expect(html).not.toContain('aria-current="page"')
+  }, 60_000)
+
   it('builds useful localized HTML and preserves the versioned API', async () => {
     const outputDir = await createTemporaryOutput()
 
@@ -32,15 +47,16 @@ describe('static site build', () => {
       'User-agent: *\nAllow: /\nSitemap: https://debgen.org/sitemap.xml\n',
     )
     const rootHtml = await readFile(join(outputDir, 'index.html'), 'utf8')
-    expect(rootHtml).toContain('<nav aria-label="Language">')
-    expect(rootHtml).not.toContain('<noscript data-static-languages>')
+    expect(rootHtml).toContain('data-step="system"')
+    expect(rootHtml).not.toContain('<div id="app"></div>')
+    expect(rootHtml).not.toContain('<script type="module"')
     expect(manifest.locales).toHaveLength(10)
 
     await buildSite({ outputDir, baseUrl: 'https://debgen.org/' })
     expect(await readFile(join(outputDir, 'index.html'), 'utf8')).toBe(rootHtml)
   }, 60_000)
 
-  it('keeps the Vite application entry while making repository-relative static links', async () => {
+  it('replaces the Vite application entry with a repository-relative static Workbench', async () => {
     const outputDir = await createTemporaryOutput()
     await mkdir(join(outputDir, 'assets'), { recursive: true })
     await writeFile(
@@ -57,8 +73,13 @@ describe('static site build', () => {
 
     const rootHtml = await readFile(join(outputDir, 'index.html'), 'utf8')
     const englishHtml = await readFile(join(outputDir, 'en', 'index.html'), 'utf8')
-    expect(rootHtml).toContain('<div id="app"></div>')
+    expect(rootHtml).toContain('data-step="system"')
+    expect(rootHtml).not.toContain('<div id="app"></div>')
+    expect(rootHtml).not.toContain('<script type="module"')
     expect(rootHtml).toContain('href="/debgen/en/"')
+    expect(rootHtml).not.toBe(englishHtml)
+    expect(rootHtml).toContain('<link rel="canonical" href="https://debgen.org/">')
+    expect(rootHtml).toContain('<link rel="alternate" hreflang="x-default" href="https://debgen.org/">')
     expect(await readFile(join(outputDir, 'assets', 'app.js'), 'utf8')).toContain('__debgen')
     expect(englishHtml).toContain('href="/debgen/assets/site.css"')
     expect(englishHtml).toContain('href="/debgen/api/v1/catalog.json"')

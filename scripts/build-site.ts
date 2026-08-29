@@ -1,4 +1,4 @@
-import { copyFile, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -24,8 +24,6 @@ export interface BuildManifest {
 }
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const languageBlockStart = '<!-- debgen-static-languages:start -->'
-const languageBlockEnd = '<!-- debgen-static-languages:end -->'
 
 const withTrailingSlash = (value: string): string => value.endsWith('/') ? value : `${value}/`
 
@@ -41,59 +39,10 @@ const resolveBasePath = (baseUrl: string): string => {
   return withTrailingSlash(parsed.pathname)
 }
 
-const deploymentPath = (basePath: string, path: string): string => (
-  `${basePath}${path.replace(/^\/+/, '')}`
-)
-
 const applyDeploymentBasePath = (html: string, basePath: string): string => {
   if (basePath === '/') return html
 
   return html.replace(/(\b(?:action|href|src)=")\/(?!\/)/gu, `$1${basePath}`)
-}
-
-const renderLanguageNavigation = (basePath: string): string => {
-  const links = siteLocales.map(locale => (
-    `<li><a href="${deploymentPath(basePath, sitePath(locale))}" hreflang="${locale}" lang="${locale}">${locale}</a></li>`
-  )).join('')
-
-  return `<nav aria-label="Language"><p>Choose a language</p><ul>${links}</ul></nav>`
-}
-
-const renderLanguageFallback = (basePath: string): string => {
-  return `${languageBlockStart}<noscript data-static-languages>${renderLanguageNavigation(basePath)}</noscript>${languageBlockEnd}`
-}
-
-const addLanguageNavigation = (html: string, basePath: string): string => {
-  const block = renderLanguageFallback(basePath)
-  const existingBlock = new RegExp(`${languageBlockStart}[\\s\\S]*?${languageBlockEnd}`, 'u')
-  if (existingBlock.test(html)) return html.replace(existingBlock, block)
-  if (html.includes('</body>')) return html.replace('</body>', `${block}\n</body>`)
-
-  return `${html}\n${block}\n`
-}
-
-const renderRootEntry = (basePath: string): string => `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DebGen</title>
-<link rel="stylesheet" href="${deploymentPath(basePath, 'assets/site.css')}">
-</head>
-<body>
-<main><h1>DebGen</h1><p>Select the Workbench language.</p></main>
-${renderLanguageNavigation(basePath)}
-</body>
-</html>`
-
-const readExistingRootEntry = async (outputDir: string): Promise<string | null> => {
-  try {
-    return await readFile(join(outputDir, 'index.html'), 'utf8')
-  } catch (error: unknown) {
-    const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined
-    if (code === 'ENOENT') return null
-    throw error
-  }
 }
 
 const writeVersionedApi = async (outputDir: string): Promise<void> => {
@@ -134,12 +83,14 @@ export async function buildSite({ outputDir, baseUrl }: BuildSiteOptions): Promi
     await writeFile(join(localeDirectory, 'index.html'), html, 'utf8')
   }))
 
-  const existingRootEntry = await readExistingRootEntry(resolvedOutputDir)
+  const rootPage = renderWorkbenchPage({
+    locale: 'en',
+    copy: getSiteCopyForBuild('en'),
+    root: true,
+  })
   await writeFile(
     join(resolvedOutputDir, 'index.html'),
-    existingRootEntry?.includes('id="app"')
-      ? addLanguageNavigation(existingRootEntry, basePath)
-      : renderRootEntry(basePath),
+    applyDeploymentBasePath(renderDocument(rootPage), basePath),
     'utf8',
   )
   await writeFile(

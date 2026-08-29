@@ -4,7 +4,7 @@ import { renderIcon } from '../icons'
 import type { SiteCopy } from '../locales'
 import type { SitePage } from '../model'
 import { escapeHtml } from '../render'
-import { sitePath } from '../routes'
+import { canonicalUrl, sitePath } from '../routes'
 import { buildSeoMetadata, buildWebsiteJsonLd } from '../seo'
 
 export type WorkbenchStep = keyof SiteCopy['steps']
@@ -13,6 +13,7 @@ export interface WorkbenchPageContext {
   locale: SupportedLocale
   copy: SiteCopy
   activeStep?: WorkbenchStep
+  root?: boolean
 }
 
 const steps: readonly WorkbenchStep[] = ['system', 'debian', 'repositories', 'review', 'export']
@@ -31,13 +32,14 @@ const renderReleaseOptions = (): string => RELEASES.map((release, index) => {
   return `<option value="${escapeHtml(release.codename)}"${selected}>${escapeHtml(release.codename)} — ${escapeHtml(release.status)}</option>`
 }).join('')
 
-const renderLanguageControl = (locale: SupportedLocale): string => {
+const renderLanguageControl = (locale: SupportedLocale, root: boolean): string => {
   const links = SUPPORTED_LOCALES.map((supportedLocale) => {
-    const current = supportedLocale === locale ? ' aria-current="page"' : ''
+    const current = !root && supportedLocale === locale ? ' aria-current="page"' : ''
     return `<li><a href="${escapeHtml(sitePath(supportedLocale))}" hreflang="${supportedLocale}" lang="${supportedLocale}"${current}>${supportedLocale}</a></li>`
   }).join('')
 
-  return `<details class="language-control"><summary>Language <strong>${escapeHtml(locale)}</strong></summary><nav aria-label="Language"><ul>${links}</ul></nav></details>`
+  const currentLocale = root ? '' : ` <strong>${escapeHtml(locale)}</strong>`
+  return `<details class="language-control"><summary>Language${currentLocale}</summary><nav aria-label="Language"><ul>${links}</ul></nav></details>`
 }
 
 const renderThemeControl = (): string => `<details class="theme-control"><summary>${renderIcon('theme')}<span>Theme</span></summary><fieldset class="theme-options"><legend>Color theme</legend><label><input type="radio" id="theme-system" name="theme" value="system" checked>System</label><label><input type="radio" id="theme-light" name="theme" value="light">Light</label><label><input type="radio" id="theme-dark" name="theme" value="dark">Dark</label></fieldset></details>`
@@ -85,22 +87,33 @@ const renderExportStep = (copy: SiteCopy): string => `<section id="export" class
 <div class="step-actions"><a href="#review">${escapeHtml(copy.actions.back)}</a><button type="submit" class="primary-action">${escapeHtml(copy.actions.export)}</button></div>
 </section>`
 
-export const renderWorkbenchPage = ({ locale, copy, activeStep = 'system' }: WorkbenchPageContext): SitePage => {
+export const renderWorkbenchPage = ({ locale, copy, activeStep = 'system', root = false }: WorkbenchPageContext): SitePage => {
   const currentStep = steps.includes(activeStep) ? activeStep : 'system'
-  const path = sitePath(locale)
-  const metadata = buildSeoMetadata({
+  const path = root ? '/' : sitePath(locale)
+  const structuredData = buildWebsiteJsonLd(locale, copy)
+  const localizedMetadata = buildSeoMetadata({
     locale,
     title: copy.seo.workbenchTitle,
     description: copy.seo.workbenchDescription,
-    structuredData: buildWebsiteJsonLd(locale, copy),
+    structuredData: root ? { ...structuredData, url: canonicalUrl(path) } : structuredData,
   })
+  const metadata = root
+    ? {
+        ...localizedMetadata,
+        canonical: canonicalUrl(path),
+        alternates: [
+          ...SUPPORTED_LOCALES.map(supportedLocale => ({ lang: supportedLocale, href: canonicalUrl(sitePath(supportedLocale)) })),
+          { lang: 'x-default', href: canonicalUrl(path) },
+        ],
+      }
+    : localizedMetadata
 
   const body = `<a class="skip-link" href="#workbench">Skip to Workbench</a>
 <header class="site-header">
 <a class="brand" href="${escapeHtml(path)}" aria-label="DebGen home"><strong>DebGen</strong><span>Workbench</span></a>
 <p class="current-step"><span>Current step</span><strong>${escapeHtml(copy.steps[currentStep])}</strong></p>
 <nav class="utility-nav" aria-label="Utilities"><a href="https://github.com/MalteKiefer/debgen#readme">Docs</a><a href="/api/v1/catalog.json">API</a><a href="https://github.com/MalteKiefer/debgen">GitHub ${renderIcon('external')}</a></nav>
-${renderLanguageControl(locale)}
+${renderLanguageControl(locale, root)}
 ${renderThemeControl()}
 </header>
 <div class="workbench-layout">
