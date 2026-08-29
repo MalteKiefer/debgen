@@ -1,4 +1,4 @@
-import type { SupportedLocale } from '../../i18n/locales'
+import { SUPPORTED_LOCALES, type SupportedLocale } from '../../i18n/locales'
 import { RELEASES } from '../../features/sources/releases'
 import { renderIcon } from '../icons'
 import type { SiteCopy } from '../locales'
@@ -31,6 +31,17 @@ const renderReleaseOptions = (): string => RELEASES.map((release, index) => {
   return `<option value="${escapeHtml(release.codename)}"${selected}>${escapeHtml(release.codename)} — ${escapeHtml(release.status)}</option>`
 }).join('')
 
+const renderLanguageControl = (locale: SupportedLocale): string => {
+  const links = SUPPORTED_LOCALES.map((supportedLocale) => {
+    const current = supportedLocale === locale ? ' aria-current="page"' : ''
+    return `<li><a href="${escapeHtml(sitePath(supportedLocale))}" hreflang="${supportedLocale}" lang="${supportedLocale}"${current}>${supportedLocale}</a></li>`
+  }).join('')
+
+  return `<details class="language-control"><summary>Language <strong>${escapeHtml(locale)}</strong></summary><nav aria-label="Language"><ul>${links}</ul></nav></details>`
+}
+
+const renderThemeControl = (): string => `<details class="theme-control"><summary>${renderIcon('theme')}<span>Theme</span></summary><fieldset class="theme-options"><legend>Color theme</legend><label><input type="radio" id="theme-system" name="theme" value="system" checked>System</label><label><input type="radio" id="theme-light" name="theme" value="light">Light</label><label><input type="radio" id="theme-dark" name="theme" value="dark">Dark</label></fieldset></details>`
+
 const renderSystemStep = (copy: SiteCopy): string => `<section id="system" class="workbench-step" data-step="system" aria-labelledby="system-title">
 <header class="step-heading"><p class="eyebrow">01 / 05</p><h2 id="system-title">${escapeHtml(copy.steps.system)}</h2></header>
 <div class="control-grid">
@@ -55,7 +66,7 @@ const renderRepositoriesStep = (copy: SiteCopy): string => `<section id="reposit
 <header class="step-heading"><p class="eyebrow">03 / 05</p><h2 id="repositories-title">${escapeHtml(copy.steps.repositories)}</h2></header>
 <label for="repository-search">${escapeHtml(copy.search.label)}<input type="search" id="repository-search" name="q" placeholder="${escapeHtml(copy.search.placeholder)}" autocomplete="off"></label>
 <div class="table-scroll" tabindex="0" role="region" aria-label="Repository results">
-<table><thead><tr><th scope="col">Repository</th><th scope="col">Operator</th><th scope="col">Compatibility</th><th scope="col">Select</th></tr></thead><tbody><tr><th scope="row">Debian archive</th><td>Debian Project</td><td>Selected release</td><td><label class="compact-choice"><input type="checkbox" name="repository" value="debian" checked> Include</label></td></tr></tbody></table>
+<table><thead><tr><th scope="col">${escapeHtml(copy.audit.repository)}</th><th scope="col">${escapeHtml(copy.audit.operator)}</th><th scope="col">${escapeHtml(copy.audit.compatibility)}</th><th scope="col">Select</th></tr></thead><tbody><tr><th scope="row">Debian archive</th><td>Debian Project</td><td>Selected release</td><td><label class="compact-choice"><input type="checkbox" name="repository" value="debian" checked> Include</label></td></tr></tbody></table>
 </div>
 <p class="audit-note">${escapeHtml(copy.trust.review)}</p>
 <div class="step-actions"><a href="#debian">${escapeHtml(copy.actions.back)}</a><a href="#review">${escapeHtml(copy.actions.continue)}</a></div>
@@ -88,8 +99,9 @@ export const renderWorkbenchPage = ({ locale, copy, activeStep = 'system' }: Wor
 <header class="site-header">
 <a class="brand" href="${escapeHtml(path)}" aria-label="DebGen home"><strong>DebGen</strong><span>Workbench</span></a>
 <p class="current-step"><span>Current step</span><strong>${escapeHtml(copy.steps[currentStep])}</strong></p>
-<nav class="utility-nav" aria-label="Utilities"><a href="${escapeHtml(sitePath(locale, ['docs']))}">Docs</a><a href="/api/">API</a><a href="https://github.com/MalteKiefer/debgen">GitHub ${renderIcon('external')}</a></nav>
-<label class="theme-control" for="theme">${renderIcon('theme')}<span>Theme</span><select id="theme" name="theme" form="workbench-form"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+<nav class="utility-nav" aria-label="Utilities"><a href="https://github.com/MalteKiefer/debgen#readme">Docs</a><a href="/api/v1/catalog.json">API</a><a href="https://github.com/MalteKiefer/debgen">GitHub ${renderIcon('external')}</a></nav>
+${renderLanguageControl(locale)}
+${renderThemeControl()}
 </header>
 <div class="workbench-layout">
 ${renderWorkflow(copy, currentStep)}

@@ -2,10 +2,13 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { RELEASES } from '../../src/features/sources/releases'
+import { SUPPORTED_LOCALES } from '../../src/i18n/locales'
+import { de } from '../../src/site/locales/de'
 import { en, type SiteCopy } from '../../src/site/locales/en'
 import { renderWorkbenchPage } from '../../src/site/pages/workbench'
 import { renderIcon } from '../../src/site/icons'
 import { renderDocument } from '../../src/site/render'
+import { sitePath } from '../../src/site/routes'
 
 const testContext = {
   locale: 'en' as const,
@@ -50,6 +53,31 @@ describe('Structured Workbench page', () => {
     expect(html).not.toContain('<script type="module"')
   })
 
+  it('links utilities to published documentation and the concrete API catalog', () => {
+    const html = renderDocument(renderWorkbenchPage(testContext))
+
+    expect(html).toContain('<a href="https://github.com/MalteKiefer/debgen#readme">Docs</a>')
+    expect(html).toContain('<a href="/api/v1/catalog.json">API</a>')
+    expect(html).not.toContain('href="/en/docs/"')
+    expect(html).not.toContain('href="/api/"')
+  })
+
+  it('localizes repository audit headings and links every supported language natively', () => {
+    const html = renderDocument(renderWorkbenchPage({ locale: 'de', copy: de }))
+
+    expect(html).toContain(`<th scope="col">${de.audit.repository}</th>`)
+    expect(html).toContain(`<th scope="col">${de.audit.operator}</th>`)
+    expect(html).toContain(`<th scope="col">${de.audit.compatibility}</th>`)
+    expect(html).not.toContain('<th scope="col">Operator</th>')
+    expect(html).toContain('<details class="language-control">')
+    expect(html).toContain('<nav aria-label="Language">')
+    for (const locale of SUPPORTED_LOCALES) {
+      const current = locale === 'de' ? ' aria-current="page"' : ''
+      expect(html).toContain(`<a href="${sitePath(locale)}" hreflang="${locale}" lang="${locale}"${current}>${locale}</a>`)
+    }
+    expect(html.match(/aria-current="page"/gu)).toHaveLength(1)
+  })
+
   it('escapes localized copy before placing it in text and attributes', () => {
     const hostileCopy: SiteCopy = {
       ...en,
@@ -68,6 +96,19 @@ describe('Structured Workbench page', () => {
     expect(renderIcon('external')).toContain('<path')
     expect(renderIcon('check')).not.toContain('<use')
     expect(() => (renderIcon as (name: string) => string)('mdi-menu')).toThrow('Unknown Workbench icon')
+  })
+
+  it('switches color themes with native controls and CSS instead of an inert selector', () => {
+    const html = renderDocument(renderWorkbenchPage(testContext))
+    const css = readFileSync(resolve('src/site/styles/workbench.css'), 'utf8')
+
+    expect(html).toContain('<details class="theme-control">')
+    expect(html).toContain('<input type="radio" id="theme-system" name="theme" value="system" checked>')
+    expect(html).toContain('<input type="radio" id="theme-light" name="theme" value="light">')
+    expect(html).toContain('<input type="radio" id="theme-dark" name="theme" value="dark">')
+    expect(html).not.toContain('<select id="theme"')
+    expect(css).toContain(':root:has(#theme-light:checked)')
+    expect(css).toContain(':root:has(#theme-dark:checked)')
   })
 
   it('ships responsive theme, focus, and reduced-motion safeguards without forbidden decoration', () => {

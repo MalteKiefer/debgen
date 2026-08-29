@@ -116,8 +116,7 @@ input[type="checkbox"] {
 }
 
 .brand span,
-.current-step span,
-.theme-control span {
+.current-step span {
   color: var(--text-muted);
   font-size: 0.75rem;
 }
@@ -145,15 +144,87 @@ input[type="checkbox"] {
   min-height: 2.75rem;
 }
 
+.language-control,
 .theme-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+  position: relative;
 }
 
-.theme-control select {
+.language-control summary,
+.theme-control summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.language-control summary {
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+}
+
+.theme-control summary span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.language-control[open] summary,
+.theme-control[open] summary {
+  color: var(--accent);
+}
+
+.language-control nav,
+.theme-options {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-end: 0;
+  width: max-content;
+  max-width: calc(100vw - 1rem);
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.language-control ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(4.5rem, 1fr));
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.language-control a {
+  display: block;
   min-height: 2.5rem;
-  padding-block: 0.35rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.language-control a[aria-current="page"] {
+  border-inline-start: 3px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.theme-options {
+  display: grid;
+  min-width: 10rem;
+  margin: 0;
+}
+
+.theme-options legend {
+  padding: 0 0.3rem;
+  font-size: 0.75rem;
+}
+
+.theme-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding-inline: 0.25rem;
 }
 
 .workbench-layout {
@@ -402,6 +473,30 @@ pre {
     --border: #3d3e3a;
     --control-border: #777873;
   }
+}
+
+:root:has(#theme-light:checked) {
+  color-scheme: light;
+  --accent: #a80030;
+  --background: #f8f8f7;
+  --surface: #ffffff;
+  --surface-muted: #f0f0ee;
+  --text: #171717;
+  --text-muted: #626262;
+  --border: #d2d2cf;
+  --control-border: #8c8c88;
+}
+
+:root:has(#theme-dark:checked) {
+  color-scheme: dark;
+  --accent: #ff5c83;
+  --background: #111211;
+  --surface: #191a19;
+  --surface-muted: #222321;
+  --text: #f2f2ef;
+  --text-muted: #b2b2ac;
+  --border: #3d3e3a;
+  --control-border: #777873;
 }
 
 @media (min-width: 46rem) {
