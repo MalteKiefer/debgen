@@ -46,6 +46,7 @@ const compatibility = computed(() => getVendorCompatibility(
   props.architecture,
 ))
 const compatibilityMessage = computed(() => {
+  if (compatibility.value.compatible) return ''
   const reason = compatibility.value.reason
   if (!reason) return ''
   if (reason.code === 'unsupported-release') {

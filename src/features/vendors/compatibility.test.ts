@@ -100,6 +100,7 @@ describe('vendor compatibility', () => {
   it('reports release incompatibility before architecture incompatibility', () => {
     const result = getVendorCompatibility(product('mongodb-community-8-0'), 'sid', 'arm64')
 
+    if (result.compatible) throw new Error('Expected incompatibility')
     expect(result.reason).toMatchObject({ code: 'unsupported-release', release: 'sid' })
   })
 
