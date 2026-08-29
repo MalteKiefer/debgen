@@ -23,18 +23,29 @@ interface ManifestRelease {
   files: ManifestFile[]
 }
 
-interface VendorResource {
+interface VendorResourceCoordinates {
   release: ReleaseCodename
   architecture: SystemArchitecture
+}
+
+interface RepositoryVendorResource extends VendorResourceCoordinates {
   source: { url: string }
   install: { url: string }
 }
+
+interface NativeVendorResource extends VendorResourceCoordinates {
+  packages: string[]
+}
+
+type VendorResource = RepositoryVendorResource | NativeVendorResource
 
 interface VendorManifestEntry {
   id: string
   name: string
   category: VendorProduct['category']
-  documentationUrl: string
+  sourceId: string | null
+  packages: string[]
+  documentationUrl: string | null
   verifiedAt: string
   compatibility: VendorResource[]
 }
@@ -105,12 +116,15 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
   const releases = [...RELEASES].map((release) => release.codename).sort(compareText)
 
   for (const product of [...VENDOR_PRODUCTS].sort((left, right) => compareText(left.id, right.id))) {
-    // Debian-native products are selectable packages, not third-party repository resources.
-    if (product.sourceId === null) continue
     const compatibility: VendorResource[] = []
     for (const release of releases) {
       for (const architecture of [...API_ARCHITECTURES].sort(compareText)) {
         if (!getVendorCompatibility(product, release, architecture).compatible) continue
+
+        if (product.sourceId === null) {
+          compatibility.push({ release, architecture, packages: [...product.packages] })
+          continue
+        }
 
         const config = { release, architecture, productIds: [product.id] } as const
         const artifacts = generateVendorArtifacts(config)
@@ -133,7 +147,11 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
       id: product.id,
       name: product.name,
       category: product.category,
-      documentationUrl: getRepositorySource(product.sourceId as string)?.documentationUrl ?? '',
+      sourceId: product.sourceId,
+      packages: [...product.packages],
+      documentationUrl: product.sourceId === null
+        ? null
+        : getRepositorySource(product.sourceId)?.documentationUrl ?? null,
       verifiedAt: LEGACY_VENDOR_MANIFEST_VERIFIED_AT,
       compatibility,
     })
@@ -188,7 +206,9 @@ async function writeApi(outputRoot: string): Promise<void> {
     ...manifest.flatMap((release) => release.files.map((file) => file.url)),
   ])
   await assertManifestUrlsExist(outputRoot, new URL('vendors.json', API_MANIFEST_BASE).href, [
-    ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((resource) => [resource.source.url, resource.install.url])),
+    ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((resource) => (
+      'source' in resource ? [resource.source.url, resource.install.url] : []
+    ))),
   ])
 }
 

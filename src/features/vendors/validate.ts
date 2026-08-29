@@ -1,4 +1,5 @@
 import type {
+  AuxiliaryTrustDestination,
   AuxiliaryTrustFile,
   RepositoryKey,
   RepositoryLocation,
@@ -27,7 +28,20 @@ export function normalizeOpenPgpFingerprint(fingerprint: string): string {
 const SUPPORT_LEVELS = new Set(['explicit', 'generic-debian', 'repository-only'])
 const PROVENANCE = new Set(['manufacturer', 'upstream', 'community-endorsed', 'debian-native'])
 const KEY_FORMATS = new Set(['ascii-armored', 'binary'])
-const AUXILIARY_DESTINATIONS = new Set(['debsig-policy', 'debsig-keyring'])
+const AUXILIARY_DESTINATIONS = new Set<AuxiliaryTrustDestination>(['debsig-policy', 'debsig-keyring'])
+const AUXILIARY_DESTINATION_PATHS: Readonly<Record<string, {
+  readonly destination: AuxiliaryTrustDestination
+  readonly path: string
+}>> = {
+  'onepassword-policy': {
+    destination: 'debsig-policy',
+    path: '/etc/debsig/policies/AC2D62742012EA22/1password.pol',
+  },
+  'onepassword-keyring': {
+    destination: 'debsig-keyring',
+    path: '/usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg',
+  },
+}
 
 const repositoryError = (sourceId: string, message: string): Error =>
   new Error(`Repository source "${sourceId}" ${message}.`)
@@ -149,11 +163,14 @@ export function auxiliaryTrustDestinationPath(file: AuxiliaryTrustFile): string 
   if (!SAFE_VENDOR_ID.test(file.id)) {
     throw new Error(`Auxiliary trust file "${file.id}" must use a safe lowercase ASCII ID.`)
   }
-  switch (file.destination) {
-    case 'debsig-policy': return `/etc/debsig/policies/${file.id}.pol`
-    case 'debsig-keyring': return `/usr/share/debsig/keyrings/${file.id}.gpg`
-    default: throw new Error(`Unknown auxiliary trust destination: ${String(file.destination)}.`)
+  if (typeof file.destination !== 'string' || !AUXILIARY_DESTINATIONS.has(file.destination)) {
+    throw new Error(`Unknown auxiliary trust destination: ${String(file.destination)}.`)
   }
+  const destination = AUXILIARY_DESTINATION_PATHS[file.id]
+  if (destination === undefined || file.destination !== destination.destination) {
+    throw new Error(`Auxiliary trust file "${file.id}" does not match its closed destination.`)
+  }
+  return destination.path
 }
 
 const validateAuxiliaryTrustFile = (sourceId: string, file: AuxiliaryTrustFile): void => {

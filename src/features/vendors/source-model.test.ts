@@ -100,23 +100,35 @@ describe('repository source model', () => {
   })
 
   it('derives allowlisted auxiliary trust destinations without accepting arbitrary paths', () => {
-    const auxiliary: AuxiliaryTrustFile = {
+    const policy: AuxiliaryTrustFile = {
       id: 'onepassword-policy',
       url: 'https://downloads.1password.com/linux/debian/debsig/1password.pol',
       destination: 'debsig-policy',
-      mediaType: 'application/octet-stream',
+      mediaType: 'application/xml',
+    }
+    const keyring: AuxiliaryTrustFile = {
+      id: 'onepassword-keyring',
+      url: 'https://downloads.1password.com/linux/keys/1password.asc',
+      destination: 'debsig-keyring',
+      mediaType: 'application/pgp-keys',
+      fingerprint: '3FEF9748469ADBE15DA7CA80AC2D62742012EA22',
     }
 
-    expect(auxiliaryTrustDestinationPath(auxiliary)).toBe('/etc/debsig/policies/onepassword-policy.pol')
-    expect(() => auxiliaryTrustDestinationPath({ ...auxiliary, id: '../outside' as AuxiliaryTrustFile['id'] }))
+    expect(auxiliaryTrustDestinationPath(policy)).toBe('/etc/debsig/policies/AC2D62742012EA22/1password.pol')
+    expect(auxiliaryTrustDestinationPath(keyring)).toBe('/usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg')
+    expect(() => auxiliaryTrustDestinationPath({ ...policy, id: '../outside' as AuxiliaryTrustFile['id'] }))
       .toThrow(/auxiliary trust file.*safe.*id/i)
-    expect(() => auxiliaryTrustDestinationPath({ ...auxiliary, destination: 'unknown' as AuxiliaryTrustFile['destination'] }))
+    expect(() => auxiliaryTrustDestinationPath({ ...policy, id: 'other-safe-id' }))
+      .toThrow(/auxiliary trust file.*closed.*destination/i)
+    expect(() => auxiliaryTrustDestinationPath({ ...policy, id: 'onepassword-keyring' }))
+      .toThrow(/auxiliary trust file.*closed.*destination/i)
+    expect(() => auxiliaryTrustDestinationPath({ ...policy, destination: 'unknown' as AuxiliaryTrustFile['destination'] }))
       .toThrow(/auxiliary trust destination/i)
     expect(() => validateRepositoryCatalog([
-      source({ auxiliaryTrustFiles: [auxiliary] }),
+      source({ auxiliaryTrustFiles: [policy, keyring] }),
     ], [product()])).not.toThrow()
     expect(() => validateRepositoryCatalog([
-      source({ auxiliaryTrustFiles: [{ ...auxiliary, destination: 'tmp-path' as AuxiliaryTrustFile['destination'] }], }),
+      source({ auxiliaryTrustFiles: [{ ...policy, destination: 'tmp-path' as AuxiliaryTrustFile['destination'] }], }),
     ], [product()])).toThrow(/source.*auxiliary.*destination/i)
   })
 

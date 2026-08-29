@@ -156,7 +156,9 @@ In der Spalte „Installation / Provenienz / Support“ bedeutet `APT` eine zus�
 
 ### Provenienz- und Installationsregeln
 
-Geteilte Herstellerquellen werden durch eine gemeinsame `sourceId` sichtbar, etwa Mullvad, HashiCorp, Grafana, Microsoft, Elastic, Adoptium, Corretto, Sublime und 1Password. Der Katalog bildet außerdem release-spezifische Schlüssel und Orte, mehrere OpenTofu-Schlüssel, komponentenlose Exact-Path-Repositories, die zusätzlichen debsig-Vertrauensdateien von 1Password sowie die Pinning-Dateien von NGINX, Mozilla und Syncthing ab. Interaktive, privilegierte oder voraussetzungsreiche Installationen tragen stabile Warnschlüssel; debgen führt keine Hersteller-Setup-Skripte aus.
+Geteilte Herstellerquellen werden durch eine gemeinsame `sourceId` sichtbar, etwa Mullvad, HashiCorp, Grafana, Microsoft, Elastic, Adoptium, Corretto, Sublime und 1Password. Der Katalog bildet außerdem release-spezifische Schlüssel und Orte, mehrere OpenTofu-Schlüssel, komponentenlose Exact-Path-Repositories, die zusätzlichen debsig-Vertrauensdateien von 1Password unter `/etc/debsig/policies/AC2D62742012EA22/1password.pol` und `/usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg` sowie die Pinning-Dateien von NGINX, Mozilla und Syncthing ab. Interaktive, privilegierte oder voraussetzungsreiche Installationen tragen stabile Warnschlüssel; debgen führt keine Hersteller-Setup-Skripte aus.
+
+Das gemeinsame Schlüsselpaket für NGINX Stable und Mainline wird als vollständige Menge seiner drei Primärschlüssel geprüft: `573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62`, `8540A6F18833A80E9C1653A42FD21310B49F6B46` und `9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3`. Die Menge wurde am 2026-08-29 sowohl gegen das [live NGINX-Schlüsselpaket](https://nginx.org/keys/nginx_signing.key) als auch gegen die vom NGINX-Projekt im offiziellen [docker-nginx-Dockerfile](https://github.com/nginx/docker-nginx/blob/master/stable/debian/Dockerfile) veröffentlichte vollständige Liste geprüft; die [NGINX-Paketdokumentation](https://nginx.org/en/linux_packages.html) weist ausdrücklich auf zusätzliche Paketsignaturschlüssel im Paket hin.
 
 Bei einer Katalogänderung sind offizielle Installationsdokumentation, `Release`- oder `InRelease`-Metadaten, Paketindex, Signaturschlüssel, veröffentlichter Fingerprint, Suite, Komponente, Paketname und Architekturunterstützung erneut zu prüfen. Versionskanäle wie Kubernetes 1.36, MongoDB 8.0, MariaDB 11.8, Zabbix 7.4, Elastic 9, Teleport 18, MySQL 8.4 LTS und OpenSearch 3 bleiben explizit. Verschwindet eine offizielle Quelle, wird der Kandidat entfernt oder ausschließlich nach der freigegebenen Reserveliste ersetzt; die Provenienzregeln werden nicht abgeschwächt.
 
@@ -181,10 +183,12 @@ Die öffentliche GitHub-Pages-API beginnt unter `https://maltekiefer.github.io/d
 - `https://maltekiefer.github.io/debgen/api/v1/forky/debian.sources`
 - `https://maltekiefer.github.io/debgen/api/v1/sid/debian.sources`
 
-`releases.json` enthält unverändert Release-Status, unterstützte Formate, Dateinamen und manifest-relative URLs wie `trixie/debian.sources`. `vendors.json` enthält zu jedem offiziellen Produkt Metadaten, Dokumentations-URL, Verifizierungsdatum und ausschließlich kompatible Release-/Architektur-Kombinationen. Jede dieser Kombinationen verlinkt auf:
+`releases.json` enthält unverändert Release-Status, unterstützte Formate, Dateinamen und manifest-relative URLs wie `trixie/debian.sources`. `vendors.json` enthält exakt alle 100 offiziellen Produkte mit nullable `sourceId`, Paketmenge, optionaler Dokumentations-URL, Verifizierungsdatum und ausschließlich kompatiblen Release-/Architektur-Kombinationen. Bei Produkten mit zusätzlicher APT-Quelle verlinkt jede Kombination auf:
 
 - `vendors/<produkt-id>/<release>/<architektur>/<produkt-id>.sources` für die einzelne kanonische DEB822-Quelle;
 - `vendors/<produkt-id>/<release>/<architektur>/install.sh` für das geprüfte Ein-Produkt-Installationsskript.
+
+Die Debian-nativen Produkte `nodejs` und `libreoffice` stehen ebenfalls in `vendors.json`: Ihre `sourceId` ist `null`, und jede kompatible Kombination enthält ausschließlich die Debian-Paketmenge. Für sie werden bewusst weder eine zusätzliche `.sources`-Datei noch ein Repository-Installationsskript unter `vendors/` erzeugt.
 
 `catalog.json` verlinkt die beiden Manifeste. Alle Manifest-URLs sind relativ zu ihrem Manifest und zeigen auf vorhandene Dateien; inkompatible Kombinationen werden weder verlinkt noch erzeugt. Lösen Sie eine `url` gegen die URL des Manifests auf, beispielsweise mit `new URL(file.url, manifestUrl)`, damit dies auf der Hauptseite und in Forks unter `/api/v1/` funktioniert.
 

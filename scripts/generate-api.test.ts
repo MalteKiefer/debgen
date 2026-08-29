@@ -246,23 +246,24 @@ describe('versioned static API generation', () => {
     const releases = JSON.parse(releasesText) as Array<{ files: Array<{ url: string }> }>
     const vendors = JSON.parse(vendorsText) as Array<{
       id: string
-      documentationUrl: string
+      name: string
+      category: string
+      sourceId: string | null
+      packages: string[]
+      documentationUrl: string | null
       verifiedAt: string
-      compatibility: Array<{
-        release: string
-        architecture: string
-        source: { url: string }
-        install: { url: string }
-      }>
+      compatibility: Array<
+        | { release: string, architecture: string, packages: string[] }
+        | { release: string, architecture: string, source: { url: string }, install: { url: string } }
+      >
     }>
     const manifestUrls = [
       catalog.debian.url,
       catalog.vendors.url,
       ...releases.flatMap((release) => release.files.map((file) => file.url)),
-      ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((combination) => [
-        combination.source.url,
-        combination.install.url,
-      ])),
+      ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((combination) => (
+        'source' in combination ? [combination.source.url, combination.install.url] : []
+      ))),
     ]
 
     expect(catalog).toEqual({
@@ -270,12 +271,13 @@ describe('versioned static API generation', () => {
       vendors: { url: 'vendors.json' },
     })
     const repositoryProducts = VENDOR_PRODUCTS.filter((product) => product.sourceId !== null)
+    const nativeProducts = VENDOR_PRODUCTS.filter((product) => product.sourceId === null)
     expect(vendors.map((vendor) => vendor.id)).toEqual([...vendors.map((vendor) => vendor.id)].sort())
-    expect(vendors.map((vendor) => vendor.id)).toEqual(repositoryProducts.map((product) => product.id).sort())
-    expect(VENDOR_PRODUCTS.filter((product) => product.sourceId === null).map((product) => product.id)).toEqual(['nodejs', 'libreoffice'])
+    expect(vendors.map((vendor) => vendor.id)).toEqual(VENDOR_PRODUCTS.map((product) => product.id).sort())
+    expect(nativeProducts.map((product) => product.id)).toEqual(['nodejs', 'libreoffice'])
     for (const product of repositoryProducts) {
       const entry = vendors.find((vendor) => vendor.id === product.id)
-      expect(entry).toBeDefined()
+      expect(entry).toMatchObject({ sourceId: product.sourceId, packages: [...product.packages] })
       for (const release of RELEASES) {
         for (const architecture of apiArchitectures) {
           const compatible = getVendorCompatibility(product, release.codename, architecture).compatible
@@ -301,6 +303,26 @@ describe('versioned static API generation', () => {
           }
         }
       }
+    }
+    for (const product of nativeProducts) {
+      const entry = vendors.find((vendor) => vendor.id === product.id)
+      expect(entry).toEqual({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        sourceId: null,
+        packages: [...product.packages],
+        documentationUrl: null,
+        verifiedAt: '2026-08-28',
+        compatibility: [...RELEASES]
+          .map((release) => release.codename)
+          .sort((left, right) => left.localeCompare(right, 'en'))
+          .flatMap((release) => [...apiArchitectures]
+            .sort((left, right) => left.localeCompare(right, 'en'))
+            .filter((architecture) => getVendorCompatibility(product, release, architecture).compatible)
+            .map((architecture) => ({ release, architecture, packages: [...product.packages] }))),
+      })
+      await expect(access(join(firstOutputRoot, 'vendors', product.id))).rejects.toThrow()
     }
     expect(vendors.find((vendor) => vendor.id === 'brave-browser')).toMatchObject({
       documentationUrl: 'https://brave.com/linux/',

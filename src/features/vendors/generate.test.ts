@@ -291,6 +291,17 @@ describe('vendor artifact generation', () => {
     }
   })
 
+  it.each(['nginx-stable', 'nginx-mainline'])('verifies the complete official NGINX key bundle for %s', (productId) => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: [productId],
+    }
+    const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
+
+    expect(script.content).toContain("expected_fingerprints='573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62\n8540A6F18833A80E9C1653A42FD21310B49F6B46\n9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3'")
+  })
+
   it('preserves the complete pre-migration artifact corpus across all compatible catalog combinations', () => {
     const releases = ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'] as const
     const architectures = ['amd64', 'arm64', 'armhf', 'i386'] as const
