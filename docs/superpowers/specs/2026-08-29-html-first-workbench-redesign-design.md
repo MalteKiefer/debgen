@@ -1,7 +1,7 @@
 # DebGen HTML-first Workbench Redesign
 
 Date: 2026-08-29
-Status: design approved in conversation, written specification pending final review
+Status: approved
 
 ## Objective
 
@@ -17,7 +17,7 @@ The redesign targets Debian administrators and Linux enthusiasts. It prioritizes
 - Never generate or promote a blind `curl | sudo sh` workflow.
 - Include only upstream or manufacturer repositories, plus reputable community repositories explicitly recommended by upstream. Security-critical products must not use third-party repositories.
 - Keep intermediate releases deployable at no more than 30-minute intervals while implementation is active and verified changes exist.
-- Commit messages and repository content must not reference AI systems.
+- Commit messages and repository content must remain implementation focused and contain no tool attribution.
 
 ## Current-state findings
 
