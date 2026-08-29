@@ -1,5 +1,5 @@
 import type { CompatibilityReason } from './compatibility'
-import type { GeneratedArtifact, WarningKey } from './model'
+import type { GeneratedArtifact, VendorCategory, WarningKey } from './model'
 
 export interface PresentationDescriptor {
   readonly key: string
@@ -28,6 +28,31 @@ const knownWarningKeys = new Set<WarningKey>([
   'wazuh-manager-enrollment',
   'yarn-classic-only',
 ])
+
+const categoryMessageKeys: Readonly<Record<VendorCategory, string>> = {
+  'web-browsers': 'webBrowsers',
+  'messaging-email': 'messagingEmail',
+  'vpn-secure-networking': 'vpnSecureNetworking',
+  'remote-desktop': 'remoteDesktop',
+  'containers-kubernetes': 'containersKubernetes',
+  'cloud-edge': 'cloudEdge',
+  'infrastructure-automation': 'infrastructureAutomation',
+  'data-platforms': 'dataPlatforms',
+  'observability-logging': 'observabilityLogging',
+  'security-secrets': 'securitySecrets',
+  'developer-workstation': 'developerWorkstation',
+  'runtimes-sdks': 'runtimesSdks',
+  'development-platforms-cicd': 'developmentPlatformsCicd',
+  'web-servers': 'webServers',
+  'file-synchronization': 'fileSynchronization',
+  virtualization: 'virtualization',
+  games: 'games',
+  'desktop-productivity': 'desktopProductivity',
+}
+
+export function categoryMessageKey(category: VendorCategory): string {
+  return `categories.${categoryMessageKeys[category]}`
+}
 
 export function presentWarning(key: WarningKey): PresentationDescriptor {
   return knownWarningKeys.has(key)

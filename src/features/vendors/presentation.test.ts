@@ -3,6 +3,7 @@ import type { GeneratedArtifact } from './model'
 import * as presentation from './presentation'
 
 interface PresentationSubject {
+  categoryMessageKey(category: string): string
   presentWarning(key: string): unknown
   presentCompatibility(reason: {
     readonly code: 'unsupported-release'
@@ -16,6 +17,12 @@ interface PresentationSubject {
 const subject = presentation as unknown as PresentationSubject
 
 describe('vendor presentation descriptors', () => {
+  it('maps every catalog category to one stable translation key', () => {
+    expect(subject.categoryMessageKey('web-browsers')).toBe('categories.webBrowsers')
+    expect(subject.categoryMessageKey('containers-kubernetes')).toBe('categories.containersKubernetes')
+    expect(subject.categoryMessageKey('desktop-productivity')).toBe('categories.desktopProductivity')
+  })
+
   it('maps stable warning keys to translation descriptors without localized domain prose', () => {
     expect(subject.presentWarning('docker-firewall')).toEqual({
       key: 'warnings.docker-firewall',
