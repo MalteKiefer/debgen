@@ -5,6 +5,7 @@ import type { ReleaseCodename } from '../features/sources/model'
 import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
 import { getRepositorySource } from '../features/vendors/sources'
+import { presentWarning } from '../features/vendors/presentation'
 
 const props = defineProps<{
   product: VendorProduct
@@ -107,7 +108,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       class="vendor-card__warning"
     >
       <v-icon aria-hidden="true" icon="mdi-alert-outline" size="18" />
-      {{ product.warningKeys.join(', ') }}
+      {{ product.warningKeys.map(presentWarning).join(', ') }}
     </p>
 
     <footer class="vendor-card__footer">

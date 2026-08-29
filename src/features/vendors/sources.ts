@@ -20,6 +20,7 @@ type SourceDefinition = {
   readonly fingerprints?: readonly string[]
   readonly preferenceFiles?: readonly { readonly id: string, readonly content: string }[]
   readonly warnings?: readonly WarningKey[]
+  readonly supportLevel?: RepositorySource['locations'][number]['supportLevel']
 }
 
 function deepFreeze<T>(value: T): T {
@@ -38,7 +39,7 @@ function source(definition: SourceDefinition): RepositorySource {
         architectures: definition.architectures,
         suite: definition.suite,
         components: definition.components,
-        supportLevel: 'explicit' as const,
+        supportLevel: definition.supportLevel ?? 'explicit',
       }]
     : definition.releases.flatMap((release) => definition.architectures.map((architecture) => ({
         uri: typeof definition.uri === 'string' ? definition.uri : definition.uri[architecture] as string,
@@ -46,7 +47,7 @@ function source(definition: SourceDefinition): RepositorySource {
         architectures: [architecture],
         suite: typeof definition.suite === 'string' ? definition.suite : definition.suite[release] as string,
         components: definition.components,
-        supportLevel: 'explicit' as const,
+        supportLevel: definition.supportLevel ?? 'explicit',
       })))
   return {
     id: definition.id,
@@ -91,7 +92,7 @@ const sources = [
   source({ id: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', uri: { amd64: 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64', arm64: 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64' }, keyUrl: 'https://nvidia.github.io/libnvidia-container/gpgkey', keyringPath: '/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: '/', components: [], warnings: ['nvidia-container-toolkit-prerequisites'] }),
   source({ id: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', documentationUrl: 'https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/installing-mariadb/binary-packages/gpg', uri: 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian', keyUrl: 'https://mariadb.org/mariadb_release_signing_key.pgp', keyringPath: '/etc/apt/keyrings/mariadb-server-11-8.pgp', keyFormat: 'ascii-armored', fingerprints: ['177F4010FE56CA3336300305F1656F24C74CD1D8'], releases: ['trixie', 'bookworm', 'bullseye', 'sid'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye', sid: 'sid' }, components: ['main'], warnings: ['mariadb-no-setup-script'] }),
   source({ id: 'redis-open-source', name: 'Redis Open Source', documentationUrl: 'https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/', uri: 'https://packages.redis.io/deb', keyUrl: 'https://packages.redis.io/gpg', keyringPath: '/usr/share/keyrings/redis-archive-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm' }, components: ['main'] }),
-  source({ id: 'clickhouse', name: 'ClickHouse', documentationUrl: 'https://clickhouse.com/docs/en/getting-started/install/', uri: 'https://packages.clickhouse.com/deb', keyUrl: 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key', keyringPath: '/usr/share/keyrings/clickhouse-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'], warnings: ['clickhouse-generic-debian'] }),
+  source({ id: 'clickhouse', name: 'ClickHouse', documentationUrl: 'https://clickhouse.com/docs/en/getting-started/install/', uri: 'https://packages.clickhouse.com/deb', keyUrl: 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key', keyringPath: '/usr/share/keyrings/clickhouse-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'], supportLevel: 'generic-debian', warnings: ['clickhouse-generic-debian'] }),
   source({ id: 'influxdb-3-core', name: 'InfluxDB 3 Core', documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', uri: 'https://repos.influxdata.com/debian', keyUrl: 'https://repos.influxdata.com/influxdata-archive.key', keyringPath: '/usr/share/keyrings/influxdata-archive.gpg', keyFormat: 'ascii-armored', fingerprints: ['24C975CBA61A024EE1B631787C3D57159FC2F927'], releases: ['trixie', 'bookworm', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'] }),
   source({ id: 'zabbix-7-4', name: 'Zabbix 7.4', documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages', uri: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] }),
 ] as const
