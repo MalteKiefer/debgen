@@ -5,6 +5,7 @@ import { getVendorCompatibility } from './compatibility'
 import {
   generateInstallScript,
   generatePackageInstallCommand,
+  generateRepositoryArtifacts,
   generateVendorArtifacts,
   type VendorGenerationConfig,
 } from './generate'
@@ -90,6 +91,210 @@ function config(overrides: Partial<VendorGenerationConfig> = {}): VendorGenerati
 }
 
 describe('vendor artifact generation', () => {
+  it.each([
+    {
+      productIds: ['mullvad-vpn', 'mullvad-browser'],
+      sourceFilename: 'mullvad.sources',
+      packageCommand: "apt-get install -y 'mullvad-browser' 'mullvad-vpn'\n",
+    },
+    {
+      productIds: ['hashicorp-terraform', 'hashicorp-vault', 'hashicorp-packer'],
+      sourceFilename: 'hashicorp.sources',
+      packageCommand: "apt-get install -y 'packer' 'terraform' 'vault'\n",
+    },
+    {
+      productIds: ['grafana', 'grafana-alloy', 'grafana-enterprise'],
+      sourceFilename: 'grafana.sources',
+      packageCommand: "apt-get install -y 'alloy' 'grafana' 'grafana-enterprise'\n",
+    },
+    {
+      productIds: ['elastic-stack-9', 'elastic-agent-9'],
+      sourceFilename: 'elastic-9.sources',
+      packageCommand: "apt-get install -y 'elastic-agent' 'elasticsearch' 'filebeat' 'kibana' 'logstash'\n",
+    },
+  ])('emits one $sourceFilename artifact and sorted packages for a shared source', ({
+    productIds,
+    sourceFilename,
+    packageCommand,
+  }) => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds,
+    }
+
+    expect(generateRepositoryArtifacts(selectedConfig).filter(({ filename }) => filename.endsWith('.sources')))
+      .toHaveLength(1)
+    expect(generateRepositoryArtifacts(selectedConfig).map(({ filename }) => filename))
+      .toContain(sourceFilename)
+    expect(generatePackageInstallCommand(selectedConfig))
+      .toBe(packageCommand)
+  })
+
+  it('uses every applicable OpenTofu key in DEB822 and installs each exactly once', () => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: ['opentofu'],
+    }
+    const artifacts = generateRepositoryArtifacts(selectedConfig)
+    const script = generateInstallScript(selectedConfig, artifacts)
+
+    expect(artifacts[0]?.content).toContain(
+      'Signed-By: /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.gpg\n',
+    )
+    expect(script.content.match(/https:\/\/get\.opentofu\.org\/opentofu\.gpg/g)).toHaveLength(1)
+    expect(script.content.match(/https:\/\/packages\.opentofu\.org\/opentofu\/tofu\/gpgkey/g)).toHaveLength(1)
+    expect(script.content.match(/install -m 0644 "\$temporary_key" '\/etc\/apt\/keyrings\/opentofu\.gpg'/g)).toHaveLength(1)
+    expect(script.content.match(/install -m 0644 "\$dearmored_key" '\/etc\/apt\/keyrings\/opentofu-repo\.gpg'/g)).toHaveLength(1)
+  })
+
+  it('resolves release-scoped Tailscale keys and Microsoft repository locations', () => {
+    const tailscaleBookworm: VendorGenerationConfig = {
+      release: 'bookworm', architecture: 'amd64', productIds: ['tailscale'],
+    }
+    const tailscaleTrixie: VendorGenerationConfig = {
+      release: 'trixie', architecture: 'amd64', productIds: ['tailscale'],
+    }
+    const microsoftBookworm: VendorGenerationConfig = {
+      release: 'bookworm', architecture: 'arm64', productIds: ['dotnet-sdk-10'],
+    }
+    const microsoftTrixie: VendorGenerationConfig = {
+      release: 'trixie', architecture: 'arm64', productIds: ['powershell-7-6'],
+    }
+
+    expect(generateRepositoryArtifacts(tailscaleBookworm)[0]?.content)
+      .toContain('Signed-By: /usr/share/keyrings/tailscale-bookworm-archive-keyring.gpg\n')
+    expect(generateInstallScript(tailscaleBookworm, generateRepositoryArtifacts(tailscaleBookworm)).content)
+      .toContain("'https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg'")
+    expect(generateRepositoryArtifacts(tailscaleTrixie)[0]?.content)
+      .toContain('Signed-By: /usr/share/keyrings/tailscale-trixie-archive-keyring.gpg\n')
+    expect(generateInstallScript(tailscaleTrixie, generateRepositoryArtifacts(tailscaleTrixie)).content)
+      .toContain("'https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg'")
+    expect(generateRepositoryArtifacts(microsoftBookworm)[0]?.content)
+      .toContain('URIs: https://packages.microsoft.com/debian/12/prod\nSuites: bookworm\n')
+    expect(generateRepositoryArtifacts(microsoftTrixie)[0]?.content)
+      .toContain('URIs: https://packages.microsoft.com/debian/13/prod\nSuites: trixie\n')
+  })
+
+  it.each([
+    ['sublime-text', 'bookworm', 'sublime.sources', 'apt/stable/'],
+    ['jenkins-lts', 'trixie', 'jenkins-lts.sources', 'binary/'],
+  ] as const)('preserves the exact componentless path for %s', (productId, release, filename, suite) => {
+    const artifacts = generateRepositoryArtifacts({ release, architecture: 'amd64', productIds: [productId] })
+
+    expect(artifacts.map((artifact) => artifact.filename)).toContain(filename)
+    expect(artifacts[0]?.content).toContain(`Suites: ${suite}\n`)
+    expect(artifacts[0]?.content).not.toContain('Components:')
+  })
+
+  it('keeps all shared-source warnings while emitting one source and one preference', () => {
+    const elasticArtifacts = generateRepositoryArtifacts({
+      release: 'bookworm', architecture: 'amd64', productIds: ['elastic-stack-9', 'elastic-agent-9'],
+    })
+    const nginxArtifacts = generateRepositoryArtifacts({
+      release: 'bookworm', architecture: 'amd64', productIds: ['nginx-mainline', 'nginx-stable'],
+    })
+    const syncthingArtifacts = generateRepositoryArtifacts({
+      release: 'bookworm', architecture: 'amd64', productIds: ['syncthing-stable-v2'],
+    })
+
+    expect(elasticArtifacts).toHaveLength(1)
+    expect(elasticArtifacts[0]?.riskNotes).toEqual([
+      'elastic-agent-enrollment',
+      'elastic-stack-resource-requirements',
+    ])
+    expect(nginxArtifacts.filter(({ filename }) => filename === 'nginx.pref')).toHaveLength(1)
+    expect(syncthingArtifacts.filter(({ filename }) => filename === 'syncthing.pref')).toHaveLength(1)
+  })
+
+  it('emits Debian-native packages without repository, key, or trust setup', () => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm', architecture: 'amd64', productIds: ['nodejs', 'libreoffice'],
+    }
+    const artifacts = generateRepositoryArtifacts(selectedConfig)
+    const script = generateInstallScript(selectedConfig, artifacts)
+
+    expect(artifacts).toEqual([])
+    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'libreoffice' 'nodejs'\n")
+    expect(script.content).toContain("apt-get install -y 'libreoffice' 'nodejs'")
+    expect(script.content).not.toContain('curl --fail')
+    expect(script.content).not.toContain('/etc/apt/keyrings')
+    expect(script.content).not.toContain('temporary_directory')
+  })
+
+  it('deduplicates packages shared by separate products and repository keys shared by sources', () => {
+    const alpha = product({ id: 'alpha-tool', sourceId: 'alpha-source', packages: ['shared', 'alpha'] })
+    const beta = product({ id: 'beta-tool', sourceId: 'beta-source', packages: ['beta', 'shared'] })
+    const sharedKey = key({ id: 'alpha-key', keyringPath: '/etc/apt/keyrings/shared.gpg' })
+    const alphaSource = source({ id: 'alpha-source', keys: [sharedKey] })
+    const betaSource = source({
+      id: 'beta-source',
+      keys: [{ ...sharedKey, id: 'beta-key' }],
+    })
+    const selectedConfig = config({
+      productIds: ['beta-tool', 'alpha-tool'],
+      catalog: catalog([beta, alpha], [betaSource, alphaSource]),
+    })
+    const artifacts = generateRepositoryArtifacts(selectedConfig)
+    const script = generateInstallScript(selectedConfig, artifacts)
+
+    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'alpha' 'beta' 'shared'\n")
+    expect(script.content.match(/https:\/\/vendor\.example\/key\.asc/g)).toHaveLength(1)
+    expect(script.content.match(/# Signaturschlüssel für/g)).toHaveLength(1)
+  })
+
+  it('deduplicates identical auxiliary and preference destinations and rejects conflicts', () => {
+    const alpha = product({ id: 'alpha-tool', sourceId: 'alpha-source' })
+    const beta = product({ id: 'beta-tool', sourceId: 'beta-source' })
+    const auxiliary = {
+      id: 'onepassword-policy',
+      url: 'https://downloads.1password.com/linux/debian/debsig/1password.pol',
+      destination: 'debsig-policy' as const,
+      mediaType: 'application/xml',
+    }
+    const preference = { id: 'shared-priority', content: 'Package: *\nPin-Priority: 900\n' }
+    const alphaSource = source({
+      id: 'alpha-source',
+      keys: [key({ id: 'alpha-key', keyringPath: '/etc/apt/keyrings/alpha.gpg' })],
+      auxiliaryTrustFiles: [auxiliary],
+      preferenceFiles: [preference],
+    })
+    const betaSource = source({
+      id: 'beta-source',
+      keys: [key({ id: 'beta-key', keyringPath: '/etc/apt/keyrings/beta.gpg' })],
+      auxiliaryTrustFiles: [auxiliary],
+      preferenceFiles: [preference],
+    })
+    const selectedConfig = config({
+      productIds: ['alpha-tool', 'beta-tool'],
+      catalog: catalog([alpha, beta], [alphaSource, betaSource]),
+    })
+    const artifacts = generateRepositoryArtifacts(selectedConfig)
+
+    expect(artifacts.filter(({ filename }) => filename === 'shared-priority.pref')).toHaveLength(1)
+    expect(generateInstallScript(selectedConfig, artifacts).content.match(/# Zusätzliche Vertrauensdatei onepassword-policy/g))
+      .toHaveLength(1)
+
+    const conflictingPreferences = catalog([alpha, beta], [
+      alphaSource,
+      { ...betaSource, preferenceFiles: [{ ...preference, content: 'Package: *\nPin-Priority: 100\n' }] },
+    ])
+    expect(() => generateRepositoryArtifacts({ ...selectedConfig, catalog: conflictingPreferences }))
+      .toThrow(/conflicting preference.*shared-priority\.pref/i)
+
+    const conflictingAuxiliary = catalog([alpha, beta], [
+      alphaSource,
+      {
+        ...betaSource,
+        auxiliaryTrustFiles: [{ ...auxiliary, url: 'https://downloads.1password.com/linux/debian/debsig/other.pol' }],
+      },
+    ])
+    const conflictingConfig = { ...selectedConfig, catalog: conflictingAuxiliary }
+    expect(() => generateInstallScript(conflictingConfig, generateRepositoryArtifacts(conflictingConfig)))
+      .toThrow(/conflicting auxiliary trust file/i)
+  })
+
   it('emits a complete deterministic DEB822 source with its isolated keyring', () => {
     expect(generateVendorArtifacts(config())).toEqual([
       {

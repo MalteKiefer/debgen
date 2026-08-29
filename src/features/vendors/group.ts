@@ -1,5 +1,7 @@
 import type { GeneratedArtifact, OutputMode, VendorCategory } from './model'
 
+type SourceAwareArtifact = GeneratedArtifact & { readonly sourceId?: string }
+
 const categoryOrder: readonly VendorCategory[] = [
   'browser', 'communication', 'privacy', 'development', 'cloud', 'containers', 'database', 'monitoring',
 ]
@@ -34,8 +36,11 @@ function compareArtifacts(left: GeneratedArtifact, right: GeneratedArtifact): nu
     right.productName ?? right.productId ?? '',
   )
   if (productName !== 0) return productName
-  const productId = compareCodePoints(left.productId ?? '', right.productId ?? '')
-  if (productId !== 0) return productId
+  const sourceId = compareCodePoints(
+    (left as SourceAwareArtifact).sourceId ?? left.productId ?? '',
+    (right as SourceAwareArtifact).sourceId ?? right.productId ?? '',
+  )
+  if (sourceId !== 0) return sourceId
   const source = Number(left.filename.endsWith('.sources')) - Number(right.filename.endsWith('.sources'))
   if (source !== 0) return -source
   return compareCodePoints(left.filename, right.filename)
@@ -51,6 +56,48 @@ function checkForCollisions(artifacts: readonly GeneratedArtifact[]): void {
     if (filenames.has(artifact.filename)) throw new Error('Duplicate artifact filename: ' + artifact.filename + '.')
     filenames.add(artifact.filename)
   }
+}
+
+function withMergedRiskNotes(left: GeneratedArtifact, right: GeneratedArtifact): GeneratedArtifact {
+  const riskNotes = mergedRiskNotes([left, right])
+  return { ...left, ...(riskNotes ? { riskNotes } : {}) }
+}
+
+function deduplicateSourceArtifacts(artifacts: readonly GeneratedArtifact[]): GeneratedArtifact[] {
+  const sourceById = new Map<string, GeneratedArtifact>()
+  const preferenceByFilename = new Map<string, GeneratedArtifact>()
+  const passthrough: GeneratedArtifact[] = []
+  for (const artifact of [...artifacts].sort(compareArtifacts)) {
+    const sourceId = (artifact as SourceAwareArtifact).sourceId
+    if (sourceId !== undefined && artifact.filename.endsWith('.sources') && artifact.filename !== 'debian.sources') {
+      const existing = sourceById.get(sourceId)
+      if (existing !== undefined && existing.content !== artifact.content) {
+        throw new Error(`Conflicting source artifact definition: ${sourceId}.`)
+      }
+      if (existing !== undefined) {
+        sourceById.set(sourceId, withMergedRiskNotes(existing, artifact))
+      } else {
+        sourceById.set(sourceId, { ...artifact, filename: `${sourceId}.sources` })
+      }
+      continue
+    }
+    if (sourceId !== undefined && artifact.filename.endsWith('.pref')) {
+      const existing = preferenceByFilename.get(artifact.filename)
+      if (existing !== undefined && existing.content !== artifact.content) {
+        throw new Error(`Conflicting preference artifact definition: ${artifact.filename}.`)
+      }
+      if (existing !== undefined) {
+        preferenceByFilename.set(artifact.filename, withMergedRiskNotes(existing, artifact))
+      } else {
+        preferenceByFilename.set(artifact.filename, artifact)
+      }
+      continue
+    }
+    passthrough.push(artifact)
+  }
+  const deduplicated = [...sourceById.values(), ...preferenceByFilename.values(), ...passthrough]
+  checkForCollisions(deduplicated)
+  return deduplicated.sort(compareArtifacts)
 }
 
 function sourceArtifacts(artifacts: readonly GeneratedArtifact[]): GeneratedArtifact[] {
@@ -104,8 +151,7 @@ function categoryArtifacts(sources: readonly GeneratedArtifact[]): GeneratedArti
 }
 
 export function groupArtifacts(artifacts: readonly GeneratedArtifact[], mode: OutputMode = 'perVendor'): GeneratedArtifact[] {
-  checkForCollisions(artifacts)
-  const ordered = [...artifacts].sort(compareArtifacts)
+  const ordered = deduplicateSourceArtifacts(artifacts)
   if (mode === 'perVendor') return ordered
 
   const debian = debianArtifacts(ordered)
@@ -124,7 +170,6 @@ export function composeArtifacts(
   vendorArtifacts: readonly GeneratedArtifact[],
   mode: OutputMode = 'perVendor',
 ): GeneratedArtifact[] {
-  checkForCollisions([debianArtifact, ...vendorArtifacts])
   const composed = [debianArtifact, ...groupArtifacts(vendorArtifacts, mode)]
   checkForCollisions(composed)
   return composed

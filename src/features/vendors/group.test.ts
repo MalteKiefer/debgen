@@ -30,6 +30,51 @@ const installScript: GeneratedArtifact = {
 }
 
 describe('artifact grouping', () => {
+  it.each(['perVendor', 'combined', 'byCategory'] as const)(
+    'deduplicates one source in %s mode without losing warnings',
+    (mode) => {
+      const first = {
+        ...firefox,
+        filename: 'mullvad-browser.sources',
+        productId: 'mullvad-browser',
+        productName: 'Mullvad Browser',
+        sourceId: 'mullvad',
+        riskNotes: ['Browser warning', 'Shared warning'],
+      }
+      const second = {
+        ...firefox,
+        filename: 'mullvad-vpn.sources',
+        productId: 'mullvad-vpn',
+        productName: 'Mullvad VPN',
+        sourceId: 'mullvad',
+        riskNotes: ['VPN warning', 'Shared warning'],
+      }
+
+      const result = groupArtifacts([second, first], mode)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.filename).toBe(mode === 'perVendor' ? 'mullvad.sources' : mode === 'combined' ? 'vendors.sources' : 'browser.sources')
+      expect(result[0]?.content).toBe(firefox.content)
+      expect(result[0]?.riskNotes).toEqual(['Browser warning', 'Shared warning', 'VPN warning'])
+    },
+  )
+
+  it('deduplicates identical preference files and rejects conflicting source-owned artifacts', () => {
+    const sharedPreference = { ...firefoxPreferences, sourceId: 'shared-source' }
+
+    expect(groupArtifacts([sharedPreference, { ...sharedPreference }], 'perVendor')).toEqual([sharedPreference])
+    expect(() => groupArtifacts([
+      sharedPreference,
+      { ...sharedPreference, content: 'Package: changed\n' },
+    ], 'perVendor')).toThrow(/conflicting preference.*mozilla-firefox\.pref/i)
+    const conflictingSources: readonly (GeneratedArtifact & { readonly sourceId: string })[] = [
+      { ...firefox, sourceId: 'shared-source' },
+      { ...docker, sourceId: 'shared-source' },
+    ]
+    expect(() => groupArtifacts(conflictingSources, 'combined'))
+      .toThrow(/conflicting source.*shared-source/i)
+  })
+
   it('keeps per-vendor files in Debian-base, category, product, auxiliary order', () => {
     expect(groupArtifacts([installScript, firefoxPreferences, docker, debian, firefox], 'perVendor').map(({ filename }) => filename))
       .toEqual(['debian.sources', 'mozilla-firefox.sources', 'mozilla-firefox.pref', 'docker-engine.sources', 'install-vendor-repositories.sh'])
