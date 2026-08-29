@@ -33,46 +33,74 @@ describe('vendor compatibility', () => {
   it.each(boundaryProductIds.flatMap((id) => {
     const entry = product(id)
     return allReleases
-      .filter((release) => !entry.releases.includes(release))
+      .filter((release) => !entry.supportedReleases.includes(release))
       .map((release) => [id, release] as const)
   }))('rejects every unsupported release for %s: %s', (id, release) => {
     const result = getVendorCompatibility(product(id), release, 'amd64')
 
-    expect(result.compatible).toBe(false)
-    expect(result.reason).toMatch(new RegExp(`Release.*${release}.*nicht unterstützt`, 'i'))
+    expect(result).toEqual({
+      compatible: false,
+      reason: {
+        code: 'unsupported-release',
+        productId: id,
+        release,
+        supportedReleases: product(id).supportedReleases,
+      },
+    })
   })
 
   it.each(boundaryProductIds.flatMap((id) => {
     const entry = product(id)
     return allArchitectures
-      .filter((architecture) => !entry.architectures.includes(architecture))
+      .filter((architecture) => !entry.supportedArchitectures.includes(architecture))
       .map((architecture) => [id, architecture] as const)
   }))('rejects every unsupported architecture for %s: %s', (id, architecture) => {
-    const release = product(id).releases[0]
+    const release = product(id).supportedReleases[0]
     const result = getVendorCompatibility(product(id), release, architecture)
 
-    expect(result.compatible).toBe(false)
-    expect(result.reason).toMatch(new RegExp(`Architektur.*${architecture}.*nicht unterstützt`, 'i'))
+    expect(result).toEqual({
+      compatible: false,
+      reason: {
+        code: 'unsupported-architecture',
+        productId: id,
+        architecture,
+        supportedArchitectures: product(id).supportedArchitectures,
+      },
+    })
   })
 
-  it('rejects an unsupported release with a German explanation', () => {
+  it('returns a language-neutral reason for an unsupported release', () => {
     const result = getVendorCompatibility(product('azure-cli'), 'trixie', 'amd64')
 
-    expect(result.compatible).toBe(false)
-    expect(result.reason).toMatch(/Release.*trixie.*nicht unterstützt/i)
+    expect(result).toEqual({
+      compatible: false,
+      reason: {
+        code: 'unsupported-release',
+        productId: 'azure-cli',
+        release: 'trixie',
+        supportedReleases: ['bookworm', 'bullseye'],
+      },
+    })
   })
 
-  it('rejects an unsupported architecture with a German explanation', () => {
+  it('returns a language-neutral reason for an unsupported architecture', () => {
     const result = getVendorCompatibility(product('mongodb-community-8-0'), 'bookworm', 'arm64')
 
-    expect(result.compatible).toBe(false)
-    expect(result.reason).toMatch(/Architektur.*arm64.*nicht unterstützt/i)
+    expect(result).toEqual({
+      compatible: false,
+      reason: {
+        code: 'unsupported-architecture',
+        productId: 'mongodb-community-8-0',
+        architecture: 'arm64',
+        supportedArchitectures: ['amd64'],
+      },
+    })
   })
 
   it('reports release incompatibility before architecture incompatibility', () => {
     const result = getVendorCompatibility(product('mongodb-community-8-0'), 'sid', 'arm64')
 
-    expect(result.reason).toMatch(/Release.*sid.*nicht unterstützt/i)
+    expect(result.reason).toMatchObject({ code: 'unsupported-release', release: 'sid' })
   })
 
   it('filters the catalog to compatible products', () => {

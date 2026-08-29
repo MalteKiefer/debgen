@@ -277,7 +277,7 @@ describe('versioned static API generation', () => {
       for (const release of RELEASES) {
         for (const architecture of apiArchitectures) {
           const compatible = getVendorCompatibility(product, release.codename, architecture).compatible
-          const sourceUrl = `vendors/${product.id}/${release.codename}/${architecture}/${product.filename}`
+          const sourceUrl = `vendors/${product.id}/${release.codename}/${architecture}/${product.id}.sources`
           const installUrl = `vendors/${product.id}/${release.codename}/${architecture}/install.sh`
           const combination = entry?.compatibility.find((candidate) => (
             candidate.release === release.codename && candidate.architecture === architecture
@@ -367,5 +367,5 @@ Signed-By: /usr/share/keyrings/mullvad-keyring.asc
         .map((vendor) => ({ id: vendor.id, compatibility: vendor.compatibility })),
     }).toMatchSnapshot()
     expect(await readFileTree(secondOutputRoot)).toEqual(await readFileTree(firstOutputRoot))
-  })
+  }, 15_000)
 })

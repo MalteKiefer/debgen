@@ -7,8 +7,8 @@ import { RELEASES } from '../src/features/sources/releases'
 import { VENDOR_PRODUCTS } from '../src/features/vendors/catalog'
 import { getVendorCompatibility } from '../src/features/vendors/compatibility'
 import { generateInstallScript, generateVendorArtifacts } from '../src/features/vendors/generate'
-import type { LegacyVendorProduct, SystemArchitecture } from '../src/features/vendors/model'
-import { validateVendorCatalog } from '../src/features/vendors/validate'
+import type { SystemArchitecture, VendorProduct } from '../src/features/vendors/model'
+import { getRepositorySource } from '../src/features/vendors/sources'
 
 interface ManifestFile {
   format: SourceFormat
@@ -33,7 +33,7 @@ interface VendorResource {
 interface VendorManifestEntry {
   id: string
   name: string
-  category: LegacyVendorProduct['category']
+  category: VendorProduct['category']
   documentationUrl: string
   verifiedAt: string
   compatibility: VendorResource[]
@@ -68,7 +68,7 @@ function canonicalSource(release: typeof RELEASES[number], format: SourceFormat)
   })
 }
 
-function artifactRelativeUrl(product: LegacyVendorProduct, release: ReleaseCodename, architecture: SystemArchitecture, filename: string): string {
+function artifactRelativeUrl(product: VendorProduct, release: ReleaseCodename, architecture: SystemArchitecture, filename: string): string {
   return `vendors/${product.id}/${release}/${architecture}/${filename}`
 }
 
@@ -100,7 +100,6 @@ async function writeArtifact(outputRoot: string, relativeUrl: string, content: s
 }
 
 async function writeVendorResources(outputRoot: string): Promise<VendorManifestEntry[]> {
-  validateVendorCatalog(VENDOR_PRODUCTS)
   const entries: VendorManifestEntry[] = []
   const releases = [...RELEASES].map((release) => release.codename).sort(compareText)
 
@@ -112,7 +111,7 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
 
         const config = { release, architecture, productIds: [product.id] } as const
         const artifacts = generateVendorArtifacts(config)
-        const source = artifacts.find((artifact) => artifact.filename === product.filename)
+        const source = artifacts.find((artifact) => artifact.filename === `${product.id}.sources`)
         if (!source) throw new Error('Vendor source artifact is missing for ' + product.id + '.')
 
         const sourceUrl = artifactRelativeUrl(product, release, architecture, source.filename)
@@ -131,8 +130,8 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
       id: product.id,
       name: product.name,
       category: product.category,
-      documentationUrl: product.documentationUrl,
-      verifiedAt: product.verifiedAt,
+      documentationUrl: getRepositorySource(product.sourceId as string)?.documentationUrl ?? '',
+      verifiedAt: product.verifiedAt ?? '',
       compatibility,
     })
   }

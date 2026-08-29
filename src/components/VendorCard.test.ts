@@ -39,7 +39,7 @@ describe('VendorCard', () => {
   })
 
   it('verwendet bei fehlendem Produkt-Icon das Kategorie-Icon als Rückfall', () => {
-    const wrapper = mountCard({ product: { ...brave, icon: undefined } })
+    const wrapper = mountCard({ product: { ...brave, icon: undefined } as never })
 
     expect(wrapper.get('[data-testid="kategorie-icon"]').classes()).toContain('mdi-web')
   })

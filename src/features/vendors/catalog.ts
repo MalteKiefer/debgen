@@ -1,5 +1,6 @@
-import type { LegacyVendorProduct } from './model'
-import { validateVendorCatalog } from './validate'
+import type { VendorProduct } from './model'
+import { REPOSITORY_SOURCES } from './sources'
+import { validateRepositoryCatalog } from './validate'
 
 function deepFreeze<T>(value: T): T {
   if (value !== null && typeof value === 'object') {
@@ -9,113 +10,38 @@ function deepFreeze<T>(value: T): T {
   return value
 }
 
-const catalog: LegacyVendorProduct[] = [
-  {
-    id: 'brave-browser', name: 'Brave Browser', category: 'browser', icon: 'mdi-shield-check', filename: 'brave-browser.sources',
-    documentationUrl: 'https://brave.com/linux/', repositoryUrl: 'https://brave-browser-apt-release.s3.brave.com/', keyUrl: 'https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/brave-browser-archive-keyring.gpg', packages: ['brave-browser'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'mozilla-firefox', name: 'Mozilla Firefox', category: 'browser', icon: 'mdi-firefox', filename: 'mozilla-firefox.sources',
-    documentationUrl: 'https://support.mozilla.org/en-US/kb/install-firefox-linux', repositoryUrl: 'https://packages.mozilla.org/apt', keyUrl: 'https://packages.mozilla.org/apt/repo-signing-key.gpg', keyringPath: '/etc/apt/keyrings/packages.mozilla.org.asc', packages: ['firefox'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: 'mozilla', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3'], preferences: 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n',
-  },
-  {
-    id: 'google-chrome', name: 'Google Chrome', category: 'browser', icon: 'mdi-google-chrome', filename: 'google-chrome.sources',
-    documentationUrl: 'https://support.google.com/chrome/a/answer/9025903', repositoryUrl: 'https://dl.google.com/linux/chrome/deb/', keyUrl: 'https://dl.google.com/linux/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/google-chrome.asc', packages: ['google-chrome-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['EB4C1BFD4F042F6DDDCCEC917721F63BD38B4796'],
-  },
-  {
-    id: 'microsoft-edge', name: 'Microsoft Edge', category: 'browser', icon: 'mdi-microsoft-edge', filename: 'microsoft-edge.sources',
-    documentationUrl: 'https://learn.microsoft.com/en-us/linux/packages', repositoryUrl: 'https://packages.microsoft.com/repos/edge', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-edge.gpg', packages: ['microsoft-edge-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['BC528686B50D79E339D3721CEB3E94ADBE1229CF'],
-  },
-  {
-    id: 'vivaldi', name: 'Vivaldi', category: 'browser', icon: 'mdi-compass-outline', filename: 'vivaldi.sources',
-    documentationUrl: 'https://help.vivaldi.com/desktop/install-update/obtaining-official-builds/', repositoryUrl: 'https://repo.vivaldi.com/stable/deb/', keyUrl: 'https://repo.vivaldi.com/stable/linux_signing_key.pub', keyringPath: '/etc/apt/keyrings/vivaldi.gpg', packages: ['vivaldi-stable'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'opera', name: 'Opera', category: 'browser', icon: 'mdi-opera', filename: 'opera.sources',
-    documentationUrl: 'https://deb.opera.com/manual.html', repositoryUrl: 'https://deb.opera.com/opera-stable/', keyUrl: 'https://deb.opera.com/archive.key', keyringPath: '/etc/apt/keyrings/opera.gpg', packages: ['opera-stable'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['non-free'], verifiedAt: '2026-08-28', fingerprints: ['6C86BE214648376680CA957B11EE8C00B693A745'],
-  },
-  {
-    id: 'signal-desktop', name: 'Signal Desktop', category: 'communication', icon: 'mdi-message-lock-outline', filename: 'signal-desktop.sources',
-    documentationUrl: 'https://signal.org/download/linux/', repositoryUrl: 'https://updates.signal.org/desktop/apt/', keyUrl: 'https://updates.signal.org/desktop/apt/keys.asc', keyringPath: '/usr/share/keyrings/signal-desktop-keyring.gpg', packages: ['signal-desktop'], architectures: ['amd64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'xenial', components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'proton-vpn', name: 'Proton VPN', category: 'privacy', icon: 'mdi-shield-lock-outline', filename: 'proton-vpn.sources',
-    documentationUrl: 'https://protonvpn.com/support/linux-vpn-setup', repositoryUrl: 'https://repo.protonvpn.com/debian', keyUrl: 'https://repo.protonvpn.com/debian/public_key.asc', keyringPath: '/etc/apt/keyrings/protonvpn-stable-archive-keyring.gpg', packages: ['proton-vpn-gnome-desktop'], architectures: ['amd64', 'arm64'], releases: ['trixie'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', warning: 'Offiziell unterstützt werden nur die aktuelle stabile Debian-Version mit GNOME und kein Headless-Betrieb.',
-  },
-  {
-    id: 'mullvad-vpn', name: 'Mullvad VPN', category: 'privacy', icon: 'mdi-vpn', filename: 'mullvad-vpn.sources',
-    documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', repositoryUrl: 'https://repository.mullvad.net/deb/stable', keyUrl: 'https://repository.mullvad.net/deb/mullvad-keyring.asc', keyringPath: '/usr/share/keyrings/mullvad-keyring.asc', packages: ['mullvad-vpn'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['A1198702FC3E0A09A9AE5B75D5A1D4F266DE8DDF'],
-  },
-  {
-    id: 'tor', name: 'Tor', category: 'privacy', icon: 'mdi-incognito', filename: 'tor.sources',
-    documentationUrl: 'https://support.torproject.org/little-t-tor/getting-started/installing/', repositoryUrl: 'https://deb.torproject.org/torproject.org', keyUrl: 'https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc', keyringPath: '/usr/share/keyrings/deb.torproject.org-keyring.gpg', packages: ['tor'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89'], warning: 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
-  },
-  {
-    id: 'docker-engine', name: 'Docker Engine', category: 'containers', icon: 'mdi-docker', filename: 'docker-engine.sources',
-    documentationUrl: 'https://docs.docker.com/engine/install/debian/', repositoryUrl: 'https://download.docker.com/linux/debian', keyUrl: 'https://download.docker.com/linux/debian/gpg', keyringPath: '/etc/apt/keyrings/docker.asc', packages: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin'], architectures: ['amd64', 'arm64', 'armhf'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['stable'], verifiedAt: '2026-08-28', warning: 'Docker kann Firewall-Regeln verändern und dadurch Firewall-Regeln umgehen.',
-  },
-  {
-    id: 'kubernetes-tools-v1-36', name: 'Kubernetes tools v1.36', category: 'containers', icon: 'mdi-ship-wheel', filename: 'kubernetes-tools-v1-36.sources',
-    documentationUrl: 'https://v1-36.docs.kubernetes.io/docs/tasks/tools/install-kubectl-linux/', repositoryUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/', keyUrl: 'https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key', keyringPath: '/etc/apt/keyrings/kubernetes-apt-keyring.gpg', packages: ['kubectl'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: [], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'google-cloud-cli', name: 'Google Cloud CLI', category: 'cloud', icon: 'mdi-google-cloud', filename: 'google-cloud-cli.sources',
-    documentationUrl: 'https://docs.cloud.google.com/sdk/docs/install-sdk', repositoryUrl: 'https://packages.cloud.google.com/apt', keyUrl: 'https://packages.cloud.google.com/apt/doc/apt-key.gpg', keyringPath: '/usr/share/keyrings/cloud.google.gpg', packages: ['google-cloud-cli'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: 'cloud-sdk', components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'azure-cli', name: 'Microsoft Azure CLI', category: 'cloud', icon: 'mdi-microsoft-azure', filename: 'azure-cli.sources',
-    documentationUrl: 'https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux', repositoryUrl: 'https://packages.microsoft.com/repos/azure-cli/', keyUrl: 'https://packages.microsoft.com/keys/microsoft.asc', keyringPath: '/etc/apt/keyrings/microsoft-azure-cli.gpg', packages: ['azure-cli'], architectures: ['amd64', 'arm64'], releases: ['bookworm', 'bullseye'], suite: { bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['BC528686B50D79E339D3721CEB3E94ADBE1229CF'],
-  },
-  {
-    id: 'github-cli', name: 'GitHub CLI', category: 'development', icon: 'mdi-github', filename: 'github-cli.sources',
-    documentationUrl: 'https://github.com/cli/cli/blob/trunk/docs/install_linux.md', repositoryUrl: 'https://cli.github.com/packages', keyUrl: 'https://cli.github.com/packages/githubcli-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/githubcli-archive-keyring.gpg', packages: ['gh'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['2C6106201985B60E6C7AC87323F3D4EA75716059', '7F38BBB59D064DBCB3D84D725612B36462313325'],
-  },
-  {
-    id: 'hashicorp-terraform', name: 'HashiCorp Terraform', category: 'development', icon: 'mdi-terraform', filename: 'hashicorp-terraform.sources',
-    documentationUrl: 'https://developer.hashicorp.com/terraform/install', repositoryUrl: 'https://apt.releases.hashicorp.com', keyUrl: 'https://apt.releases.hashicorp.com/gpg', keyringPath: '/usr/share/keyrings/hashicorp-archive-keyring.gpg', packages: ['terraform'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['798AEC654E5C15428C8E42EEAA16FCBCA621E701'],
-  },
-  {
-    id: 'postgresql-pgdg', name: 'PostgreSQL PGDG', category: 'database', icon: 'mdi-elephant', filename: 'postgresql-pgdg.sources',
-    documentationUrl: 'https://wiki.postgresql.org/wiki/Apt', repositoryUrl: 'https://apt.postgresql.org/pub/repos/apt/', keyUrl: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc', keyringPath: '/usr/share/keyrings/postgresql-apt.gpg', packages: ['postgresql'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: { trixie: 'trixie-pgdg', bookworm: 'bookworm-pgdg', bullseye: 'bullseye-pgdg', forky: 'forky-pgdg', sid: 'sid-pgdg' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8'],
-  },
-  {
-    id: 'mongodb-community-8-0', name: 'MongoDB Community 8.0', category: 'database', icon: 'mdi-leaf', filename: 'mongodb-community-8-0.sources',
-    documentationUrl: 'https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-debian/', repositoryUrl: 'https://repo.mongodb.org/apt/debian', keyUrl: 'https://pgp.mongodb.com/server-8.0.asc', keyringPath: '/usr/share/keyrings/mongodb-server-8.0.gpg', packages: ['mongodb-org'], architectures: ['amd64'], releases: ['bookworm'], suite: 'bookworm/mongodb-org/8.0', components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'grafana', name: 'Grafana', category: 'monitoring', icon: 'mdi-chart-timeline-variant', filename: 'grafana.sources',
-    documentationUrl: 'https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/', repositoryUrl: 'https://apt.grafana.com', keyUrl: 'https://apt.grafana.com/gpg-full.key', keyringPath: '/etc/apt/keyrings/grafana.asc', packages: ['grafana'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['4E40DDF6D76E284A4A6780E48C8C34C524098CB6', '0E22EB88E39E12277A7760AE9E439B102CF3C0C6', 'B53AE77BADB630A683046005963FA27710458545'],
-  },
-  {
-    id: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', category: 'containers', icon: 'mdi-chip', filename: 'nvidia-container-toolkit.sources',
-    documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', repositoryUrl: { amd64: 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64', arm64: 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64' }, keyUrl: 'https://nvidia.github.io/libnvidia-container/gpgkey', keyringPath: '/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg', packages: ['nvidia-container-toolkit'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: '/', components: [], verifiedAt: '2026-08-28', warning: 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
-  },
-  {
-    id: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', category: 'database', icon: 'mdi-database-cog', filename: 'mariadb-community-11-8.sources',
-    documentationUrl: 'https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/installing-mariadb/binary-packages/gpg', repositoryUrl: 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian', keyUrl: 'https://mariadb.org/mariadb_release_signing_key.pgp', keyringPath: '/etc/apt/keyrings/mariadb-server-11-8.pgp', packages: ['mariadb-server'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'sid'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye', sid: 'sid' }, components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['177F4010FE56CA3336300305F1656F24C74CD1D8'], warning: 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
-  },
-  {
-    id: 'redis-open-source', name: 'Redis Open Source', category: 'database', icon: 'mdi-database-outline', filename: 'redis-open-source.sources',
-    documentationUrl: 'https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/', repositoryUrl: 'https://packages.redis.io/deb', keyUrl: 'https://packages.redis.io/gpg', keyringPath: '/usr/share/keyrings/redis-archive-keyring.gpg', packages: ['redis'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm'], suite: { trixie: 'trixie', bookworm: 'bookworm' }, components: ['main'], verifiedAt: '2026-08-28',
-  },
-  {
-    id: 'clickhouse', name: 'ClickHouse', category: 'database', icon: 'mdi-database-arrow-right-outline', filename: 'clickhouse.sources',
-    documentationUrl: 'https://clickhouse.com/docs/en/getting-started/install/', repositoryUrl: 'https://packages.clickhouse.com/deb', keyUrl: 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key', keyringPath: '/usr/share/keyrings/clickhouse-keyring.gpg', packages: ['clickhouse-server', 'clickhouse-client'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', warning: 'Das ClickHouse-Repository ist distributionsunabhängig; die Kompatibilität bezieht sich auf die bereitgestellten Paketarchitekturen.',
-  },
-  {
-    id: 'influxdb-3-core', name: 'InfluxDB 3 Core', category: 'monitoring', icon: 'mdi-chart-areaspline', filename: 'influxdb-3-core.sources',
-    documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', repositoryUrl: 'https://repos.influxdata.com/debian', keyUrl: 'https://repos.influxdata.com/influxdata-archive.key', keyringPath: '/usr/share/keyrings/influxdata-archive.gpg', packages: ['influxdb3-core'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28', fingerprints: ['24C975CBA61A024EE1B631787C3D57159FC2F927'],
-  },
-  {
-    id: 'zabbix-7-4', name: 'Zabbix 7.4', category: 'monitoring', icon: 'mdi-server-security', filename: 'zabbix-7-4.sources',
-    documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages', repositoryUrl: 'https://repo.zabbix.com/zabbix/7.4/stable/debian', keyUrl: 'https://repo.zabbix.com/zabbix-official-repo.key', keyringPath: '/etc/apt/keyrings/zabbix-official-repo.gpg', packages: ['zabbix-agent2'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'], verifiedAt: '2026-08-28',
-  },
+const catalog: VendorProduct[] = [
+  { id: 'brave-browser', sourceId: 'brave-browser', name: 'Brave Browser', category: 'browser', icon: 'mdi-shield-check', packages: ['brave-browser'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'mozilla-firefox', sourceId: 'mozilla', name: 'Mozilla Firefox', category: 'browser', icon: 'mdi-firefox', packages: ['firefox'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'google-chrome', sourceId: 'google-chrome', name: 'Google Chrome', category: 'browser', icon: 'mdi-google-chrome', packages: ['google-chrome-stable'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'microsoft-edge', sourceId: 'microsoft-edge', name: 'Microsoft Edge', category: 'browser', icon: 'mdi-microsoft-edge', packages: ['microsoft-edge-stable'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'vivaldi', sourceId: 'vivaldi', name: 'Vivaldi', category: 'browser', icon: 'mdi-compass-outline', packages: ['vivaldi-stable'], supportedReleases: ['trixie', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'opera', sourceId: 'opera', name: 'Opera', category: 'browser', icon: 'mdi-opera', packages: ['opera-stable'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'signal-desktop', sourceId: 'signal', name: 'Signal Desktop', category: 'communication', icon: 'mdi-message-lock-outline', packages: ['signal-desktop'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'proton-vpn', sourceId: 'proton-vpn', name: 'Proton VPN', category: 'privacy', icon: 'mdi-shield-lock-outline', packages: ['proton-vpn-gnome-desktop'], supportedReleases: ['trixie'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['proton-vpn-supported-environment'], verifiedAt: '2026-08-28' },
+  { id: 'mullvad-vpn', sourceId: 'mullvad', name: 'Mullvad VPN', category: 'privacy', icon: 'mdi-vpn', packages: ['mullvad-vpn'], supportedReleases: ['trixie', 'bookworm', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'tor', sourceId: 'tor', name: 'Tor', category: 'privacy', icon: 'mdi-incognito', packages: ['tor'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: ['tor-not-browser'], verifiedAt: '2026-08-28' },
+  { id: 'docker-engine', sourceId: 'docker', name: 'Docker Engine', category: 'containers', icon: 'mdi-docker', packages: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64', 'armhf'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['docker-firewall'], verifiedAt: '2026-08-28' },
+  { id: 'kubernetes-tools-v1-36', sourceId: 'kubernetes-v1-36', name: 'Kubernetes tools v1.36', category: 'containers', icon: 'mdi-ship-wheel', packages: ['kubectl'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'google-cloud-cli', sourceId: 'google-cloud', name: 'Google Cloud CLI', category: 'cloud', icon: 'mdi-google-cloud', packages: ['google-cloud-cli'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'azure-cli', sourceId: 'microsoft-azure-cli', name: 'Microsoft Azure CLI', category: 'cloud', icon: 'mdi-microsoft-azure', packages: ['azure-cli'], supportedReleases: ['bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'github-cli', sourceId: 'github-cli', name: 'GitHub CLI', category: 'development', icon: 'mdi-github', packages: ['gh'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'hashicorp-terraform', sourceId: 'hashicorp', name: 'HashiCorp Terraform', category: 'development', icon: 'mdi-terraform', packages: ['terraform'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'postgresql-pgdg', sourceId: 'postgresql-pgdg', name: 'PostgreSQL PGDG', category: 'database', icon: 'mdi-elephant', packages: ['postgresql'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'mongodb-community-8-0', sourceId: 'mongodb-community-8-0', name: 'MongoDB Community 8.0', category: 'database', icon: 'mdi-leaf', packages: ['mongodb-org'], supportedReleases: ['bookworm'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'grafana', sourceId: 'grafana', name: 'Grafana', category: 'monitoring', icon: 'mdi-chart-timeline-variant', packages: ['grafana'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'nvidia-container-toolkit', sourceId: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', category: 'containers', icon: 'mdi-chip', packages: ['nvidia-container-toolkit'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['nvidia-container-toolkit-prerequisites'], verifiedAt: '2026-08-28' },
+  { id: 'mariadb-community-11-8', sourceId: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', category: 'database', icon: 'mdi-database-cog', packages: ['mariadb-server'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['mariadb-no-setup-script'], verifiedAt: '2026-08-28' },
+  { id: 'redis-open-source', sourceId: 'redis-open-source', name: 'Redis Open Source', category: 'database', icon: 'mdi-database-outline', packages: ['redis'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'clickhouse', sourceId: 'clickhouse', name: 'ClickHouse', category: 'database', icon: 'mdi-database-arrow-right-outline', packages: ['clickhouse-server', 'clickhouse-client'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['clickhouse-generic-debian'], verifiedAt: '2026-08-28' },
+  { id: 'influxdb-3-core', sourceId: 'influxdb-3-core', name: 'InfluxDB 3 Core', category: 'monitoring', icon: 'mdi-chart-areaspline', packages: ['influxdb3-core'], supportedReleases: ['trixie', 'bookworm', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
+  { id: 'zabbix-7-4', sourceId: 'zabbix-7-4', name: 'Zabbix 7.4', category: 'monitoring', icon: 'mdi-server-security', packages: ['zabbix-agent2'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [], verifiedAt: '2026-08-28' },
 ]
 
-validateVendorCatalog(catalog)
+validateRepositoryCatalog(REPOSITORY_SOURCES, catalog)
 
-export const VENDOR_PRODUCTS: readonly LegacyVendorProduct[] = deepFreeze(catalog)
+export const VENDOR_PRODUCTS: readonly VendorProduct[] = deepFreeze(catalog)
 
-export function getVendorProduct(id: string): LegacyVendorProduct | undefined {
+export function getVendorProduct(id: string): VendorProduct | undefined {
   return VENDOR_PRODUCTS.find((product) => product.id === id)
 }

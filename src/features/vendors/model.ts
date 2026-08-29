@@ -13,8 +13,6 @@ export type VendorCategory =
 
 export type SystemArchitecture = 'amd64' | 'arm64' | 'armhf' | 'i386'
 
-export type VendorRepositoryUrl = string | Readonly<Partial<Record<SystemArchitecture, string>>>
-
 export type OutputMode = 'perVendor' | 'combined' | 'byCategory'
 
 export type RepositorySupportLevel = 'explicit' | 'generic-debian' | 'repository-only'
@@ -85,33 +83,8 @@ export interface VendorProduct {
   readonly provenance: RepositoryProvenance
   readonly securityCritical: boolean
   readonly warningKeys: readonly WarningKey[]
-}
-
-/**
- * Temporary shape for the pre-source catalog. Task 2 replaces this with
- * RepositorySource references and the authoritative VendorProduct shape.
- */
-export interface LegacyVendorProduct {
-  readonly id: string
-  readonly name: string
-  readonly category: VendorCategory
-  /** Optional product pictogram for the selection UI; category icons remain the fallback. */
-  readonly icon?: VendorMdiIcon
-  readonly filename: string
-  readonly documentationUrl: string
-  readonly repositoryUrl: VendorRepositoryUrl
-  readonly keyUrl: string
-  readonly keyringPath: string
-  readonly packages: readonly string[]
-  readonly architectures: readonly SystemArchitecture[]
-  readonly releases: readonly ReleaseCodename[]
-  readonly suite: string | Readonly<Partial<Record<ReleaseCodename, string>>>
-  readonly components: readonly string[]
-  readonly verifiedAt: string
-  /** Complete allowlist of vendor-published primary OpenPGP fingerprints. */
-  readonly fingerprints?: readonly string[]
-  readonly warning?: string
-  readonly preferences?: string
+  /** Retained for the byte-compatible legacy vendor manifest. */
+  readonly verifiedAt?: string
 }
 
 export interface GeneratedArtifact {

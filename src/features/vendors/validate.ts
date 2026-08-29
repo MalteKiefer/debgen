@@ -3,10 +3,28 @@ import type {
   RepositoryKey,
   RepositoryLocation,
   RepositorySource,
-  LegacyVendorProduct,
   VendorProduct,
 } from './model'
 import { isVendorMdiIcon } from './icons'
+
+type LegacyCatalogEntry = {
+  readonly id: string
+  readonly name: string
+  readonly category: string
+  readonly icon?: string
+  readonly filename: string
+  readonly documentationUrl: string
+  readonly repositoryUrl: string | Readonly<Partial<Record<string, string>>>
+  readonly keyUrl: string
+  readonly keyringPath: string
+  readonly packages: readonly string[]
+  readonly architectures: readonly string[]
+  readonly releases: readonly string[]
+  readonly suite: string | Readonly<Partial<Record<string, string>>>
+  readonly components: readonly string[]
+  readonly verifiedAt: string
+  readonly fingerprints?: readonly string[]
+}
 
 const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
 const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
@@ -25,13 +43,13 @@ export function normalizeOpenPgpFingerprint(fingerprint: string): string {
   return fingerprint.replace(/[\t\n\r ]/g, '').toUpperCase()
 }
 
-const requireText = (product: LegacyVendorProduct, field: string, value: unknown): void => {
+const requireText = (product: LegacyCatalogEntry, field: string, value: unknown): void => {
   if (typeof value !== 'string' || value.trim() === '') {
     throw new Error(`Vendor "${product.id}" is missing ${field} metadata.`)
   }
 }
 
-const requireHttps = (product: LegacyVendorProduct, field: string, value: unknown): void => {
+const requireHttps = (product: LegacyCatalogEntry, field: string, value: unknown): void => {
   requireText(product, field, value)
   if (hasRawControlCharacter(value as string)) {
     throw new Error(`Vendor "${product.id}" ${field} must be a valid HTTPS URL.`)
@@ -47,7 +65,7 @@ const requireHttps = (product: LegacyVendorProduct, field: string, value: unknow
   }
 }
 
-const validateRepositoryUrl = (product: LegacyVendorProduct): void => {
+const validateRepositoryUrl = (product: LegacyCatalogEntry): void => {
   if (typeof product.repositoryUrl === 'string') {
     requireHttps(product, 'repository URL', product.repositoryUrl)
     return
@@ -62,7 +80,7 @@ const validateRepositoryUrl = (product: LegacyVendorProduct): void => {
     throw new Error(`Vendor "${product.id}" repository URL mapping must define every supported architecture.`)
   }
   for (const [architecture, url] of Object.entries(product.repositoryUrl)) {
-    if (!ARCHITECTURES.has(architecture) || !product.architectures.includes(architecture as LegacyVendorProduct['architectures'][number])) {
+    if (!ARCHITECTURES.has(architecture) || !product.architectures.includes(architecture)) {
       throw new Error(`Vendor "${product.id}" repository URL mapping has an unsupported architecture: ${architecture}.`)
     }
     requireHttps(product, `repository URL for ${architecture}`, url)
@@ -74,7 +92,7 @@ const validateRepositoryUrl = (product: LegacyVendorProduct): void => {
   }
 }
 
-export function validateVendorCatalog(products: readonly LegacyVendorProduct[]): void {
+export function validateVendorCatalog(products: readonly LegacyCatalogEntry[]): void {
   if (!Array.isArray(products)) throw new Error('Vendor catalog must be an array.')
 
   const ids = new Set<string>()

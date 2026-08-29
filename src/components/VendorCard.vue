@@ -2,11 +2,12 @@
 import { computed } from 'vue'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
-import type { LegacyVendorProduct, SystemArchitecture, VendorCategory } from '../features/vendors/model'
+import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
+import { getRepositorySource } from '../features/vendors/sources'
 
 const props = defineProps<{
-  product: LegacyVendorProduct
+  product: VendorProduct
   release: ReleaseCodename
   architecture: SystemArchitecture
   selected: boolean
@@ -43,6 +44,15 @@ const compatibility = computed(() => getVendorCompatibility(
   props.release,
   props.architecture,
 ))
+const compatibilityMessage = computed(() => {
+  const reason = compatibility.value.reason
+  if (!reason) return ''
+  if (reason.code === 'unsupported-release') {
+    return `Das Release „${reason.release}“ wird von ${props.product.name} nicht unterstützt. Unterstützte Releases: ${reason.supportedReleases.join(', ')}.`
+  }
+  return `Die Architektur „${reason.architecture}“ wird von ${props.product.name} nicht unterstützt. Unterstützte Architekturen: ${reason.supportedArchitectures.join(', ')}.`
+})
+const documentationUrl = computed(() => props.product.sourceId ? getRepositorySource(props.product.sourceId)?.documentationUrl : undefined)
 const productIcon = computed(() => props.product.icon ?? categoryIcons[props.product.category])
 const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
 </script>
@@ -81,7 +91,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       </v-chip>
       <span class="vendor-card__architectures">
         <v-icon aria-hidden="true" icon="mdi-cpu-64-bit" size="18" />
-        {{ product.architectures.join(', ') }}
+        {{ product.supportedArchitectures.join(', ') }}
       </span>
     </div>
 
@@ -90,14 +100,14 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       :id="compatibilityId"
       class="vendor-card__reason"
     >
-      {{ compatibility.reason }}
+      {{ compatibilityMessage }}
     </p>
     <p
-      v-if="product.warning"
+      v-if="product.warningKeys.length"
       class="vendor-card__warning"
     >
       <v-icon aria-hidden="true" icon="mdi-alert-outline" size="18" />
-      {{ product.warning }}
+      {{ product.warningKeys.join(', ') }}
     </p>
 
     <footer class="vendor-card__footer">
@@ -115,7 +125,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       </label>
       <a
         :aria-label="`${product.name}: offizielle Anleitung (öffnet in neuem Tab)`"
-        :href="product.documentationUrl"
+        :href="documentationUrl"
         rel="noreferrer"
         target="_blank"
       >

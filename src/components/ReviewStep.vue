@@ -56,9 +56,16 @@ const setupArtifact = computed(() => selectedProducts.value.length > 0
     )
   : null)
 const packageCommand = computed(() => generatePackageInstallCommand(generationConfig.value))
-const warnings = computed(() => selectedProducts.value.flatMap((product) => product.warning
-  ? [{ productName: product.name, message: product.warning }]
-  : []))
+const warningText: Readonly<Record<string, string>> = {
+  'docker-firewall': 'Docker kann Firewall-Regeln verändern und dadurch Firewall-Regeln umgehen.',
+  'proton-vpn-supported-environment': 'Offiziell unterstützt werden nur die aktuelle stabile Debian-Version mit GNOME und kein Headless-Betrieb.',
+  'tor-not-browser': 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
+  'nvidia-container-toolkit-prerequisites': 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
+  'mariadb-no-setup-script': 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
+  'clickhouse-generic-debian': 'Das ClickHouse-Repository ist distributionsunabhängig; die Kompatibilität bezieht sich auf die bereitgestellten Paketarchitekturen.',
+}
+const warnings = computed(() => selectedProducts.value.flatMap((product) => product.warningKeys
+  .map((message) => ({ productName: product.name, message: warningText[message] ?? message }))))
 
 function updateMode(event: Event): void {
   emit('update:outputMode', (event.target as HTMLInputElement).value as OutputMode)
