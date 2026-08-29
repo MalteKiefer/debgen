@@ -4,7 +4,7 @@ The public API is static and language-neutral. The primary GitHub Pages origin i
 
 ## Manifests and Debian files
 
-`catalog.json` is the root manifest. It links to `releases.json` and `vendors.json`. The Debian release manifest lists only the files available for each release:
+`catalog.json` is the root manifest. It links to `releases.json`, `vendors.json`, and `sources.json`. The Debian release manifest lists only the files available for each release:
 
 - `releases.json`
 - `vendors.json`
@@ -17,7 +17,7 @@ The public API is static and language-neutral. The primary GitHub Pages origin i
 
 `releases.json` URLs such as `trixie/debian.sources` are relative to `https://maltekiefer.github.io/debgen/api/v1/releases.json`. A client can resolve one safely with `new URL(file.url, manifestUrl)`. A valid manifest path is lowercase ASCII, contains no query, fragment, traversal, or absolute URL, and resolves directly beneath the manifest directory.
 
-`vendors.json` remains the product manifest. It contains stable product IDs, names, categories, nullable `sourceId`, package arrays, documentation URLs, verification dates, presentation keys, and only compatible release and architecture resources. Debian-native `nodejs` and `libreoffice` have `sourceId: null` and package metadata only. They intentionally have no third-party `.sources` or repository install script.
+`vendors.json` remains the product manifest. It contains stable product IDs, names, categories, non-null `sourceId` values, package arrays, documentation URLs, verification dates, presentation keys, and only compatible release and architecture resources. Every published product is backed by a checked repository source.
 
 ## Compatibility aliases and canonical source endpoints
 
@@ -35,15 +35,17 @@ vendors/brave-browser/trixie/amd64/brave-browser.sources
 vendors/brave-browser/trixie/amd64/install.sh
 ```
 
-The source-aware API adds the canonical deduplicated source artifact:
+The source-aware API adds canonical deduplicated repository artifacts:
 
 ```
 sources/<source-id>/<release>/<architecture>/<source-id>.sources
+sources/<source-id>/<release>/<architecture>/<preference-id>.pref
+sources/<source-id>/<release>/<architecture>/install.sh
 ```
 
 For a shared source, consumers should prefer the canonical source endpoint. For example, all compatible `mullvad-vpn` and `mullvad-browser` selections map to `sources/mullvad/<release>/<architecture>/mullvad.sources`; HashiCorp products map to `sources/hashicorp/.../hashicorp.sources`; Grafana products map to `sources/grafana/.../grafana.sources`; Microsoft products map to `sources/microsoft-prod/.../microsoft-prod.sources`; and Elastic products map to `sources/elastic-9/.../elastic-9.sources`. Product aliases remain available so existing clients do not break.
 
-`sources.json` is the source-aware manifest. It lists each unique source, its keys, locations, support levels, verification date, associated products, warnings, auxiliary trust files, preference files, and compatible canonical artifacts. It is the correct input for a client that wants deduplication.
+`sources.json` is the source-aware manifest. It lists each unique source, its keys, locations, support levels, verification date, associated products, warnings, auxiliary trust files, preference files, and compatible canonical artifacts. Each compatible entry records the products available for that release and architecture, the canonical source, preference artifacts, and a repository-only installer. The installer configures trust and updates APT without installing every product that shares the source. This manifest is the correct input for a client that wants deduplication.
 
 Both manifests omit incompatible combinations, and generation must not create their files. Do not guess a URL from a product's declared matrix: resolve a manifest URL and fetch only a listed resource.
 
@@ -79,4 +81,4 @@ The Studio can go directly from System to Output. It leaves the product selectio
 
 ## API maintenance checks
 
-Run `npm run generate:api` through the build, then verify the output twice for deterministic trees. Check that every manifest URL passes safe relative resolution and exists, every compatible source or alias artifact exists, every incompatible artifact is absent, aliases match their canonical source output, and native entries contain packages without repository artifacts. Keep API output language-neutral: use stable presentation keys, not translated prose.
+Run `npm run generate:api` through the build, then verify the output twice for deterministic trees. Check that every manifest URL passes safe relative resolution and exists, every compatible source or alias artifact exists, every incompatible artifact is absent, and aliases match their canonical source output. Keep API output language-neutral: use stable presentation keys, not translated prose.

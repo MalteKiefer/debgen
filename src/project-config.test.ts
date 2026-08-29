@@ -26,9 +26,19 @@ describe('project-facing configuration', () => {
     expect(auditCommands).toEqual(['npm audit'])
   })
 
-  it('documents the same all-severity audit policy', () => {
-    expect(projectFile('README.md')).toContain(
-      '`npm audit` — bei jedem gemeldeten Sicherheitshinweis fehlschlagen.',
-    )
+  it('documents the English project, security, localization, and static API contracts', () => {
+    const readme = projectFile('README.md')
+
+    expect(readme).toContain('actions/workflows/ci.yml/badge.svg')
+    expect(readme).toContain('actions/workflows/pages.yml/badge.svg')
+    expect(readme).toContain('100 products')
+    expect(readme).toContain('English, German, Spanish, French, Italian, Russian, Portuguese, Polish, Simplified Chinese, and Japanese')
+    expect(readme).toContain('`sources.json`')
+    expect(readme).toContain('curl -fsSLo')
+    expect(readme).toContain('[Catalog maintenance](docs/catalog-maintenance.md)')
+    expect(readme).toContain('[Translation maintenance](docs/translations.md)')
+    expect(readme).toContain('[Static API](docs/api.md)')
+    expect(readme).toContain('`npm audit` - fail on every reported vulnerability.')
+    expect(readme).not.toMatch(/\b(?:und|oder|Quellen|Software auswählen|Statische API|Sicherheitshinweis)\b/i)
   })
 })

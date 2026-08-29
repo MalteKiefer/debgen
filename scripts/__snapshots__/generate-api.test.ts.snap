@@ -6,6 +6,9 @@ exports[`versioned static API generation > publishes deterministic compatible ve
     "debian": {
       "url": "releases.json",
     },
+    "sources": {
+      "url": "sources.json",
+    },
     "vendors": {
       "url": "vendors.json",
     },

@@ -4,11 +4,11 @@ The catalog is a checked, static snapshot. Its verification date is `2026-08-29`
 
 ## Data model
 
-`VendorProduct` is the selectable thing. It owns its stable `id`, display name, category, packages, release and architecture matrix, support level, provenance, security classification, and warning keys. Its `sourceId` points to a `RepositorySource`; it is `null` only for a `debian-native` product.
+`VendorProduct` is the selectable thing. It owns its stable `id`, display name, category, packages, release and architecture matrix, support level, provenance, security classification, and warning keys. Its non-null `sourceId` points to a `RepositorySource`.
 
 `RepositorySource` is the trust and transport definition. It owns the official documentation URL, `verifiedAt`, one or more release and architecture scoped locations, keys, auxiliary trust files, preference files, and source-wide warnings. A location can use a normal suite and components or an exact path suite such as `/` or `apt/stable/`; exact-path suites have no components.
 
-Products and sources intentionally have different cardinality. Selecting Mullvad VPN and Mullvad Browser, Terraform and Vault, or Grafana and Alloy must generate one source definition and install each shared key, auxiliary file, and preference file once. Package selections are deduplicated and sorted. A Debian-native product contributes packages only; it never creates a third-party source, key, auxiliary artifact, or repository installation script.
+Products and sources intentionally have different cardinality. Selecting Mullvad VPN and Mullvad Browser, Terraform and Vault, or Grafana and Alloy must generate one source definition and install each shared key, auxiliary file, and preference file once. Package selections are deduplicated and sorted.
 
 The validator rejects unknown or unselected sources, duplicate IDs and package names, incomplete source release and architecture coverage, unsafe URLs and paths, conflicting keyring definitions, arbitrary auxiliary destinations, incomplete key coverage, and an unsafe provenance combination.
 
@@ -16,7 +16,7 @@ The validator rejects unknown or unselected sources, duplicate IDs and package n
 
 Use a manufacturer-operated or upstream-project-operated HTTPS repository by default. `community-endorsed` is permitted only if the manufacturer or upstream explicitly recommends that exact repository, the product is not security critical, and the product is labelled `community-endorsed`. Security-critical products never use community infrastructure.
 
-Do not add PPAs, unendorsed mirrors, standalone DEB downloads, Snap, Flatpak, AppImage, HTTP repositories, opaque remote setup scripts, `apt-key`, or unsigned repositories. Debian-native is preferred when Debian supplies the product without an additional approved APT source. Node.js is Debian-native: never add NodeSource. LibreOffice is Debian-native. Yarn is specifically Yarn Classic 1.x; current Yarn is distributed through Corepack rather than a new APT source.
+Do not add PPAs, unendorsed mirrors, standalone DEB downloads, Snap, Flatpak, AppImage, HTTP repositories, opaque remote setup scripts, `apt-key`, or unsigned repositories. Yarn is specifically Yarn Classic 1.x; current Yarn is distributed through Corepack rather than a new APT source. NodeSource remains excluded.
 
 `explicit` means an official statement and repository availability cover the selected Debian release and architecture. `generic-debian` means a technically available Debian-generic repository without an explicit release statement. `repository-only` is reserved for a repository availability assertion with no stronger vendor-release support claim. Do not upgrade a support level based only on a successful installation.
 
@@ -40,7 +40,7 @@ Auxiliary trust files use a closed destination kind, never an arbitrary filesyst
 
 ## Current 100-product matrix
 
-Columns are product ID, source (`native` means Debian-native), package set, supported releases, architectures, support level, provenance, and security-critical status. This is the authoritative maintenance snapshot; changes belong in `src/features/vendors/catalog.ts` and `src/features/vendors/sources.ts` together.
+Columns are product ID, source, package set, supported releases, architectures, support level, provenance, and security-critical status. This is the authoritative maintenance snapshot; changes belong in `src/features/vendors/catalog.ts` and `src/features/vendors/sources.ts` together.
 
 | ID | Source | Packages | Releases | Architectures | Support | Provenance | Critical |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -94,9 +94,9 @@ Columns are product ID, source (`native` means Debian-native), package set, supp
 | eclipse-temurin-25 | adoptium | temurin-25-jdk | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |
 | grafana-alloy | grafana | alloy | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
 | caddy | caddy | caddy | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf | generic-debian | upstream | yes |
-| nodejs | native | nodejs | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf, i386 | explicit | debian-native | yes |
+| zerotier-one | zerotier-one | zerotier-one | trixie, bookworm, bullseye | amd64, arm64, armhf, i386 | explicit | manufacturer | yes |
 | yarn-classic-1 | yarn | yarn | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf, i386 | generic-debian | upstream | yes |
-| libreoffice | native | libreoffice | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf, i386 | explicit | debian-native | no |
+| netbird | netbird | netbird | bookworm | amd64, arm64, armhf | explicit | manufacturer | yes |
 | mozilla-thunderbird | mozilla-thunderbird | thunderbird | trixie, bookworm, bullseye | amd64 | explicit | upstream | yes |
 | firefox-developer-edition | mozilla | firefox-devedition | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |
 | onepassword-cli | onepassword | 1password-cli | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |

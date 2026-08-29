@@ -1,237 +1,174 @@
-# debgen
+# DebGen
 
-debgen ist ein clientseitiger Generator für Debian-Paketquellen. Er erstellt APT-Konfigurationen aus einem geprüften, eingebauten Release- und Herstellerkatalog und veröffentlicht kanonische Konfigurationen als statische Dateien.
+[![CI](https://github.com/MalteKiefer/debgen/actions/workflows/ci.yml/badge.svg)](https://github.com/MalteKiefer/debgen/actions/workflows/ci.yml)
+[![GitHub Pages](https://github.com/MalteKiefer/debgen/actions/workflows/pages.yml/badge.svg)](https://github.com/MalteKiefer/debgen/actions/workflows/pages.yml)
 
-## Voraussetzungen und Entwicklung
+DebGen is a client-side Debian repository workbench. It builds reviewable APT source files and installation commands from a checked-in catalog of official vendor and upstream repositories. It also publishes the same deterministic data through a versioned static API.
 
-Verwenden Sie Node.js `>=24.15.0 <25` und die darin enthaltene npm-Version.
+Use the hosted application at [maltekiefer.github.io/debgen](https://maltekiefer.github.io/debgen/). No configuration or product selection is sent to a server.
 
-```sh
-npm ci
-npm run dev
+## Highlights
+
+- Debian Trixie, Bookworm, Bullseye, Forky, and Sid profiles.
+- DEB822 output everywhere, with legacy `.list` output only where Debian still requires it.
+- Exactly 100 products backed by verified HTTPS APT repositories.
+- Shared-source deduplication for product families such as Mullvad, HashiCorp, Grafana, Microsoft, Elastic, Adoptium, Corretto, Sublime, and 1Password.
+- Multiple signing keys, release-scoped keys and locations, exact-path repositories, preference files, and auxiliary trust files.
+- Per-source, combined, and category-grouped output modes.
+- A direct Debian-only path when no additional software is needed.
+- English, German, Spanish, French, Italian, Russian, Portuguese, Polish, Simplified Chinese, and Japanese.
+- A deterministic, manifest-driven static API that works from the primary site, forks, and custom GitHub Pages paths.
+
+## Architecture
+
+DebGen keeps repository facts, generation, presentation, and publishing separate:
+
+- `src/features/sources/` owns Debian release profiles, Debian source generation, downloads, and public manifest URL handling.
+- `src/features/vendors/model.ts` defines the closed product, repository, trust, compatibility, and artifact contracts.
+- `src/features/vendors/catalog.ts` contains selectable products; `src/features/vendors/sources.ts` contains shared repository and trust definitions.
+- `src/features/vendors/compatibility.ts` evaluates release and architecture support before generation.
+- `src/features/vendors/generate.ts` produces deterministic DEB822 sources, preference files, package commands, and reviewed setup scripts. Shared sources, keys, auxiliary files, preferences, and packages are deduplicated.
+- `src/i18n/` contains the canonical locale schema, locale resolution, pluralization, and all visible interface messages.
+- `src/components/` renders the accessible Workbench flow and local previews.
+- `scripts/generate-api.ts` validates and writes the complete static API into a staging directory, then atomically replaces the published tree.
+
+The application never fetches a vendor key or repository while rendering. Generated files are local until the user explicitly saves or copies them.
+
+## Repository policy
+
+The catalog snapshot contains 100 products and was verified on 2026-08-29. A product is admitted only when its repository is operated by the manufacturer or upstream project, or when an upstream project explicitly endorses the exact community source for a non-security-critical product.
+
+The catalog rejects unendorsed mirrors, PPAs, standalone DEB downloads, Snap, Flatpak, AppImage, HTTP or unsigned repositories, `apt-key`, arbitrary filesystem destinations, and opaque remote setup scripts. Security-critical products cannot use community infrastructure. Support is classified conservatively as `explicit`, `generic-debian`, or `repository-only`; repository availability alone is never upgraded into a stronger vendor support claim.
+
+Each source records its official documentation, locations, suites, components, architectures, signing-key URLs, keyring paths, published primary fingerprints, verification date, optional trust files, preference files, and warning keys. Products reference sources by stable `sourceId` and add their package set, category, support matrix, provenance, and product-specific warnings.
+
+The full authoritative table and audit procedure are in [Catalog maintenance](docs/catalog-maintenance.md). Explicit exclusions are documented there as policy decisions, not silently replaced with less trustworthy sources.
+
+## Supported Debian profiles
+
+| Release | Debian status | Formats | Notes |
+| --- | --- | --- | --- |
+| Trixie | stable | DEB822 `.sources` | Stable security and updates are included. |
+| Bookworm | oldstable / LTS | DEB822 `.sources`, legacy `.list` | Security and updates are included; backports ended on 2026-08-09. |
+| Bullseye | oldoldstable / LTS | DEB822 `.sources`, legacy `.list` | LTS ends on 2026-08-31; no backports are generated. |
+| Forky | testing | DEB822 `.sources` | Testing does not provide stable-level security support. |
+| Sid | unstable | DEB822 `.sources` | Unstable does not provide stable-level security support. |
+
+Debian archive entries use HTTPS and the archive keyring shipped by the selected Debian release. DebGen does not download, alter, or replace Debian trust keys.
+
+## Languages
+
+The interface supports ten locales: English (`en`), German (`de`), Spanish (`es`), French (`fr`), Italian (`it`), Russian (`ru`), Portuguese (`pt`), Polish (`pl`), Simplified Chinese (`zh-CN`), and Japanese (`ja`).
+
+English is the canonical fallback. A saved language preference takes precedence over browser language detection. Region variants fall back to their supported base locale, supported Chinese variants map to Simplified Chinese, and unsupported values fall back to English. Russian and Polish use locale-correct plural categories.
+
+All human-facing text belongs in locale modules. Repository IDs, package names, file names, commands, fingerprints, URLs, and generated source bytes remain language-neutral. See [Translation maintenance](docs/translations.md) for schema, fallback, review, and testing rules.
+
+## Static API
+
+The versioned API root is:
+
+```text
+https://maltekiefer.github.io/debgen/api/v1/
 ```
 
-Verfügbare Projektbefehle:
+Its root manifest is `catalog.json`:
 
-- `npm run dev` — lokalen Vite-Entwicklungsserver starten.
-- `npm run test` — Tests im Watch-Modus ausführen.
-- `npm run test:run` — Tests einmal ausführen.
-- `npm run typecheck` — Anwendung und Build-Werkzeuge typprüfen.
-- `npm run lint` — Repository prüfen.
-- `npm run generate:api` — statische API unter `public/api/v1/` neu erzeugen.
-- `npm run build` — API erzeugen, typprüfen und die Produktionsseite in `dist/` bauen.
-- `npm run check` — Tests, Typprüfung, Linting und Produktions-Build ausführen.
-- `npm audit` — bei jedem gemeldeten Sicherheitshinweis fehlschlagen.
+- `releases.json` lists Debian profiles and their manifest-relative files.
+- `vendors.json` lists all 100 products, packages, presentation keys, source IDs, and compatible product aliases.
+- `sources.json` lists unique repositories, keys, locations, support data, products, trust metadata, and canonical compatible artifacts.
 
-Führen Sie vor einer Änderung `npm run check` aus.
+Canonical Debian files remain at paths such as `trixie/debian.sources`. Existing product-compatible aliases remain stable:
 
-## Unterstützte Releases und Formate
+```text
+vendors/<product-id>/<release>/<architecture>/<product-id>.sources
+vendors/<product-id>/<release>/<architecture>/install.sh
+```
 
-| Release | Debian-Status | Formate | Hinweise |
-| --- | --- | --- | --- |
-| Trixie | stable | DEB822 `.sources` | Enthält stabile Sicherheitsaktualisierungen, Updates und optionale Backports. |
-| Bookworm | oldstable / LTS | DEB822 `.sources`, Legacy-`.list` | Enthält Sicherheit und Updates. Backport-Support endete am 2026-08-09 und ist nicht verfügbar. |
-| Bullseye | oldoldstable / LTS | DEB822 `.sources`, Legacy-`.list` | LTS endet am 2026-08-31; enthält Sicherheit und Updates, aber keine Backports. |
-| Forky | testing | DEB822 `.sources` | Bietet keine Sicherheitsunterstützung auf Stable-Niveau. |
-| Sid | unstable | DEB822 `.sources` | Bietet keine Sicherheitsunterstützung auf Stable-Niveau. |
+Source-aware clients should prefer canonical deduplicated resources:
 
-DEB822 ist das bevorzugte Format. Das veraltete einzeilige Format wird ausschließlich für die Kompatibilität mit Bookworm und Bullseye bereitgestellt.
+```text
+sources/<source-id>/<release>/<architecture>/<source-id>.sources
+sources/<source-id>/<release>/<architecture>/<preference-id>.pref
+sources/<source-id>/<release>/<architecture>/install.sh
+```
 
-Jeder erzeugte Eintrag verwendet HTTPS und beschränkt die Archivprüfung auf den mit dem Debian-Release ausgelieferten Schlüsselbund (bzw. die entsprechende `signed-by`-Option im Legacy-Ausgabeformat). Bookworm und Bullseye verwenden `/usr/share/keyrings/debian-archive-keyring.gpg`; Trixie, Forky und Sid verwenden `/usr/share/keyrings/debian-archive-keyring.pgp`. Beide Dateien stammen aus dem Paket `debian-archive-keyring` des jeweiligen Releases; debgen lädt keine Vertrauensschlüssel herunter, verändert sie nicht und ersetzt sie nicht.
+The canonical source installer configures repository trust and updates the package index but does not install every product that happens to share the source. Product alias installers retain their single-product package behavior.
 
-Erzeugte Konfigurationen können Paketquellen eines Systems verändern. Wählen Sie nur das zur installierten Debian-Version passende Release, prüfen Sie Komponenten und Suites und lesen Sie die vollständige Ausgabe vor der Installation. Testing und Unstable sind rollende Suites und bieten keine Sicherheitsunterstützung auf Stable-Niveau.
+Every public `url` is relative to the manifest that contains it. Resolve it with `new URL(resource.url, manifestUrl)` instead of concatenating a hard-coded host. Incompatible release and architecture combinations are absent from both manifests and the filesystem. See [Static API](docs/api.md) for the full contract.
 
-## Offizieller Drittanbieter-Katalog
+## Safe curl examples
 
-Der eingebaute Katalog ist eine manuell geprüfte, statische Liste mit **exakt 100 Produkten**. Alle Repository-Quellen stammen vom jeweiligen Hersteller oder Upstream-Projekt; sicherheitskritische Produkte verwenden keine Community-Infrastruktur. PPAs, Community-Mirrors, `apt-key`, unsignierte Quellen und Hersteller-Setup-Skripte sind ausgeschlossen. Dokumentation, Repository-Metadaten, Paketnamen, Schlüssel-URLs und veröffentlichte Architekturen wurden zuletzt am **2026-08-29** geprüft.
+Always save and inspect generated files before applying them. Do not pipe a remote script into a privileged shell.
 
-`Node.js` und `LibreOffice` werden Debian-nativ ohne zusätzliche Quelle installiert. Für Node.js wird ausdrücklich **kein NodeSource-Repository** verwendet. `Yarn Classic 1.x` nutzt das offizielle Yarn-APT-Repository; die Bezeichnung grenzt es bewusst von aktuellem Yarn über Corepack ab. Ein Drittanbieter-Repository erweitert die Vertrauensgrenze über Debian hinaus und kann sich unabhängig ändern, deshalb sind Quelle und generierte Installation vor jeder Verwendung erneut zu prüfen.
+Download and inspect the Debian Trixie profile:
 
-### Exakte Produktmatrix
+```sh
+api_root=https://maltekiefer.github.io/debgen/api/v1
+curl -fsSLo /tmp/debian.sources "$api_root/trixie/debian.sources"
+sed -n '1,220p' /tmp/debian.sources
+sudo install -m 0644 /tmp/debian.sources /etc/apt/sources.list.d/debian.sources
+```
 
-In der Spalte „Installation / Provenienz / Support“ bedeutet `APT` eine zusätzliche geprüfte Quelle; Debian-native Einträge haben eine null-`sourceId`. „Sicherheitskritisch“ ist die verbindliche Katalogklassifikation.
-
-| Produkt (stabile ID) | Installation / Provenienz / Support | Sicherheitskritisch | DebGen-Releases · Architekturen |
-| --- | --- | --- | --- |
-| Brave Browser (`brave-browser`) | APT `brave-browser` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Mozilla Firefox (`mozilla-firefox`) | APT `mozilla` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Google Chrome (`google-chrome`) | APT `google-chrome` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Microsoft Edge (`microsoft-edge`) | APT `microsoft-edge` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Vivaldi (`vivaldi`) | APT `vivaldi` / `manufacturer` / `explicit` | ja | trixie, forky, sid · amd64, arm64 |
-| Opera (`opera`) | APT `opera` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Signal Desktop (`signal-desktop`) | APT `signal` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Proton VPN (`proton-vpn`) | APT `proton-vpn` / `manufacturer` / `explicit` | ja | trixie · amd64, arm64 |
-| Mullvad VPN (`mullvad-vpn`) | APT `mullvad` / `manufacturer` / `explicit` | ja | trixie, bookworm, forky, sid · amd64, arm64 |
-| Tor (`tor`) | APT `tor` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Docker Engine (`docker-engine`) | APT `docker` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64, armhf |
-| Kubernetes tools v1.36 (`kubernetes-tools-v1-36`) | APT `kubernetes-v1-36` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Google Cloud CLI (`google-cloud-cli`) | APT `google-cloud` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Microsoft Azure CLI (`azure-cli`) | APT `microsoft-azure-cli` / `manufacturer` / `explicit` | ja | bookworm, bullseye · amd64, arm64 |
-| GitHub CLI (`github-cli`) | APT `github-cli` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| HashiCorp Terraform (`hashicorp-terraform`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| PostgreSQL PGDG (`postgresql-pgdg`) | APT `postgresql-pgdg` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| MongoDB Community 8.0 (`mongodb-community-8-0`) | APT `mongodb-community-8-0` / `manufacturer` / `explicit` | ja | bookworm · amd64 |
-| Grafana (`grafana`) | APT `grafana` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| NVIDIA Container Toolkit (`nvidia-container-toolkit`) | APT `nvidia-container-toolkit` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| MariaDB Community 11.8 (`mariadb-community-11-8`) | APT `mariadb-community-11-8` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, sid · amd64, arm64 |
-| Redis Open Source (`redis-open-source`) | APT `redis-open-source` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64, arm64 |
-| ClickHouse (`clickhouse`) | APT `clickhouse` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| InfluxDB 3 Core (`influxdb-3-core`) | APT `influxdb-3-core` / `manufacturer` / `explicit` | ja | trixie, bookworm, forky, sid · amd64, arm64 |
-| Zabbix 7.4 (`zabbix-7-4`) | APT `zabbix-7-4` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Mullvad Browser (`mullvad-browser`) | APT `mullvad` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64 |
-| 1Password (`onepassword`) | APT `onepassword` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64 |
-| Visual Studio Code (`visual-studio-code`) | APT `visual-studio-code` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64, armhf |
-| PowerShell 7.6 (`powershell-7-6`) | APT `microsoft-prod` / `manufacturer` / `explicit` | ja | trixie · amd64, arm64 |
-| .NET SDK 10 (`dotnet-sdk-10`) | APT `microsoft-prod` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64, arm64 |
-| Tailscale (`tailscale`) | APT `tailscale` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf, i386 |
-| Cloudflare WARP (`cloudflare-warp`) | APT `cloudflare-warp` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64, arm64 |
-| cloudflared (`cloudflared`) | APT `cloudflared` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf |
-| OpenTofu (`opentofu`) | APT `opentofu` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf, i386 |
-| AnyDesk (`anydesk`) | APT `anydesk` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Sublime Text (`sublime-text`) | APT `sublime` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Element Desktop (`element-desktop`) | APT `element` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Oracle VirtualBox 7.2 (`oracle-virtualbox-7-2`) | APT `oracle-virtualbox` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64 |
-| GitLab Community Edition (`gitlab-ce`) | APT `gitlab-ce` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| GitLab Runner (`gitlab-runner`) | APT `gitlab-runner` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky · amd64, arm64 |
-| Jenkins LTS (`jenkins-lts`) | APT `jenkins-lts` / `upstream` / `explicit` | ja | trixie · amd64, arm64 |
-| NGINX Stable (`nginx-stable`) | APT `nginx-stable` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| HashiCorp Vault (`hashicorp-vault`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| HashiCorp Packer (`hashicorp-packer`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Elastic Stack 9 (`elastic-stack-9`) | APT `elastic-9` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64, arm64 |
-| Syncthing Stable v2 (`syncthing-stable-v2`) | APT `syncthing` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf |
-| Amazon Corretto 21 (`amazon-corretto-21`) | APT `corretto` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Eclipse Temurin 25 (`eclipse-temurin-25`) | APT `adoptium` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Grafana Alloy (`grafana-alloy`) | APT `grafana` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Caddy (`caddy`) | APT `caddy` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf |
-| Node.js (`nodejs`) | Debian-Paket / `debian-native` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf, i386 |
-| Yarn Classic 1.x (`yarn-classic-1`) | APT `yarn` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf, i386 |
-| LibreOffice (`libreoffice`) | Debian-Paket / `debian-native` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64, armhf, i386 |
-| Mozilla Thunderbird (`mozilla-thunderbird`) | APT `mozilla-thunderbird` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64 |
-| Firefox Developer Edition (`firefox-developer-edition`) | APT `mozilla` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| 1Password CLI (`onepassword-cli`) | APT `onepassword` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| GitLab Enterprise Edition (`gitlab-ee`) | APT `gitlab-ee` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Jenkins Weekly (`jenkins-weekly`) | APT `jenkins-weekly` / `upstream` / `explicit` | ja | trixie · amd64, arm64 |
-| NGINX Mainline (`nginx-mainline`) | APT `nginx-mainline` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Grafana Enterprise (`grafana-enterprise`) | APT `grafana` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| HashiCorp Consul (`hashicorp-consul`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| HashiCorp Nomad (`hashicorp-nomad`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| HashiCorp Boundary (`hashicorp-boundary`) | APT `hashicorp` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Elastic Agent 9 (`elastic-agent-9`) | APT `elastic-9` / `manufacturer` / `explicit` | ja | trixie, bookworm · amd64, arm64 |
-| Kubernetes Node Tools 1.36 (`kubernetes-node-tools-v1-36`) | APT `kubernetes-v1-36` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Microsoft OpenJDK 21 (`microsoft-openjdk-21`) | APT `microsoft-prod` / `manufacturer` / `explicit` | ja | bookworm · amd64, arm64 |
-| Microsoft OpenJDK 25 (`microsoft-openjdk-25`) | APT `microsoft-prod` / `manufacturer` / `explicit` | ja | bookworm · amd64, arm64 |
-| Eclipse Temurin 8 (`eclipse-temurin-8`) | APT `adoptium` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Eclipse Temurin 11 (`eclipse-temurin-11`) | APT `adoptium` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Eclipse Temurin 17 (`eclipse-temurin-17`) | APT `adoptium` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Eclipse Temurin 21 (`eclipse-temurin-21`) | APT `adoptium` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Amazon Corretto 8 (`amazon-corretto-8`) | APT `corretto` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Amazon Corretto 11 (`amazon-corretto-11`) | APT `corretto` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Amazon Corretto 17 (`amazon-corretto-17`) | APT `corretto` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Amazon Corretto 25 (`amazon-corretto-25`) | APT `corretto` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Azul Zulu JDK 21 (`azul-zulu-jdk-21`) | APT `azul-zulu` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| BellSoft Liberica JDK 21 (`bellsoft-liberica-jdk-21`) | APT `bellsoft-liberica` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| TeamViewer (`teamviewer`) | APT `teamviewer` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Steam Launcher (`steam-launcher`) | APT `steam` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Google Earth Pro (`google-earth-pro`) | APT `google-earth` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64 |
-| Sublime Merge (`sublime-merge`) | APT `sublime` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Typora (`typora`) | APT `typora` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Warp Terminal (`warp-terminal`) | APT `warp` / `manufacturer` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| NordVPN (`nordvpn`) | APT `nordvpn` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| IVPN (`ivpn`) | APT `ivpn` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Teleport Community Edition 18 (`teleport-community-18`) | APT `teleport-18` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Wazuh Agent (`wazuh-agent`) | APT `wazuh` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64, i386 |
-| Apache CouchDB 3.5 (`apache-couchdb-3-5`) | APT `apache-couchdb` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Neo4j Community Edition (`neo4j-community`) | APT `neo4j` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| Icinga 2 (`icinga2`) | APT `icinga` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| MySQL Community Server 8.4 LTS (`mysql-community-server-8-4-lts`) | APT `mysql-8-4` / `manufacturer` / `explicit` | ja | trixie, bookworm, bullseye · amd64 |
-| OpenSearch 3 (`opensearch-3`) | APT `opensearch-3` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Datadog Agent 7 (`datadog-agent-7`) | APT `datadog` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Falco (`falco`) | APT `falco` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Trivy (`trivy`) | APT `trivy` / `upstream` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| CrowdSec Security Engine (`crowdsec-security-engine`) | APT `crowdsec` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Fluent Bit (`fluent-bit`) | APT `fluent-bit` / `upstream` / `explicit` | ja | trixie, bookworm, bullseye · amd64, arm64 |
-| DBeaver Community (`dbeaver-community`) | APT `dbeaver` / `upstream` / `generic-debian` | nein | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Buildkite Agent (`buildkite-agent`) | APT `buildkite-agent` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-| Buildkite CLI (`buildkite-cli`) | APT `buildkite-cli` / `manufacturer` / `generic-debian` | ja | trixie, bookworm, bullseye, forky, sid · amd64, arm64 |
-
-### Provenienz- und Installationsregeln
-
-Geteilte Herstellerquellen werden durch eine gemeinsame `sourceId` sichtbar, etwa Mullvad, HashiCorp, Grafana, Microsoft, Elastic, Adoptium, Corretto, Sublime und 1Password. Der Katalog bildet außerdem release-spezifische Schlüssel und Orte, mehrere OpenTofu-Schlüssel, komponentenlose Exact-Path-Repositories, die zusätzlichen debsig-Vertrauensdateien von 1Password unter `/etc/debsig/policies/AC2D62742012EA22/1password.pol` und `/usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg` sowie die Pinning-Dateien von NGINX, Mozilla und Syncthing ab. Interaktive, privilegierte oder voraussetzungsreiche Installationen tragen stabile Warnschlüssel; debgen führt keine Hersteller-Setup-Skripte aus.
-
-Das gemeinsame Schlüsselpaket für NGINX Stable und Mainline wird als vollständige Menge seiner drei Primärschlüssel geprüft: `573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62`, `8540A6F18833A80E9C1653A42FD21310B49F6B46` und `9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3`. Die Menge wurde am 2026-08-29 sowohl gegen das [live NGINX-Schlüsselpaket](https://nginx.org/keys/nginx_signing.key) als auch gegen die vom NGINX-Projekt im offiziellen [docker-nginx-Dockerfile](https://github.com/nginx/docker-nginx/blob/master/stable/debian/Dockerfile) veröffentlichte vollständige Liste geprüft; die [NGINX-Paketdokumentation](https://nginx.org/en/linux_packages.html) weist ausdrücklich auf zusätzliche Paketsignaturschlüssel im Paket hin.
-
-Bei einer Katalogänderung sind offizielle Installationsdokumentation, `Release`- oder `InRelease`-Metadaten, Paketindex, Signaturschlüssel, veröffentlichter Fingerprint, Suite, Komponente, Paketname und Architekturunterstützung erneut zu prüfen. Versionskanäle wie Kubernetes 1.36, MongoDB 8.0, MariaDB 11.8, Zabbix 7.4, Elastic 9, Teleport 18, MySQL 8.4 LTS und OpenSearch 3 bleiben explizit. Verschwindet eine offizielle Quelle, wird der Kandidat entfernt oder ausschließlich nach der freigegebenen Reserveliste ersetzt; die Provenienzregeln werden nicht abgeschwächt.
-
-### Bewusste Ausschlüsse
-
-Tor Browser, Docker Desktop, Discord, Zoom, Slack, JetBrains Toolbox, Postman, Bitwarden Desktop, GitKraken, RustDesk, OBS Studio und Dropbox fehlen, weil ihre offizielle Linux-Auslieferung die Repository-Richtlinie nicht erfüllt. Spotify ist kein Primäreintrag, da der Hersteller Linux nicht aktiv unterstützt.
-
-RabbitMQ, Percona, Puppet Core, Netdata, New Relic, TimescaleDB, CockroachDB, Kopia, OpenVPN Access Server und Helm bleiben ebenfalls außerhalb dieser Freigabe: Setup, Transport, Schlüssel, Community-Provenienz oder Versionskopplung erfüllen die Richtlinie nicht oder würden ein hier nicht benötigtes Modell verlangen. Insbesondere Helm wird nicht über community-betriebene APT-Infrastruktur für einen sicherheitskritischen Einsatz aufgenommen.
-
-## Statische API
-
-Die öffentliche GitHub-Pages-API beginnt unter `https://maltekiefer.github.io/debgen/api/v1/`. Forks verwenden ihren eigenen Pages-Host und Repository-Namen. Die API ist statisch und umfasst diese Endpunkte:
-
-- `https://maltekiefer.github.io/debgen/api/v1/releases.json`
-- `https://maltekiefer.github.io/debgen/api/v1/vendors.json`
-- `https://maltekiefer.github.io/debgen/api/v1/catalog.json`
-- `https://maltekiefer.github.io/debgen/api/v1/trixie/debian.sources`
-- `https://maltekiefer.github.io/debgen/api/v1/bookworm/debian.sources`
-- `https://maltekiefer.github.io/debgen/api/v1/bookworm/debian.list`
-- `https://maltekiefer.github.io/debgen/api/v1/bullseye/debian.sources`
-- `https://maltekiefer.github.io/debgen/api/v1/bullseye/debian.list`
-- `https://maltekiefer.github.io/debgen/api/v1/forky/debian.sources`
-- `https://maltekiefer.github.io/debgen/api/v1/sid/debian.sources`
-
-`releases.json` enthält unverändert Release-Status, unterstützte Formate, Dateinamen und manifest-relative URLs wie `trixie/debian.sources`. `vendors.json` enthält exakt alle 100 offiziellen Produkte mit nullable `sourceId`, Paketmenge, optionaler Dokumentations-URL, Verifizierungsdatum und ausschließlich kompatiblen Release-/Architektur-Kombinationen. Bei Produkten mit zusätzlicher APT-Quelle verlinkt jede Kombination auf:
-
-- `vendors/<produkt-id>/<release>/<architektur>/<produkt-id>.sources` für die einzelne kanonische DEB822-Quelle;
-- `vendors/<produkt-id>/<release>/<architektur>/install.sh` für das geprüfte Ein-Produkt-Installationsskript.
-
-Die Debian-nativen Produkte `nodejs` und `libreoffice` stehen ebenfalls in `vendors.json`: Ihre `sourceId` ist `null`, und jede kompatible Kombination enthält ausschließlich die Debian-Paketmenge. Für sie werden bewusst weder eine zusätzliche `.sources`-Datei noch ein Repository-Installationsskript unter `vendors/` erzeugt.
-
-`catalog.json` verlinkt die beiden Manifeste. Alle Manifest-URLs sind relativ zu ihrem Manifest und zeigen auf vorhandene Dateien; inkompatible Kombinationen werden weder verlinkt noch erzeugt. Lösen Sie eine `url` gegen die URL des Manifests auf, beispielsweise mit `new URL(file.url, manifestUrl)`, damit dies auf der Hauptseite und in Forks unter `/api/v1/` funktioniert.
-
-### Ausgabemodi im Studio
-
-- **Pro Hersteller** (Standard): Debian-Basisquellen, je Hersteller eine vorhersagbar benannte `.sources`-Datei, getrennte Präferenzdateien und ein geprüftes Installationsskript.
-- **Kombiniert:** eine gemeinsame `vendors.sources`, wenn alle ausgewählten Quellen sicher als DEB822 darstellbar sind; Schlüssel bleiben getrennt.
-- **Nach Kategorie:** Debian-Basisquellen und bei Bedarf eine `.sources`-Datei je Kategorie, etwa `browser.sources` oder `database.sources`.
-
-Neue Herstellerquellen verwenden immer DEB822. Legacy-`.list` bleibt auf die bestehenden Debian-Endpunkte für Bookworm und Bullseye beschränkt.
-
-### Eine geprüfte Konfiguration installieren
-
-Laden Sie Dateien zuerst ohne erhöhte Rechte herunter und prüfen Sie sie lokal. Ein Hersteller-Skript wird ausdrücklich nicht über `curl | sh` ausgeführt:
+Download and inspect an existing product-compatible alias:
 
 ```sh
 api_root=https://maltekiefer.github.io/debgen/api/v1
 curl -fsSLo /tmp/brave-browser.sources "$api_root/vendors/brave-browser/trixie/amd64/brave-browser.sources"
 curl -fsSLo /tmp/brave-browser-install.sh "$api_root/vendors/brave-browser/trixie/amd64/install.sh"
 sed -n '1,220p' /tmp/brave-browser.sources
-sed -n '1,260p' /tmp/brave-browser-install.sh
+sed -n '1,300p' /tmp/brave-browser-install.sh
 bash -n /tmp/brave-browser-install.sh
-```
-
-Erst wenn Release, Architektur, Schlüssel-URL, Pfade, Pakete und Befehle bestätigt sind, darf das Skript ausgeführt werden:
-
-```sh
 chmod 0755 /tmp/brave-browser-install.sh
 sudo /tmp/brave-browser-install.sh
 ```
 
-Für Debian-Basisquellen speichern und prüfen Sie ebenso zunächst die Datei. Sie schreiben erst nach der Prüfung in APTs Quellverzeichnis:
+Download a shared canonical source without duplicating the repository definition:
 
 ```sh
-curl -fsSLo /tmp/debian.sources "$api_root/trixie/debian.sources"
-sed -n '1,220p' /tmp/debian.sources
-sudo install -m 0644 /tmp/debian.sources /etc/apt/sources.list.d/debian.sources
+api_root=https://maltekiefer.github.io/debgen/api/v1
+curl -fsSLo /tmp/mullvad.sources "$api_root/sources/mullvad/trixie/amd64/mullvad.sources"
+curl -fsSLo /tmp/mullvad-repository-install.sh "$api_root/sources/mullvad/trixie/amd64/install.sh"
+sed -n '1,220p' /tmp/mullvad.sources
+sed -n '1,300p' /tmp/mullvad-repository-install.sh
+bash -n /tmp/mullvad-repository-install.sh
 ```
 
-Für ein System, das zwingend das veraltete Format benötigt, verwenden Sie nach derselben Prüfung `bookworm/debian.list` oder `bullseye/debian.list` und als Ziel eine `.list`-Datei. Sichern oder entfernen Sie kollidierende bestehende Quellen getrennt; die gezeigten Befehle überschreiben nur die jeweilige Zieldatei.
+Before running any installer, confirm the release, architecture, HTTPS endpoints, complete fingerprint set, destination paths, package names, warnings, and commands. Third-party repositories extend trust beyond Debian and can change independently.
+
+## Local development
+
+Use Node.js `>=24.15.0 <25` and the bundled npm version.
+
+```sh
+npm ci
+npm run dev
+```
+
+Project commands:
+
+- `npm run dev` - start the local Vite server.
+- `npm run test` - run tests in watch mode.
+- `npm run test:run` - run the test suite once.
+- `npm run typecheck` - type-check application and build tooling.
+- `npm run lint` - lint the repository.
+- `npm run generate:api` - regenerate `public/api/v1/` atomically.
+- `npm run build` - generate the API, type-check, and build `dist/`.
+- `npm run check` - run tests, type-checking, linting, and the production build.
+- `npm audit` - fail on every reported vulnerability.
+
+Run `npm run check` and `npm audit` before submitting a change. CI and the Pages workflow use the same zero-tolerance audit command.
+
+## Maintenance
+
+- [Catalog maintenance](docs/catalog-maintenance.md) covers the source/product model, the 100-product matrix, admission policy, key rotation, fingerprints, compatibility, and repeatable vendor audits.
+- [Translation maintenance](docs/translations.md) covers all ten locales, schema parity, fallback behavior, plural rules, and review checks.
+- [Static API](docs/api.md) covers manifests, relative URL resolution, canonical sources, compatibility aliases, curl safety, and deterministic tree verification.
+
+When updating a repository, re-check the official installation documentation, `Release` or `InRelease` metadata, package index, signing keys, published primary fingerprints, suite, components, package names, and architecture support. Keep shared trust definitions source-owned and product-specific packages or warnings product-owned.
 
 ## GitHub Pages
 
-Der Pages-Workflow läuft nur bei Pushes nach `master`. Sein Verifizierungsjob installiert gesperrte Abhängigkeiten, führt den vollständigen Check und das Sicherheitsaudit aus, leitet den Site-Basispfad aus `GITHUB_REPOSITORY` ab, baut die Seite und lädt `dist/` hoch. Die Bereitstellung startet erst nach erfolgreicher Verifizierung und erfolgt über die geschützte Umgebung `github-pages`.
+The Pages workflow runs for pushes to `master`. It installs locked dependencies, runs the full check and audit, derives the base path from `GITHUB_REPOSITORY`, builds the site, and deploys only after verification succeeds. Forks therefore publish under their own repository path without a hard-coded project name.
 
-Um die Bereitstellung für ein Repository zu aktivieren, öffnen Sie **Settings → Pages → Build and deployment** und wählen **GitHub Actions** als Quelle. Der Workflow braucht keinen fest codierten Repository-Namen; daher bauen Forks und umbenannte Repositories unter ihrem eigenen Basispfad `/<repository-name>/`.
+To enable a fork, open **Settings > Pages > Build and deployment** and select **GitHub Actions** as the source.

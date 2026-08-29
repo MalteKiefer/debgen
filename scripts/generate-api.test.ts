@@ -5,8 +5,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { VENDOR_PRODUCTS } from '../src/features/vendors/catalog'
 import { getVendorCompatibility } from '../src/features/vendors/compatibility'
 import type { SystemArchitecture } from '../src/features/vendors/model'
+import { categoryMessageKey } from '../src/features/vendors/presentation'
+import { REPOSITORY_SOURCES } from '../src/features/vendors/sources'
 import { RELEASES } from '../src/features/sources/releases'
-import { generateApi, resolveManifestUrl } from './generate-api'
+import { assertManifestUrlsExist, generateApi, resolveManifestUrl } from './generate-api'
 
 const outputRoots: string[] = []
 const apiArchitectures: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
@@ -126,6 +128,17 @@ describe('versioned static API generation', () => {
     }
   })
 
+  it('recursively rejects unsafe manifest URLs at any nesting depth', async () => {
+    const outputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
+    outputRoots.push(outputRoot)
+
+    await expect(assertManifestUrlsExist(
+      outputRoot,
+      'https://maltekiefer.github.io/debgen/api/v1/sources.json',
+      { compatibility: [{ source: { url: '../outside.sources' } }] },
+    )).rejects.toThrow(/manifest url/i)
+  })
+
   it('writes the exact canonical profiles and manifest', async () => {
     const outputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
     outputRoots.push(outputRoot)
@@ -155,6 +168,8 @@ describe('versioned static API generation', () => {
       'forky',
       'releases.json',
       'sid',
+      'sources',
+      'sources.json',
       'trixie',
       'vendors',
       'vendors.json',
@@ -234,33 +249,59 @@ describe('versioned static API generation', () => {
     await generateApi(firstOutputRoot)
     await generateApi(secondOutputRoot)
 
-    const [catalogText, releasesText, vendorsText] = await Promise.all([
+    const [catalogText, releasesText, sourcesText, vendorsText] = await Promise.all([
       readFile(join(firstOutputRoot, 'catalog.json'), 'utf8'),
       readFile(join(firstOutputRoot, 'releases.json'), 'utf8'),
+      readFile(join(firstOutputRoot, 'sources.json'), 'utf8'),
       readFile(join(firstOutputRoot, 'vendors.json'), 'utf8'),
     ])
     const catalog = JSON.parse(catalogText) as {
       debian: { url: string }
+      sources: { url: string }
       vendors: { url: string }
     }
     const releases = JSON.parse(releasesText) as Array<{ files: Array<{ url: string }> }>
+    const sources = JSON.parse(sourcesText) as Array<{
+      id: string
+      name: string
+      documentationUrl: string
+      verifiedAt: string
+      productIds: string[]
+      warnings: string[]
+      locations: typeof REPOSITORY_SOURCES[number]['locations']
+      keys: typeof REPOSITORY_SOURCES[number]['keys']
+      auxiliaryTrustFiles: typeof REPOSITORY_SOURCES[number]['auxiliaryTrustFiles']
+      preferenceFiles: typeof REPOSITORY_SOURCES[number]['preferenceFiles']
+      compatibility: Array<{
+        release: string
+        architecture: string
+        productIds: string[]
+        source: { url: string }
+        preferences: Array<{ filename: string, url: string }>
+        install: { url: string }
+      }>
+    }>
     const vendors = JSON.parse(vendorsText) as Array<{
       id: string
       name: string
       category: string
-      sourceId: string | null
+      sourceId: string
       packages: string[]
-      documentationUrl: string | null
+      documentationUrl: string
       verifiedAt: string
-      compatibility: Array<
-        | { release: string, architecture: string, packages: string[] }
-        | { release: string, architecture: string, source: { url: string }, install: { url: string } }
-      >
+      presentationKeys: { category: string, provenance: string, warnings: string[] }
+      compatibility: Array<{ release: string, architecture: string, source: { url: string }, install: { url: string } }>
     }>
     const manifestUrls = [
       catalog.debian.url,
+      catalog.sources.url,
       catalog.vendors.url,
       ...releases.flatMap((release) => release.files.map((file) => file.url)),
+      ...sources.flatMap((source) => source.compatibility.flatMap((combination) => [
+        combination.source.url,
+        ...combination.preferences.map((preference) => preference.url),
+        combination.install.url,
+      ])),
       ...vendors.flatMap((vendor) => vendor.compatibility.flatMap((combination) => (
         'source' in combination ? [combination.source.url, combination.install.url] : []
       ))),
@@ -268,16 +309,98 @@ describe('versioned static API generation', () => {
 
     expect(catalog).toEqual({
       debian: { url: 'releases.json' },
+      sources: { url: 'sources.json' },
       vendors: { url: 'vendors.json' },
     })
-    const repositoryProducts = VENDOR_PRODUCTS.filter((product) => product.sourceId !== null)
-    const nativeProducts = VENDOR_PRODUCTS.filter((product) => product.sourceId === null)
+    expect(sources.map((source) => source.id)).toEqual(REPOSITORY_SOURCES.map((source) => source.id).sort())
+    for (const repositorySource of REPOSITORY_SOURCES) {
+      const entry = sources.find((source) => source.id === repositorySource.id)
+      const products = VENDOR_PRODUCTS
+        .filter((product) => product.sourceId === repositorySource.id)
+        .sort((left, right) => left.id.localeCompare(right.id, 'en'))
+      expect(entry).toMatchObject({
+        id: repositorySource.id,
+        name: repositorySource.name,
+        documentationUrl: repositorySource.documentationUrl,
+        verifiedAt: repositorySource.verifiedAt,
+        productIds: products.map((product) => product.id),
+        warnings: [...repositorySource.warnings],
+        locations: repositorySource.locations,
+        keys: repositorySource.keys,
+        auxiliaryTrustFiles: repositorySource.auxiliaryTrustFiles,
+        preferenceFiles: repositorySource.preferenceFiles,
+      })
+
+      for (const release of [...RELEASES].map(({ codename }) => codename).sort()) {
+        for (const architecture of [...apiArchitectures].sort()) {
+          const compatibleProducts = products.filter((product) => (
+            getVendorCompatibility(product, release, architecture).compatible
+          ))
+          const combination = entry?.compatibility.find((candidate) => (
+            candidate.release === release && candidate.architecture === architecture
+          ))
+          const directory = `sources/${repositorySource.id}/${release}/${architecture}`
+          const sourceUrl = `${directory}/${repositorySource.id}.sources`
+
+          if (compatibleProducts.length === 0) {
+            expect(combination).toBeUndefined()
+            await expect(access(join(firstOutputRoot, sourceUrl))).rejects.toThrow()
+            continue
+          }
+
+          expect(combination).toEqual({
+            release,
+            architecture,
+            productIds: compatibleProducts.map((product) => product.id),
+            source: { url: sourceUrl },
+            preferences: repositorySource.preferenceFiles.map((preference) => ({
+              filename: `${preference.id}.pref`,
+              url: `${directory}/${preference.id}.pref`,
+            })),
+            install: { url: `${directory}/install.sh` },
+          })
+          const canonicalContent = await readFile(join(firstOutputRoot, sourceUrl), 'utf8')
+          for (const product of compatibleProducts) {
+            await expect(readFile(join(
+              firstOutputRoot,
+              `vendors/${product.id}/${release}/${architecture}/${product.id}.sources`,
+            ), 'utf8')).resolves.toBe(canonicalContent)
+          }
+        }
+      }
+    }
+    const mullvadRepositoryInstall = await readFile(
+      join(firstOutputRoot, 'sources/mullvad/trixie/amd64/install.sh'),
+      'utf8',
+    )
+    expect(mullvadRepositoryInstall).not.toContain("apt-get install -y 'mullvad-vpn'")
+    expect(mullvadRepositoryInstall).not.toContain("apt-get install -y 'mullvad-browser'")
+    await expect(access(join(
+      firstOutputRoot,
+      'sources/nginx-stable/trixie/amd64/nginx.pref',
+    ))).resolves.toBeUndefined()
+    await expect(readFile(
+      join(firstOutputRoot, 'sources/onepassword/trixie/amd64/install.sh'),
+      'utf8',
+    )).resolves.toMatch(/\/etc\/debsig\/policies\/.+\/1password\.pol[\s\S]+\/usr\/share\/debsig\/keyrings\/.+\/debsig\.gpg/)
+    const repositoryProducts = VENDOR_PRODUCTS
     expect(vendors.map((vendor) => vendor.id)).toEqual([...vendors.map((vendor) => vendor.id)].sort())
     expect(vendors.map((vendor) => vendor.id)).toEqual(VENDOR_PRODUCTS.map((product) => product.id).sort())
-    expect(nativeProducts.map((product) => product.id)).toEqual(['nodejs', 'libreoffice'])
+    expect(VENDOR_PRODUCTS.every((product) => typeof product.sourceId === 'string')).toBe(true)
+    expect(vendors.every((vendor) => typeof vendor.sourceId === 'string' && typeof vendor.documentationUrl === 'string')).toBe(true)
     for (const product of repositoryProducts) {
       const entry = vendors.find((vendor) => vendor.id === product.id)
-      expect(entry).toMatchObject({ sourceId: product.sourceId, packages: [...product.packages] })
+      expect(entry).toMatchObject({
+        sourceId: product.sourceId,
+        packages: [...product.packages],
+        presentationKeys: {
+          category: categoryMessageKey(product.category),
+          provenance: `vendor.origins.${product.provenance === 'community-endorsed'
+            ? 'communityEndorsed'
+            : product.provenance}`,
+          warnings: product.warningKeys.map((warning) => `warnings.${warning}`),
+        },
+      })
       for (const release of RELEASES) {
         for (const architecture of apiArchitectures) {
           const compatible = getVendorCompatibility(product, release.codename, architecture).compatible
@@ -303,26 +426,6 @@ describe('versioned static API generation', () => {
           }
         }
       }
-    }
-    for (const product of nativeProducts) {
-      const entry = vendors.find((vendor) => vendor.id === product.id)
-      expect(entry).toEqual({
-        id: product.id,
-        name: product.name,
-        category: product.category,
-        sourceId: null,
-        packages: [...product.packages],
-        documentationUrl: null,
-        verifiedAt: '2026-08-29',
-        compatibility: [...RELEASES]
-          .map((release) => release.codename)
-          .sort((left, right) => left.localeCompare(right, 'en'))
-          .flatMap((release) => [...apiArchitectures]
-            .sort((left, right) => left.localeCompare(right, 'en'))
-            .filter((architecture) => getVendorCompatibility(product, release, architecture).compatible)
-            .map((architecture) => ({ release, architecture, packages: [...product.packages] }))),
-      })
-      await expect(access(join(firstOutputRoot, 'vendors', product.id))).rejects.toThrow()
     }
     expect(vendors.find((vendor) => vendor.id === 'brave-browser')).toMatchObject({
       documentationUrl: 'https://brave.com/linux/',
@@ -391,5 +494,5 @@ Signed-By: /usr/share/keyrings/mullvad-keyring.asc
         .map((vendor) => ({ id: vendor.id, compatibility: vendor.compatibility })),
     }).toMatchSnapshot()
     expect(await readFileTree(secondOutputRoot)).toEqual(await readFileTree(firstOutputRoot))
-  }, 15_000)
+  }, 30_000)
 })
