@@ -16,7 +16,9 @@ export default defineConfig({
     },
   },
   build: {
+    assetsDir: 'assets',
     chunkSizeWarningLimit: 500,
+    manifest: true,
   },
   test: {
     exclude: [...configDefaults.exclude, '**/.worktrees/**'],

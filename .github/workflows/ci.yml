@@ -25,6 +25,18 @@ jobs:
 
       - name: Run checks
         run: npm run check
+        env:
+          VITE_BASE_PATH: /debgen/
+
+      - name: Verify deployable static output
+        run: |
+          test -s dist/en/index.html
+          test -s dist/de/index.html
+          test -s dist/sitemap.xml
+          test -s dist/robots.txt
+          test -s dist/api/v1/releases.json
+          grep -F 'href="/debgen/assets/site.css"' dist/en/index.html
+          grep -F 'href="https://debgen.org/en/"' dist/en/index.html
 
       - name: Audit dependencies
         run: npm audit
