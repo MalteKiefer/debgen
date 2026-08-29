@@ -17,9 +17,11 @@ const emit = defineEmits<{
 
 const query = ref('')
 
+const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
+
 const compatibleProducts = computed(() => [...props.products]
   .filter(product => getVendorCompatibility(product as never, props.state.release, props.state.architecture).compatible)
-  .sort((left, right) => left.name.localeCompare(right.name)))
+  .sort((left, right) => compareCodePoints(left.name, right.name)))
 
 const normalize = (value: string): string => value.toLowerCase()
 

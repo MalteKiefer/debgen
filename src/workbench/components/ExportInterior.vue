@@ -27,9 +27,11 @@ interface Feedback {
 
 const feedback = reactive<Record<string, Feedback | undefined>>({})
 
+const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
+
 const selectedProducts = computed(() => props.products
   .filter(product => props.state.repositories.includes(product.id))
-  .sort((left, right) => left.name.localeCompare(right.name)))
+  .sort((left, right) => compareCodePoints(left.name, right.name)))
 
 const apiRoot = computed(() => `${props.siteOrigin}${props.basePath}api/v1`)
 
@@ -100,7 +102,7 @@ const repositoryPlans = computed<RepositoryPlan[]>(() => {
       plans.get(product.sourceId)?.productNames.push(product.name)
     }
   }
-  return [...plans.values()].sort((left, right) => left.sourceId.localeCompare(right.sourceId))
+  return [...plans.values()].sort((left, right) => compareCodePoints(left.sourceId, right.sourceId))
 })
 
 const sourceCurl = (sourceId: string): string => (

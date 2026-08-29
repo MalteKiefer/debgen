@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import {
-  computed,
   defineAsyncComponent,
-  hydrateOnIdle,
-  hydrateOnVisible,
+  computed,
   ref,
 } from 'vue'
 import type { SourceFormat } from '../features/sources/model'
@@ -17,14 +15,8 @@ const props = defineProps<{
   initialState: WorkbenchHydrationPayload
 }>()
 
-const RepositoryInterior = defineAsyncComponent({
-  loader: () => import('./components/RepositoryInterior.vue'),
-  hydrate: hydrateOnVisible(),
-})
-const ExportInterior = defineAsyncComponent({
-  loader: () => import('./components/ExportInterior.vue'),
-  hydrate: hydrateOnIdle(),
-})
+const RepositoryInterior = defineAsyncComponent(() => import('./components/RepositoryInterior.vue'))
+const ExportInterior = defineAsyncComponent(() => import('./components/ExportInterior.vue'))
 
 const state = ref<WorkbenchState>({
   ...props.initialState.state,
