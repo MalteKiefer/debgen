@@ -6,6 +6,7 @@ import {
 } from 'vue'
 import type { SourceFormat } from '../features/sources/model'
 import type { SystemArchitecture } from '../features/vendors/model'
+import { trackEvent } from './analytics'
 import StepperNavigation from './components/StepperNavigation.vue'
 import StepperSection from './components/StepperSection.vue'
 import type { WorkbenchAction, WorkbenchState, WorkbenchStep } from './state'
@@ -260,7 +261,7 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             :site-origin="initialState.siteOrigin"
             :state="state"
           />
-          <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="submit" class="primary-action">{{ initialState.copy.actions.export }}</button></div>
+          <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="submit" class="primary-action" @click="trackEvent('Config Exported', { release: state.release, repositories: state.repositories.length })">{{ initialState.copy.actions.export }}</button></div>
         </StepperSection>
       </form>
     </main>

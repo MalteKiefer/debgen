@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import { trackEvent } from '../analytics'
 import { copyText, downloadText } from '../../features/sources/download'
 import { renderIcon } from '../../site/icons'
 import { generateSources, getOutputFilename } from '../../features/sources/generate'
@@ -180,6 +181,7 @@ async function copyContent(key: string, content: string): Promise<void> {
   try {
     await copyText(content)
     feedback[key] = { kind: 'success', message: props.copy.actions.copy }
+    if (key.endsWith('-curl')) trackEvent('Curl Copied', { target: key })
   } catch {
     feedback[key] = { kind: 'error', message: props.copy.errors.copyFailed }
   }
@@ -188,6 +190,7 @@ async function copyContent(key: string, content: string): Promise<void> {
 function download(key: string, filename: string, content: string, mediaType = 'text/plain'): void {
   try {
     downloadText(filename, content, undefined, mediaType)
+    trackEvent('File Downloaded', { file: filename })
     feedback[key] = { kind: 'success', message: props.copy.actions.download }
   } catch {
     feedback[key] = { kind: 'error', message: props.copy.errors.downloadFailed }

@@ -144,7 +144,7 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
   const locales = [...siteLocales]
   const pages = locales.map(locale => `${locale}/index.html`)
   const workbenchBuild = await readWorkbenchBuild(resolvedOutputDir, renderer)
-  const assets = ['assets/site.css', 'favicon.ico', ...workbenchBuild.assets]
+  const assets = ['assets/site.css', 'favicon.ico', 'favicon.svg', 'apple-touch-icon.png', ...workbenchBuild.assets]
 
   await mkdir(join(resolvedOutputDir, 'assets'), { recursive: true })
   await copyFile(
@@ -152,6 +152,8 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
     join(resolvedOutputDir, 'assets', 'site.css'),
   )
   await copyFile(join(projectRoot, 'public', 'favicon.ico'), join(resolvedOutputDir, 'favicon.ico'))
+  await copyFile(join(projectRoot, 'public', 'favicon.svg'), join(resolvedOutputDir, 'favicon.svg'))
+  await copyFile(join(projectRoot, 'public', 'apple-touch-icon.png'), join(resolvedOutputDir, 'apple-touch-icon.png'))
 
   const renderPage = async (locale: SupportedLocale, root = false): Promise<string> => {
     const path = root ? '/' : sitePath(locale)

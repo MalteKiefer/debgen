@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { trackEvent } from '../analytics'
 import { getVendorCompatibility } from '../../features/vendors/compatibility'
 import { renderIcon } from '../../site/icons'
 import type { SiteCopy } from '../../site/locales'
@@ -158,6 +159,7 @@ const toggleRepository = (id: string, event: Event): void => {
   const repositories = checked
     ? [...props.state.repositories, id]
     : props.state.repositories.filter(repository => repository !== id)
+  if (checked) trackEvent('Repository Selected', { repository: id })
   emit('change', repositories)
 }
 
