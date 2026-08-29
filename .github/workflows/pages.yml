@@ -34,12 +34,11 @@ jobs:
         run: npm audit
 
       - name: Configure GitHub Pages
+        id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build GitHub Pages site
-        run: |
-          repository_name="${GITHUB_REPOSITORY#*/}"
-          VITE_BASE_PATH="/${repository_name}/" npm run build
+        run: VITE_BASE_PATH="${{ steps.pages.outputs.base_path }}/" npm run build
 
       - name: Verify GitHub Pages artifact
         run: |
