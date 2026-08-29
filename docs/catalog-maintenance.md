@@ -38,9 +38,11 @@ Auxiliary trust files use a closed destination kind, never an arbitrary filesyst
 6. Verify whether the product shares a source before creating a new one. Add source-wide data once and product-specific packages or warnings to the product.
 7. Run focused catalog, compatibility, source, generator, and API tests, then `npm run check`.
 
-## Current 100-product matrix
+## Current 103-product matrix
 
 Columns are product ID, source, package set, supported releases, architectures, support level, provenance, and security-critical status. This is the authoritative maintenance snapshot; changes belong in `src/features/vendors/catalog.ts` and `src/features/vendors/sources.ts` together.
+
+The latest additions are OpenVPN Community in `vpn-secure-networking` with explicit upstream support, LibreWolf in `web-browsers` with generic-Debian upstream support, and Lutris in `games` with explicit community-endorsed support. Lutris is non-security-critical; the other two are security-critical.
 
 | ID | Source | Packages | Releases | Architectures | Support | Provenance | Critical |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -144,6 +146,9 @@ Columns are product ID, source, package set, supported releases, architectures, 
 | dbeaver-community | dbeaver | dbeaver-ce | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | upstream | no |
 | buildkite-agent | buildkite-agent | buildkite-agent | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | manufacturer | yes |
 | buildkite-cli | buildkite-cli | bk | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | manufacturer | yes |
+| openvpn-community | openvpn-community | openvpn | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |
+| librewolf | librewolf | librewolf | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | upstream | yes |
+| lutris | lutris | lutris | trixie | amd64 | explicit | community-endorsed | no |
 
 ## Explicit exclusions
 

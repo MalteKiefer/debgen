@@ -28,10 +28,11 @@ describe('project-facing configuration', () => {
 
   it('documents the English project, security, localization, and static API contracts', () => {
     const readme = projectFile('README.md')
+    const catalogMaintenance = projectFile('docs/catalog-maintenance.md')
 
     expect(readme).toContain('actions/workflows/ci.yml/badge.svg')
     expect(readme).toContain('actions/workflows/pages.yml/badge.svg')
-    expect(readme).toContain('100 products')
+    expect(readme).toContain('103 products')
     expect(readme).toContain('English, German, Spanish, French, Italian, Russian, Portuguese, Polish, Simplified Chinese, and Japanese')
     expect(readme).toContain('`sources.json`')
     expect(readme).toContain('curl -fsSLo')
@@ -40,5 +41,9 @@ describe('project-facing configuration', () => {
     expect(readme).toContain('[Static API](docs/api.md)')
     expect(readme).toContain('`npm audit` - fail on every reported vulnerability.')
     expect(readme).not.toMatch(/\b(?:und|oder|Quellen|Software auswählen|Statische API|Sicherheitshinweis)\b/i)
+    expect(catalogMaintenance).toContain('## Current 103-product matrix')
+    expect(catalogMaintenance).toContain('| openvpn-community | openvpn-community | openvpn | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |')
+    expect(catalogMaintenance).toContain('| librewolf | librewolf | librewolf | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | upstream | yes |')
+    expect(catalogMaintenance).toContain('| lutris | lutris | lutris | trixie | amd64 | explicit | community-endorsed | no |')
   })
 })

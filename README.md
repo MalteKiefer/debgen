@@ -11,7 +11,7 @@ Use the hosted application at [maltekiefer.github.io/debgen](https://maltekiefer
 
 - Debian Trixie, Bookworm, Bullseye, Forky, and Sid profiles.
 - DEB822 output everywhere, with legacy `.list` output only where Debian still requires it.
-- Exactly 100 products backed by verified HTTPS APT repositories.
+- Exactly 103 products backed by verified HTTPS APT repositories.
 - Shared-source deduplication for product families such as Mullvad, HashiCorp, Grafana, Microsoft, Elastic, Adoptium, Corretto, Sublime, and 1Password.
 - Multiple signing keys, release-scoped keys and locations, exact-path repositories, preference files, and auxiliary trust files.
 - Per-source, combined, and category-grouped output modes.
@@ -36,7 +36,7 @@ The application never fetches a vendor key or repository while rendering. Genera
 
 ## Repository policy
 
-The catalog snapshot contains 100 products and was verified on 2026-08-29. A product is admitted only when its repository is operated by the manufacturer or upstream project, or when an upstream project explicitly endorses the exact community source for a non-security-critical product.
+The catalog snapshot contains 103 products and was verified on 2026-08-29. A product is admitted only when its repository is operated by the manufacturer or upstream project, or when an upstream project explicitly endorses the exact community source for a non-security-critical product.
 
 The catalog rejects unendorsed mirrors, PPAs, standalone DEB downloads, Snap, Flatpak, AppImage, HTTP or unsigned repositories, `apt-key`, arbitrary filesystem destinations, and opaque remote setup scripts. Security-critical products cannot use community infrastructure. Support is classified conservatively as `explicit`, `generic-debian`, or `repository-only`; repository availability alone is never upgraded into a stronger vendor support claim.
 
@@ -75,7 +75,7 @@ https://maltekiefer.github.io/debgen/api/v1/
 Its root manifest is `catalog.json`:
 
 - `releases.json` lists Debian profiles and their manifest-relative files.
-- `vendors.json` lists all 100 products, packages, presentation keys, source IDs, and compatible product aliases.
+- `vendors.json` lists all 103 products, packages, presentation keys, source IDs, and compatible product aliases.
 - `sources.json` lists unique repositories, keys, locations, support data, products, trust metadata, and canonical compatible artifacts.
 
 Canonical Debian files remain at paths such as `trixie/debian.sources`. Existing product-compatible aliases remain stable:
@@ -161,7 +161,7 @@ Run `npm run check` and `npm audit` before submitting a change. CI and the Pages
 
 ## Maintenance
 
-- [Catalog maintenance](docs/catalog-maintenance.md) covers the source/product model, the 100-product matrix, admission policy, key rotation, fingerprints, compatibility, and repeatable vendor audits.
+- [Catalog maintenance](docs/catalog-maintenance.md) covers the source/product model, the 103-product matrix, admission policy, key rotation, fingerprints, compatibility, and repeatable vendor audits.
 - [Translation maintenance](docs/translations.md) covers all ten locales, schema parity, fallback behavior, plural rules, and review checks.
 - [Static API](docs/api.md) covers manifests, relative URL resolution, canonical sources, compatibility aliases, curl safety, and deterministic tree verification.
 
