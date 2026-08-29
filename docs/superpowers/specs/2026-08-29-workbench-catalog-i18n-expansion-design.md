@@ -6,14 +6,17 @@
 
 ## Objective
 
-Evolve DebGen from a one product per repository catalog into a repository source and product model, add 25 major Linux products, provide the complete interface in ten languages, make direct `curl` retrieval visible for every generated configuration, and refine the interface into the approved Debian Workbench design.
+Evolve DebGen from a one product per repository catalog into a repository source and product model, expand the catalog from 25 to exactly 100 major Linux products, provide the complete interface in ten languages, make direct `curl` retrieval visible for every generated configuration, and refine the interface into the approved Debian Workbench design.
 
 The release must preserve every existing Debian and vendor API URL while adding new product and source metadata. It must remain a static application with deterministic build time output.
 
 ## Non Negotiable Product Rules
 
-- Only repositories operated or explicitly documented by the product manufacturer or upstream project are eligible.
-- PPAs, community mirrors, direct standalone DEB downloads, Snap, Flatpak, AppImage, and opaque remote setup scripts are excluded.
+- Repositories operated by the manufacturer or upstream project are the default and preferred source.
+- A community operated repository is eligible only when the manufacturer or upstream project explicitly recommends that exact repository, the product is not security critical, and the UI and API label the source `community-endorsed`.
+- Security critical products may use only manufacturer operated or upstream project operated repositories. They never fall back to community infrastructure.
+- Debian native products are eligible without an additional repository and are labeled `debian-native`. They generate package selections but no redundant source or key artifact.
+- PPAs, unendorsed community mirrors, direct standalone DEB downloads, Snap, Flatpak, AppImage, HTTP repositories, and opaque remote setup scripts are excluded.
 - Repository configuration uses HTTPS, DEB822, separate keyrings, `Signed-By`, and every full fingerprint explicitly published by the manufacturer.
 - Fingerprints derived only from a downloaded key may be recorded as audit evidence but are not treated as manufacturer published pins.
 - Compatibility uses the intersection of the official support statement and actual repository package availability.
@@ -58,7 +61,7 @@ interface RepositorySource {
 ```ts
 interface VendorProduct {
   readonly id: string
-  readonly sourceId: string
+  readonly sourceId: string | null
   readonly name: string
   readonly category: VendorCategory
   readonly icon: MdiIconName
@@ -66,11 +69,13 @@ interface VendorProduct {
   readonly supportedReleases: readonly ReleaseCodename[]
   readonly supportedArchitectures: readonly SystemArchitecture[]
   readonly supportLevel: 'explicit' | 'generic-debian' | 'repository-only'
+  readonly provenance: 'manufacturer' | 'upstream' | 'community-endorsed' | 'debian-native'
+  readonly securityCritical: boolean
   readonly warningKeys: readonly WarningKey[]
 }
 ```
 
-Products are selectable cards. Sources are generated artifacts. Selecting multiple products with the same `sourceId` generates one source, downloads each key once, installs each auxiliary trust file once, deduplicates package names, and preserves every relevant warning.
+Products are selectable cards. Sources are generated artifacts. A null `sourceId` is valid only for `debian-native` products. Selecting multiple products with the same non-null `sourceId` generates one source, downloads each key once, installs each auxiliary trust file once, deduplicates package names, and preserves every relevant warning.
 
 Validators reject unknown source references, duplicate product IDs, duplicate package names within a product, unsafe URLs or destinations, incomplete release mappings, unsupported exact path combinations, conflicting key definitions, and sources without a selectable product.
 
@@ -86,7 +91,7 @@ The current 25 products migrate without changing their public product IDs or exi
 
 The migration includes compatibility snapshot tests proving that all existing product and API combinations remain byte compatible unless a documented security correction requires a change.
 
-## 25 Additional Products
+## First 25 Additional Products
 
 The second catalog release adds exactly these products. The compatibility matrix is conservative and is verified again during implementation against current official metadata.
 
@@ -120,11 +125,70 @@ The second catalog release adds exactly these products. The compatibility matrix
 
 The implementation rechecks each row before coding its catalog definition. If an official endpoint, package, signing method, or support statement changed after 2026-08-29, the product is replaced by the first fully eligible reserve candidate rather than weakening the policy. Prioritized reserves are Icinga 2, Neo4j Community, Wazuh Agent, Datadog Agent, and Teleport Community Edition.
 
+## Final 50 Additional Products
+
+The third catalog block brings the total to exactly 100. NodeSource is explicitly excluded. Node.js and LibreOffice use Debian packages without an extra source. Yarn is deliberately named Yarn Classic 1.x because current Yarn uses Corepack rather than an APT repository. Every security critical row uses manufacturer or upstream infrastructure only.
+
+| # | Product | Provenance and installation | Package selection |
+|---:|---|---|---|
+| 1 | Node.js | Debian native, no NodeSource | `nodejs` |
+| 2 | Yarn Classic 1.x | Official Yarn upstream APT | `yarn` |
+| 3 | LibreOffice | Debian native, no TDF APT exists | `libreoffice` |
+| 4 | Mozilla Thunderbird | Shared Mozilla upstream APT | `thunderbird` |
+| 5 | Firefox Developer Edition | Shared Mozilla upstream APT | `firefox-devedition` |
+| 6 | 1Password CLI | Shared 1Password manufacturer APT | `1password-cli` |
+| 7 | GitLab Enterprise Edition | GitLab manufacturer APT | `gitlab-ee` |
+| 8 | Jenkins Weekly | Jenkins upstream APT | `jenkins` |
+| 9 | NGINX Mainline | Shared NGINX manufacturer APT | `nginx` |
+| 10 | Grafana Enterprise | Shared Grafana manufacturer APT | `grafana-enterprise` |
+| 11 | HashiCorp Consul | Shared HashiCorp manufacturer APT | `consul` |
+| 12 | HashiCorp Nomad | Shared HashiCorp manufacturer APT | `nomad` |
+| 13 | HashiCorp Boundary | Shared HashiCorp manufacturer APT | `boundary` |
+| 14 | Elastic Agent 9 | Shared Elastic manufacturer APT | `elastic-agent` |
+| 15 | Kubernetes Node Tools 1.36 | Kubernetes upstream APT | `kubelet`, `kubeadm` |
+| 16 | Microsoft OpenJDK 21 | Microsoft manufacturer APT | `msopenjdk-21` |
+| 17 | Microsoft OpenJDK 25 | Microsoft manufacturer APT | `msopenjdk-25` |
+| 18 | Eclipse Temurin 8 | Shared Adoptium upstream APT | `temurin-8-jdk` |
+| 19 | Eclipse Temurin 11 | Shared Adoptium upstream APT | `temurin-11-jdk` |
+| 20 | Eclipse Temurin 17 | Shared Adoptium upstream APT | `temurin-17-jdk` |
+| 21 | Eclipse Temurin 21 | Shared Adoptium upstream APT | `temurin-21-jdk` |
+| 22 | Amazon Corretto 8 | Shared Amazon manufacturer APT | `java-1.8.0-amazon-corretto-jdk` |
+| 23 | Amazon Corretto 11 | Shared Amazon manufacturer APT | `java-11-amazon-corretto-jdk` |
+| 24 | Amazon Corretto 17 | Shared Amazon manufacturer APT | `java-17-amazon-corretto-jdk` |
+| 25 | Amazon Corretto 25 | Shared Amazon manufacturer APT | `java-25-amazon-corretto-jdk` |
+| 26 | Azul Zulu JDK 21 | Azul manufacturer APT | `zulu21-jdk` |
+| 27 | BellSoft Liberica JDK 21 | BellSoft manufacturer APT | `bellsoft-java21` |
+| 28 | TeamViewer | TeamViewer manufacturer APT | `teamviewer` |
+| 29 | Steam Launcher | Valve manufacturer APT | `steam-launcher` |
+| 30 | Google Earth Pro | Google manufacturer APT | `google-earth-pro-stable` |
+| 31 | Sublime Merge | Shared Sublime manufacturer APT | `sublime-merge` |
+| 32 | Typora | Typora manufacturer APT | `typora` |
+| 33 | Warp Terminal | Warp manufacturer APT | `warp-terminal` |
+| 34 | NordVPN | Nord Security manufacturer APT | `nordvpn` |
+| 35 | IVPN | IVPN manufacturer APT | `ivpn` |
+| 36 | Teleport Community Edition 18 | Teleport upstream APT | `teleport` |
+| 37 | Wazuh Agent | Wazuh manufacturer APT | `wazuh-agent` |
+| 38 | Apache CouchDB 3.5 | Apache upstream documented APT | `couchdb` |
+| 39 | Neo4j Community Edition | Neo4j manufacturer APT | `neo4j` |
+| 40 | Icinga 2 | Icinga upstream APT | `icinga2` |
+| 41 | MySQL Community Server 8.4 LTS | Oracle manufacturer APT | `mysql-server` |
+| 42 | OpenSearch 3 | OpenSearch upstream APT | `opensearch` |
+| 43 | Datadog Agent 7 | Datadog manufacturer APT | `datadog-agent` |
+| 44 | Falco | Falco upstream APT | `falco` |
+| 45 | Trivy | Aqua Security upstream APT | `trivy` |
+| 46 | CrowdSec Security Engine | CrowdSec manufacturer APT | `crowdsec` |
+| 47 | Fluent Bit | Fluent Bit upstream APT | `fluent-bit` |
+| 48 | DBeaver Community | DBeaver upstream APT | `dbeaver-ce` |
+| 49 | Buildkite Agent | Buildkite manufacturer APT | `buildkite-agent` |
+| 50 | Buildkite CLI | Buildkite manufacturer APT | `bk` |
+
+Implementation must verify repository metadata, package existence, signing keys, architectures, Debian support, and any interactive or privileged behavior before adding each definition. A failing candidate is replaced from the verified reserve pool without reducing the total: Syncthing alternatives, VSCodium only as a labeled non-security-critical endorsed-community exception, ONLYOFFICE Desktop Editors after raw-key verification, Google Chrome Beta, Microsoft Edge Beta, Brave Beta, Opera Beta, or Vivaldi Snapshot. Helm is excluded because cluster package management is security critical and its documented APT infrastructure is community operated.
+
 ## Explicit Exclusions
 
-Do not add Tor Browser, Docker Desktop, Discord, Zoom, Slack, DBeaver, JetBrains Toolbox, Postman, Bitwarden Desktop, GitKraken, RustDesk, OBS Studio, or Dropbox because their official Linux delivery does not meet the repository policy. Do not use Spotify as a primary entry because Spotify states that Linux is not actively supported.
+Do not add Tor Browser, Docker Desktop, Discord, Zoom, Slack, JetBrains Toolbox, Postman, Bitwarden Desktop, GitKraken, RustDesk, OBS Studio, or Dropbox because their official Linux delivery does not meet the repository policy. Do not use Spotify as a primary entry because Spotify states that Linux is not actively supported.
 
-MySQL, RabbitMQ, Percona, Puppet Core, OpenSearch, Netdata, and New Relic remain outside this release because their current setup, authentication, mirror, key, or support model requires additional policy decisions not needed by the selected 25.
+RabbitMQ, Percona, Puppet Core, Netdata, New Relic, TimescaleDB, CockroachDB, Kopia, OpenVPN Access Server, and Helm remain outside this release because their setup, transport, key, community provenance, or version coupling fails the approved policy or requires a model not needed by the selected 100.
 
 ## Output and Deduplication
 
@@ -239,7 +303,7 @@ Required automated coverage:
 - source and product schema invariants;
 - shared source deduplication for Mullvad, HashiCorp, Grafana, Microsoft, and Elastic;
 - multiple keys, release scoped URLs, arbitrary exact path suites, auxiliary trust files, and preferences;
-- all 50 product compatibility matrices across five releases and closed architectures;
+- all 100 product compatibility matrices across five releases and closed architectures;
 - exact published fingerprint sets and safe installer behavior;
 - all three output modes and deterministic artifact order;
 - direct `curl` URL resolution against manifests;
@@ -258,7 +322,7 @@ Final verification requires `npm run check`, zero threshold `npm audit`, product
 Update the README and add focused maintenance documentation covering:
 
 - the source and product data model;
-- all 50 products and compatibility limits;
+- all 100 products and compatibility limits;
 - official only admission policy and explicit exclusions;
 - source sharing and deduplication;
 - multiple keys, auxiliary trust files, preferences, fingerprints, and key rotation;
