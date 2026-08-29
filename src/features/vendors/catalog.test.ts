@@ -29,7 +29,7 @@ const expectedProducts = [
   { id: 'nvidia-container-toolkit', sourceId: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', category: 'containers', icon: 'mdi-chip', packages: ['nvidia-container-toolkit'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['nvidia-container-toolkit-prerequisites'] },
   { id: 'mariadb-community-11-8', sourceId: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', category: 'database', icon: 'mdi-database-cog', packages: ['mariadb-server'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['mariadb-no-setup-script'] },
   { id: 'redis-open-source', sourceId: 'redis-open-source', name: 'Redis Open Source', category: 'database', icon: 'mdi-database-outline', packages: ['redis'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
-  { id: 'clickhouse', sourceId: 'clickhouse', name: 'ClickHouse', category: 'database', icon: 'mdi-database-arrow-right-outline', packages: ['clickhouse-server', 'clickhouse-client'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['clickhouse-generic-debian'] },
+  { id: 'clickhouse', sourceId: 'clickhouse', name: 'ClickHouse', category: 'database', icon: 'mdi-database-arrow-right-outline', packages: ['clickhouse-server', 'clickhouse-client'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'manufacturer', securityCritical: true, warningKeys: ['clickhouse-generic-debian'] },
   { id: 'influxdb-3-core', sourceId: 'influxdb-3-core', name: 'InfluxDB 3 Core', category: 'monitoring', icon: 'mdi-chart-areaspline', packages: ['influxdb3-core'], supportedReleases: ['trixie', 'bookworm', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
   { id: 'zabbix-7-4', sourceId: 'zabbix-7-4', name: 'Zabbix 7.4', category: 'monitoring', icon: 'mdi-server-security', packages: ['zabbix-agent2'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
 ] as const satisfies readonly VendorProduct[]
@@ -47,7 +47,8 @@ describe('migrated vendor product catalog', () => {
       expect(product.sourceId).toEqual(expect.any(String))
       expect(product.warningKeys).toEqual(expect.any(Array))
       expect(product.provenance).not.toBe('debian-native')
-      expect(product.supportLevel).toBe('explicit')
+      const source = REPOSITORY_SOURCES.find((candidate) => candidate.id === product.sourceId)
+      expect(source?.locations.map((location) => location.supportLevel)).toContain(product.supportLevel)
     }
   })
 

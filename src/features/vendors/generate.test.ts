@@ -1,32 +1,82 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
+import { VENDOR_PRODUCTS } from './catalog'
+import { getVendorCompatibility } from './compatibility'
 import {
   generateInstallScript,
   generatePackageInstallCommand,
   generateVendorArtifacts,
   type VendorGenerationConfig,
 } from './generate'
-type LegacyVendorProduct = Record<string, unknown>
+import type {
+  RepositoryKey,
+  RepositoryLocation,
+  RepositorySource,
+  VendorProduct,
+} from './model'
 
-type ProductWithFingerprint = LegacyVendorProduct & { readonly fingerprints?: readonly string[] }
-
-function product(overrides: Partial<ProductWithFingerprint> = {}): ProductWithFingerprint {
+function product(overrides: Partial<VendorProduct> = {}): VendorProduct {
   return {
     id: 'example-tool',
+    sourceId: 'example-tool',
     name: 'Example Tool',
     category: 'development',
-    filename: 'example-tool.sources',
-    documentationUrl: 'https://vendor.example/docs',
-    repositoryUrl: 'https://vendor.example/debian',
-    keyUrl: 'https://vendor.example/key.asc',
-    keyringPath: '/etc/apt/keyrings/example-tool.gpg',
+    icon: 'mdi-code-tags',
     packages: ['example-tool'],
-    architectures: ['amd64'],
-    releases: ['bookworm'],
-    suite: 'bookworm',
-    components: ['main'],
-    verifiedAt: '2026-08-28',
+    supportedArchitectures: ['amd64'],
+    supportedReleases: ['bookworm'],
+    supportLevel: 'explicit',
+    provenance: 'manufacturer',
+    securityCritical: false,
+    warningKeys: [],
     ...overrides,
   }
+}
+
+function location(overrides: Partial<RepositoryLocation> = {}): RepositoryLocation {
+  return {
+    uri: 'https://vendor.example/debian',
+    releases: ['bookworm'],
+    architectures: ['amd64'],
+    suite: 'bookworm',
+    components: ['main'],
+    supportLevel: 'explicit',
+    ...overrides,
+  }
+}
+
+function key(overrides: Partial<RepositoryKey> = {}): RepositoryKey {
+  return {
+    id: 'example-tool-signing-key',
+    url: 'https://vendor.example/key.asc',
+    keyringPath: '/etc/apt/keyrings/example-tool.gpg',
+    format: 'ascii-armored',
+    fingerprints: [],
+    releases: ['bookworm'],
+    ...overrides,
+  }
+}
+
+function source(overrides: Partial<RepositorySource> = {}): RepositorySource {
+  return {
+    id: 'example-tool',
+    name: 'Example Tool Repository',
+    documentationUrl: 'https://vendor.example/docs',
+    verifiedAt: '2026-08-29',
+    locations: [location()],
+    keys: [key()],
+    auxiliaryTrustFiles: [],
+    preferenceFiles: [],
+    warnings: [],
+    ...overrides,
+  }
+}
+
+function catalog(
+  products: readonly VendorProduct[] = [product()],
+  sources: readonly RepositorySource[] = [source()],
+) {
+  return { products, sources }
 }
 
 function config(overrides: Partial<VendorGenerationConfig> = {}): VendorGenerationConfig {
@@ -34,7 +84,7 @@ function config(overrides: Partial<VendorGenerationConfig> = {}): VendorGenerati
     release: 'bookworm',
     architecture: 'amd64',
     productIds: ['example-tool'],
-    products: [product()],
+    catalog: catalog(),
     ...overrides,
   }
 }
@@ -63,19 +113,24 @@ describe('vendor artifact generation', () => {
   })
 
   it('resolves architecture-specific repository URLs from own mapping properties', () => {
+    const selectedProduct = product({ supportedArchitectures: ['amd64', 'arm64'] })
+    const selectedSource = source({
+      locations: [
+        location({ uri: 'https://vendor.example/debian/amd64', architectures: ['amd64'] }),
+        location({ uri: 'https://vendor.example/debian/arm64', architectures: ['arm64'] }),
+      ],
+    })
     const artifacts = generateVendorArtifacts(config({
       architecture: 'arm64',
-      products: [product({
-        architectures: ['amd64', 'arm64'],
-        repositoryUrl: { amd64: 'https://vendor.example/debian/amd64', arm64: 'https://vendor.example/debian/arm64' },
-      })],
+      catalog: catalog([selectedProduct], [selectedSource]),
     }))
 
     expect(artifacts[0]?.content).toContain('URIs: https://vendor.example/debian/arm64\n')
   })
 
   it('omits Components for an exact-path suite', () => {
-    const artifacts = generateVendorArtifacts(config({ products: [product({ suite: '/', components: [] })] }))
+    const exactPathSource = source({ locations: [location({ suite: '/', components: [] })] })
+    const artifacts = generateVendorArtifacts(config({ catalog: catalog([product()], [exactPathSource]) }))
 
     expect(artifacts[0]?.content).toBe([
       'Types: deb',
@@ -88,10 +143,11 @@ describe('vendor artifact generation', () => {
   })
 
   it('adds preferences and a warning as distinct, reviewable artifacts', () => {
-    const artifacts = generateVendorArtifacts(config({ products: [product({
-      preferences: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n',
-      warning: 'Hat eine wichtige Betriebswirkung.',
-    })] }))
+    const selectedSource = source({
+      preferenceFiles: [{ id: 'example-tool', content: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n' }],
+      warnings: ['Hat eine wichtige Betriebswirkung.'],
+    })
+    const artifacts = generateVendorArtifacts(config({ catalog: catalog([product()], [selectedSource]) }))
 
     expect(artifacts.map((artifact) => artifact.filename)).toEqual(['example-tool.sources', 'example-tool.pref'])
     expect(artifacts.map((artifact) => artifact.productName)).toEqual(['Example Tool', 'Example Tool'])
@@ -100,10 +156,11 @@ describe('vendor artifact generation', () => {
   })
 
   it('keeps the generated source and preference bundle stable', () => {
-    expect(generateVendorArtifacts(config({ products: [product({
-      preferences: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n',
-      warning: 'Hat eine wichtige Betriebswirkung.',
-    })] }))).toMatchSnapshot()
+    const selectedSource = source({
+      preferenceFiles: [{ id: 'example-tool', content: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n' }],
+      warnings: ['Hat eine wichtige Betriebswirkung.'],
+    })
+    expect(generateVendorArtifacts(config({ catalog: catalog([product()], [selectedSource]) }))).toMatchSnapshot()
   })
 
   it('rejects unknown and incompatible product selections', () => {
@@ -111,20 +168,27 @@ describe('vendor artifact generation', () => {
     expect(() => generateVendorArtifacts(config({ architecture: 'arm64' }))).toThrow(/arm64.*nicht unterstützt/i)
   })
 
-  it('rejects a filename that could escape the deterministic sources directory', () => {
-    expect(() => generateVendorArtifacts(config({ products: [product({ filename: '../outside.sources' })] })))
-      .toThrow(/example-tool.*filename.*exact/i)
+  it('rejects an unsafe product ID before deriving its deterministic filename', () => {
+    const unsafeProduct = product({ id: '../outside' })
+    expect(() => generateVendorArtifacts(config({
+      productIds: ['../outside'],
+      catalog: catalog([unsafeProduct], [source()]),
+    }))).toThrow(/vendor.*outside.*ID.*safe/i)
   })
 
   it('creates a reviewable installation script with safe key download, verification, and quoting', () => {
     const selected = product({
       name: "Vendor's Tool",
-      keyUrl: "https://vendor.example/keys/vendor's.asc",
-      fingerprints: ['A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB'],
       packages: ['vendor-tool', 'vendor-tools-extra'],
-      warning: 'Dienst aktiviert Netzwerkzugriff.',
     })
-    const selectedConfig = config({ products: [selected] })
+    const selectedSource = source({
+      keys: [key({
+        url: "https://vendor.example/keys/vendor's.asc",
+        fingerprints: ['A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB'],
+      })],
+      warnings: ['Dienst aktiviert Netzwerkzugriff.'],
+    })
+    const selectedConfig = config({ catalog: catalog([selected], [selectedSource]) })
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
     expect(script).toMatchObject({
@@ -156,13 +220,11 @@ describe('vendor artifact generation', () => {
   it('generates the package command in deterministic product order with shell quoting', () => {
     const alpha = product({
       id: 'alpha-tool',
-      filename: 'alpha-tool.sources',
-      keyringPath: '/etc/apt/keyrings/alpha-tool.gpg',
       packages: ["alpha's-tool"],
     })
     const selectedConfig = config({
       productIds: ['example-tool', 'alpha-tool'],
-      products: [product(), alpha],
+      catalog: catalog([product(), alpha]),
     })
 
     expect(generatePackageInstallCommand(selectedConfig)).toBe(
@@ -172,10 +234,12 @@ describe('vendor artifact generation', () => {
   })
 
   it('makes injected names, warnings, and heredoc markers inert', () => {
-    const selectedConfig = config({ products: [product({
-      name: 'Example Tool\nrm -rf /',
-      warning: 'Prüfen\nrm -rf /',
-    })] })
+    const selectedConfig = config({
+      catalog: catalog(
+        [product({ name: 'Example Tool\nrm -rf /' })],
+        [source({ warnings: ['Prüfen\nrm -rf /'] })],
+      ),
+    })
     const artifacts = [{
       filename: 'example-tool.sources',
       mediaType: 'text/plain',
@@ -191,10 +255,11 @@ describe('vendor artifact generation', () => {
   })
 
   it('compares the complete normalized set of primary signing-key fingerprints', () => {
-    const selectedConfig = config({ products: [product({ fingerprints: [
+    const selectedSource = source({ keys: [key({ fingerprints: [
       'BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB BBBB',
       'AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA AAAA',
     ] })] })
+    const selectedConfig = config({ catalog: catalog([product()], [selectedSource]) })
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
     expect(script.content).toContain("expected_fingerprints='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'")
@@ -226,6 +291,34 @@ describe('vendor artifact generation', () => {
     }
   })
 
+  it('preserves the complete pre-migration artifact corpus across all compatible catalog combinations', () => {
+    const releases = ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'] as const
+    const architectures = ['amd64', 'arm64', 'armhf', 'i386'] as const
+    const entries: string[] = []
+
+    for (const product of VENDOR_PRODUCTS) {
+      for (const release of releases) {
+        for (const architecture of architectures) {
+          if (!getVendorCompatibility(product, release, architecture).compatible) continue
+          const selectedConfig = { release, architecture, productIds: [product.id] } as const
+          const artifacts = generateVendorArtifacts(selectedConfig)
+          entries.push([
+            product.id,
+            release,
+            architecture,
+            ...artifacts.map((artifact) => `${artifact.filename}\n${artifact.content}`),
+            `install-vendor-repositories.sh\n${generateInstallScript(selectedConfig, artifacts).content}`,
+          ].join('\n---\n'))
+        }
+      }
+    }
+
+    const payload = entries.sort().join('\n====\n')
+    expect(entries).toHaveLength(170)
+    expect(createHash('sha256').update(payload).digest('hex'))
+      .toBe('3833ca8092b58bb3fa5cc971ab059369cb06071a56951672b41a67516a748c83')
+  })
+
   it.each([
     '../escape.sources',
     '/absolute.sources',
@@ -241,7 +334,8 @@ describe('vendor artifact generation', () => {
   })
 
   it('writes preferences to apt preferences.d, not the sources directory', () => {
-    const selectedConfig = config({ products: [product({ preferences: 'Package: example-tool\n' })] })
+    const selectedSource = source({ preferenceFiles: [{ id: 'example-tool', content: 'Package: example-tool\n' }] })
+    const selectedConfig = config({ catalog: catalog([product()], [selectedSource]) })
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
     expect(script.content).toContain("cat > '/etc/apt/preferences.d/example-tool.pref'")
@@ -273,18 +367,14 @@ describe('vendor artifact generation', () => {
   it('orders safe selected product IDs deterministically', () => {
     const zProduct = product({
       id: 'z-tool',
-      filename: 'z-tool.sources',
-      keyringPath: '/etc/apt/keyrings/z-tool.gpg',
     })
     const alphaProduct = product({
       id: 'a-tool',
-      filename: 'a-tool.sources',
-      keyringPath: '/etc/apt/keyrings/a-tool.gpg',
     })
 
     expect(generateVendorArtifacts(config({
       productIds: ['z-tool', 'a-tool'],
-      products: [zProduct, alphaProduct],
+      catalog: catalog([zProduct, alphaProduct]),
     })).map(({ filename }) => filename)).toEqual(['a-tool.sources', 'z-tool.sources'])
   })
 })
