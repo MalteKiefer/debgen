@@ -80,6 +80,8 @@ const expectedAdditionalSources = [
   {"id":"dbeaver","name":"DBeaver Community","documentationUrl":"https://dbeaver.io/download/","verifiedAt":"2026-08-29","locations":["https://dbeaver.io/debs/dbeaver-ce|trixie,bookworm,bullseye,forky,sid|amd64,arm64|/||generic-debian"],"keys":["dbeaver-signing-key|https://dbeaver.io/debs/dbeaver.gpg.key|/usr/share/keyrings/dbeaver.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid"],"auxiliaryTrustFiles":[],"preferenceFiles":[],"warnings":[]},
   {"id":"buildkite-agent","name":"Buildkite Agent","documentationUrl":"https://buildkite.com/docs/agent/v3/installation","verifiedAt":"2026-08-29","locations":["https://apt.buildkite.com/buildkite-agent|trixie,bookworm,bullseye,forky,sid|amd64,arm64|stable|main|generic-debian"],"keys":["buildkite-agent-signing-key|https://apt.buildkite.com/buildkite-agent/gpgkey|/usr/share/keyrings/buildkite-agent-archive-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid"],"auxiliaryTrustFiles":[],"preferenceFiles":[],"warnings":["buildkite-agent-token-required"]},
   {"id":"buildkite-cli","name":"Buildkite CLI","documentationUrl":"https://buildkite.com/docs/platform/cli/installation","verifiedAt":"2026-08-29","locations":["https://packages.buildkite.com/buildkite/cli-deb/any/|trixie,bookworm,bullseye,forky,sid|amd64,arm64|any|main|generic-debian"],"keys":["buildkite-cli-signing-key|https://packages.buildkite.com/buildkite/cli-deb/gpgkey|/usr/share/keyrings/buildkite-cli-archive-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid"],"auxiliaryTrustFiles":[],"preferenceFiles":[],"warnings":[]},
+  {"id":"zerotier-one","name":"ZeroTier One","documentationUrl":"https://www.zerotier.com/download/","verifiedAt":"2026-08-29","locations":["https://download.zerotier.com/debian/trixie|trixie|amd64,arm64,armhf,i386|trixie|main|explicit","https://download.zerotier.com/debian/bookworm|bookworm|amd64,arm64,armhf,i386|bookworm|main|explicit","https://download.zerotier.com/debian/bullseye|bullseye|amd64,arm64,armhf,i386|bullseye|main|explicit"],"keys":["zerotier-one-signing-key|https://download.zerotier.com/contact%40zerotier.com.gpg|/usr/share/keyrings/zerotier-debian-package-key.gpg|ascii-armored||trixie,bookworm,bullseye"],"auxiliaryTrustFiles":[],"preferenceFiles":[],"warnings":[]},
+  {"id":"netbird","name":"NetBird","documentationUrl":"https://docs.netbird.io/get-started/install/linux","verifiedAt":"2026-08-29","locations":["https://pkgs.netbird.io/debian|bookworm|amd64,arm64,armhf|stable|main|explicit"],"keys":["netbird-signing-key|https://pkgs.netbird.io/debian/public.key|/usr/share/keyrings/netbird-archive-keyring.gpg|ascii-armored||bookworm"],"auxiliaryTrustFiles":[],"preferenceFiles":[],"warnings":[]},
 ] as const
 
 function sourceMetadata(source: RepositorySource) {
@@ -162,6 +164,42 @@ describe('repository source migration', () => {
     expect(getRepositorySource('nginx-stable')?.keys[0]?.fingerprints).toEqual(nginxFingerprints)
     expect(getRepositorySource('nginx-mainline')?.keys[0]?.fingerprints).toEqual(nginxFingerprints)
     expect(getRepositorySource('syncthing')?.preferenceFiles).toEqual([{ id: 'syncthing', content: 'Package: *\nPin: origin apt.syncthing.net\nPin-Priority: 990\n' }])
+  })
+
+  it('uses only the researched official HTTPS ZeroTier and NetBird feeds', () => {
+    expect(getRepositorySource('zerotier-one')).toMatchObject({
+      documentationUrl: 'https://www.zerotier.com/download/',
+      locations: [
+        { uri: 'https://download.zerotier.com/debian/trixie', releases: ['trixie'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'trixie', components: ['main'], supportLevel: 'explicit' },
+        { uri: 'https://download.zerotier.com/debian/bookworm', releases: ['bookworm'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'bookworm', components: ['main'], supportLevel: 'explicit' },
+        { uri: 'https://download.zerotier.com/debian/bullseye', releases: ['bullseye'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'bullseye', components: ['main'], supportLevel: 'explicit' },
+      ],
+      keys: [{
+        id: 'zerotier-one-signing-key',
+        url: 'https://download.zerotier.com/contact%40zerotier.com.gpg',
+        keyringPath: '/usr/share/keyrings/zerotier-debian-package-key.gpg',
+        format: 'ascii-armored',
+        releases: ['trixie', 'bookworm', 'bullseye'],
+      }],
+    })
+    expect(getRepositorySource('netbird')).toMatchObject({
+      documentationUrl: 'https://docs.netbird.io/get-started/install/linux',
+      locations: [{
+        uri: 'https://pkgs.netbird.io/debian',
+        releases: ['bookworm'],
+        architectures: ['amd64', 'arm64', 'armhf'],
+        suite: 'stable',
+        components: ['main'],
+        supportLevel: 'explicit',
+      }],
+      keys: [{
+        id: 'netbird-signing-key',
+        url: 'https://pkgs.netbird.io/debian/public.key',
+        keyringPath: '/usr/share/keyrings/netbird-archive-keyring.gpg',
+        format: 'ascii-armored',
+        releases: ['bookworm'],
+      }],
+    })
   })
 
   it('provides an immutable source catalog', () => {

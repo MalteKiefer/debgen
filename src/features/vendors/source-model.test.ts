@@ -46,7 +46,7 @@ const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   id: 'vendor-product',
   sourceId: 'vendor',
   name: 'Vendor Product',
-  category: 'development',
+  category: 'developer-workstation',
   icon: 'mdi-code-tags',
   packages: ['vendor-product'],
   supportedReleases: ['bookworm'],

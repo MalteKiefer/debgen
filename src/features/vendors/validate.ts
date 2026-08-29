@@ -10,7 +10,26 @@ import { isVendorMdiIcon } from './icons'
 
 const RELEASES = new Set(['trixie', 'bookworm', 'bullseye', 'forky', 'sid'])
 const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
-const CATEGORIES = new Set(['browser', 'communication', 'privacy', 'containers', 'cloud', 'development', 'database', 'monitoring'])
+const CATEGORIES = new Set([
+  'web-browsers',
+  'messaging-email',
+  'vpn-secure-networking',
+  'remote-desktop',
+  'containers-kubernetes',
+  'cloud-edge',
+  'infrastructure-automation',
+  'data-platforms',
+  'observability-logging',
+  'security-secrets',
+  'developer-workstation',
+  'runtimes-sdks',
+  'development-platforms-cicd',
+  'web-servers',
+  'file-synchronization',
+  'virtualization',
+  'games',
+  'desktop-productivity',
+])
 const SAFE_VENDOR_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const FULL_OPENPGP_FINGERPRINT = /^(?:[A-F0-9]{40}|[A-F0-9]{64})$/
 const SAFE_KEYRING_PATH = /^\/(?:etc\/apt\/keyrings|usr\/share\/keyrings)\/[A-Za-z0-9][A-Za-z0-9._+-]*\.(?:asc|gpg|pgp)$/
@@ -26,7 +45,7 @@ export function normalizeOpenPgpFingerprint(fingerprint: string): string {
 }
 
 const SUPPORT_LEVELS = new Set(['explicit', 'generic-debian', 'repository-only'])
-const PROVENANCE = new Set(['manufacturer', 'upstream', 'community-endorsed', 'debian-native'])
+const PROVENANCE = new Set(['manufacturer', 'upstream', 'community-endorsed'])
 const KEY_FORMATS = new Set(['ascii-armored', 'binary'])
 const AUXILIARY_DESTINATIONS = new Set<AuxiliaryTrustDestination>(['debsig-policy', 'debsig-keyring'])
 const AUXILIARY_DESTINATION_PATHS: Readonly<Record<string, {
@@ -251,19 +270,14 @@ const validateProduct = (product: VendorProduct, sourceIds: ReadonlySet<string>,
   if (!Array.isArray(product.warningKeys) || product.warningKeys.some((warning) => typeof warning !== 'string' || warning.trim() === '')) {
     throw productError(productId, 'warning keys must be an array of non-empty keys')
   }
-  if (product.sourceId === null) {
-    if (product.provenance !== 'debian-native') throw productError(productId, 'may use a null source ID only when provenance is debian-native')
-  } else {
-    const sourceId = requireProductText(productId, 'source ID', product.sourceId)
-    if (product.provenance === 'debian-native') throw productError(productId, 'debian-native products must use a null source ID')
-    if (!sourceIds.has(sourceId)) throw productError(productId, `references unknown source "${sourceId}"`)
-    const source = sources.get(sourceId)
-    if (!source) throw productError(productId, `references unknown source "${sourceId}"`)
-    for (const release of releases) {
-      for (const architecture of architectures) {
-        if (!source.locations.some((location) => location.releases.includes(release as never) && location.architectures.includes(architecture as never))) {
-          throw productError(productId, `source "${source.id}" is missing a location for ${release}/${architecture}`)
-        }
+  const sourceId = requireProductText(productId, 'source ID', product.sourceId)
+  if (!sourceIds.has(sourceId)) throw productError(productId, `references unknown source "${sourceId}"`)
+  const source = sources.get(sourceId)
+  if (!source) throw productError(productId, `references unknown source "${sourceId}"`)
+  for (const release of releases) {
+    for (const architecture of architectures) {
+      if (!source.locations.some((location) => location.releases.includes(release as never) && location.architectures.includes(architecture as never))) {
+        throw productError(productId, `source "${source.id}" is missing a location for ${release}/${architecture}`)
       }
     }
   }
@@ -308,7 +322,7 @@ export function validateRepositoryCatalog(sources: readonly RepositorySource[], 
     if (productIds.has(productId)) throw productError(productId, 'has a duplicate ID')
     validateProduct(product, sourceIds, sourceById)
     productIds.add(product.id)
-    if (product.sourceId !== null && typeof product.sourceId === 'string') productsBySource.add(product.sourceId)
+    productsBySource.add(product.sourceId)
   }
   for (const sourceId of sourceIds) {
     if (!productsBySource.has(sourceId)) throw repositoryError(sourceId, 'does not have a selectable product')

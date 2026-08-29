@@ -222,6 +222,22 @@ const sources = [
   source({ id: 'dbeaver', name: 'DBeaver Community', documentationUrl: 'https://dbeaver.io/download/', uri: 'https://dbeaver.io/debs/dbeaver-ce', keyUrl: 'https://dbeaver.io/debs/dbeaver.gpg.key', keyringPath: '/usr/share/keyrings/dbeaver.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: '/', components: [], supportLevel: 'generic-debian' }),
   source({ id: 'buildkite-agent', name: 'Buildkite Agent', documentationUrl: 'https://buildkite.com/docs/agent/v3/installation', uri: 'https://apt.buildkite.com/buildkite-agent', keyUrl: 'https://apt.buildkite.com/buildkite-agent/gpgkey', keyringPath: '/usr/share/keyrings/buildkite-agent-archive-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'stable', components: ['main'], supportLevel: 'generic-debian', warnings: ['buildkite-agent-token-required'] }),
   source({ id: 'buildkite-cli', name: 'Buildkite CLI', documentationUrl: 'https://buildkite.com/docs/platform/cli/installation', uri: 'https://packages.buildkite.com/buildkite/cli-deb/any/', keyUrl: 'https://packages.buildkite.com/buildkite/cli-deb/gpgkey', keyringPath: '/usr/share/keyrings/buildkite-cli-archive-keyring.gpg', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'any', components: ['main'], supportLevel: 'generic-debian' }),
+  {
+    id: 'zerotier-one',
+    name: 'ZeroTier One',
+    documentationUrl: 'https://www.zerotier.com/download/',
+    verifiedAt: '2026-08-29',
+    locations: [
+      { uri: 'https://download.zerotier.com/debian/trixie', releases: ['trixie'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'trixie', components: ['main'], supportLevel: 'explicit' },
+      { uri: 'https://download.zerotier.com/debian/bookworm', releases: ['bookworm'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'bookworm', components: ['main'], supportLevel: 'explicit' },
+      { uri: 'https://download.zerotier.com/debian/bullseye', releases: ['bullseye'], architectures: ['amd64', 'arm64', 'armhf', 'i386'], suite: 'bullseye', components: ['main'], supportLevel: 'explicit' },
+    ],
+    keys: [{ id: 'zerotier-one-signing-key', url: 'https://download.zerotier.com/contact%40zerotier.com.gpg', keyringPath: '/usr/share/keyrings/zerotier-debian-package-key.gpg', format: 'ascii-armored', fingerprints: [], releases: ['trixie', 'bookworm', 'bullseye'] }],
+    auxiliaryTrustFiles: [],
+    preferenceFiles: [],
+    warnings: [],
+  },
+  source({ id: 'netbird', name: 'NetBird', documentationUrl: 'https://docs.netbird.io/get-started/install/linux', uri: 'https://pkgs.netbird.io/debian', keyUrl: 'https://pkgs.netbird.io/debian/public.key', keyringPath: '/usr/share/keyrings/netbird-archive-keyring.gpg', keyFormat: 'ascii-armored', releases: ['bookworm'], architectures: ['amd64', 'arm64', 'armhf'], suite: 'stable', components: ['main'] }),
 ] as const
 
 export const REPOSITORY_SOURCES: readonly RepositorySource[] = deepFreeze(sources)

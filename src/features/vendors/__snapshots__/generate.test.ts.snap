@@ -3,7 +3,7 @@
 exports[`vendor artifact generation > keeps the generated source and preference bundle stable 1`] = `
 [
   {
-    "category": "development",
+    "category": "developer-workstation",
     "content": "Types: deb
 URIs: https://vendor.example/debian
 Suites: bookworm
@@ -21,7 +21,7 @@ Signed-By: /etc/apt/keyrings/example-tool.gpg
     ],
   },
   {
-    "category": "development",
+    "category": "developer-workstation",
     "content": "Package: example-tool
 Pin: origin vendor.example
 Pin-Priority: 1000

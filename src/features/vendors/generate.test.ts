@@ -21,7 +21,7 @@ function product(overrides: Partial<VendorProduct> = {}): VendorProduct {
     id: 'example-tool',
     sourceId: 'example-tool',
     name: 'Example Tool',
-    category: 'development',
+    category: 'developer-workstation',
     icon: 'mdi-code-tags',
     packages: ['example-tool'],
     supportedArchitectures: ['amd64'],
@@ -208,19 +208,21 @@ describe('vendor artifact generation', () => {
     expect(syncthingArtifacts.filter(({ filename }) => filename === 'syncthing.pref')).toHaveLength(1)
   })
 
-  it('emits Debian-native packages without repository, key, or trust setup', () => {
+  it('emits manufacturer repositories for ZeroTier One and NetBird without a native fallback', () => {
     const selectedConfig: VendorGenerationConfig = {
-      release: 'bookworm', architecture: 'amd64', productIds: ['nodejs', 'libreoffice'],
+      release: 'bookworm', architecture: 'amd64', productIds: ['zerotier-one', 'netbird'],
     }
     const artifacts = generateRepositoryArtifacts(selectedConfig)
     const script = generateInstallScript(selectedConfig, artifacts)
 
-    expect(artifacts).toEqual([])
-    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'libreoffice' 'nodejs'\n")
-    expect(script.content).toContain("apt-get install -y 'libreoffice' 'nodejs'")
-    expect(script.content).not.toContain('curl --fail')
-    expect(script.content).not.toContain('/etc/apt/keyrings')
-    expect(script.content).not.toContain('temporary_directory')
+    expect(artifacts.filter(({ filename }) => filename.endsWith('.sources')).map(({ filename }) => filename))
+      .toEqual(['netbird.sources', 'zerotier-one.sources'])
+    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'netbird' 'zerotier-one'\n")
+    expect(script.content).toContain("apt-get install -y 'netbird' 'zerotier-one'")
+    expect(script.content).toContain('https://pkgs.netbird.io/debian/public.key')
+    expect(script.content).toContain('https://download.zerotier.com/contact%40zerotier.com.gpg')
+    expect(script.content).toContain('/usr/share/keyrings/netbird-archive-keyring.gpg')
+    expect(script.content).toContain('/usr/share/keyrings/zerotier-debian-package-key.gpg')
   })
 
   it('deduplicates packages shared by separate products and repository keys shared by sources', () => {
@@ -310,7 +312,7 @@ describe('vendor artifact generation', () => {
           'Signed-By: /etc/apt/keyrings/example-tool.gpg',
           '',
         ].join('\n'),
-        category: 'development',
+        category: 'developer-workstation',
         productId: 'example-tool',
         productName: 'Example Tool',
       },

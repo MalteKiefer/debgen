@@ -34,7 +34,26 @@ const trailing = (content: string): string => content.replace(/\n+$/, '') + '\n'
 const compare = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
 const quote = (value: string): string => `'${value.replace(/'/g, "'\"'\"'")}'`
 const comment = (value: string): string => value.replace(/[\r\n]+/g, ' ').replace(/[\t ]+/g, ' ').trim()
-const categoryOrder = ['browser', 'communication', 'privacy', 'development', 'cloud', 'containers', 'database', 'monitoring'] as const
+const categoryOrder: readonly VendorProduct['category'][] = [
+  'web-browsers',
+  'messaging-email',
+  'vpn-secure-networking',
+  'remote-desktop',
+  'containers-kubernetes',
+  'cloud-edge',
+  'infrastructure-automation',
+  'data-platforms',
+  'observability-logging',
+  'security-secrets',
+  'developer-workstation',
+  'runtimes-sdks',
+  'development-platforms-cicd',
+  'web-servers',
+  'file-synchronization',
+  'virtualization',
+  'games',
+  'desktop-productivity',
+]
 
 const DEFAULT_CATALOG: VendorGenerationCatalog = {
   products: VENDOR_PRODUCTS,

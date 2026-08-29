@@ -11,18 +11,18 @@ const debian: GeneratedArtifact = {
 const firefox: GeneratedArtifact = {
   filename: 'mozilla-firefox.sources', mediaType: 'text/plain', description: 'Firefox',
   content: 'Types: deb\nURIs: https://packages.mozilla.org/apt\nSuites: mozilla\nComponents: main\nSigned-By: /etc/apt/keyrings/mozilla.asc\n',
-  category: 'browser', productId: 'mozilla-firefox',
+  category: 'web-browsers', productId: 'mozilla-firefox',
 }
 
 const docker: GeneratedArtifact = {
   filename: 'docker-engine.sources', mediaType: 'text/plain', description: 'Docker',
   content: 'Types: deb\nURIs: https://download.docker.com/linux/debian\nSuites: bookworm\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.asc\n',
-  category: 'containers', productId: 'docker-engine',
+  category: 'containers-kubernetes', productId: 'docker-engine',
 }
 
 const firefoxPreferences: GeneratedArtifact = {
   filename: 'mozilla-firefox.pref', mediaType: 'text/plain', description: 'Firefox preferences', content: 'Package: *\n',
-  category: 'browser', productId: 'mozilla-firefox',
+  category: 'web-browsers', productId: 'mozilla-firefox',
 }
 
 const installScript: GeneratedArtifact = {
@@ -53,7 +53,7 @@ describe('artifact grouping', () => {
       const result = groupArtifacts([second, first], mode)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.filename).toBe(mode === 'perVendor' ? 'mullvad.sources' : mode === 'combined' ? 'vendors.sources' : 'browser.sources')
+      expect(result[0]?.filename).toBe(mode === 'perVendor' ? 'mullvad.sources' : mode === 'combined' ? 'vendors.sources' : 'web-browsers.sources')
       expect(result[0]?.content).toBe(firefox.content)
       expect(result[0]?.riskNotes).toEqual(['Browser warning', 'Shared warning', 'VPN warning'])
     },
@@ -98,12 +98,12 @@ describe('artifact grouping', () => {
 
     const result = groupArtifacts([
       installScript,
-      artifact('a-zulu.pref', 'browser', 'a-zulu', 'Zulu'),
-      artifact('communication-beta.pref', 'communication', 'communication-beta', 'Beta'),
-      artifact('z-alpha.sources', 'browser', 'z-alpha', 'Alpha'),
-      artifact('a-zulu.sources', 'browser', 'a-zulu', 'Zulu'),
-      artifact('communication-beta.sources', 'communication', 'communication-beta', 'Beta'),
-      artifact('z-alpha.pref', 'browser', 'z-alpha', 'Alpha'),
+      artifact('a-zulu.pref', 'web-browsers', 'a-zulu', 'Zulu'),
+      artifact('communication-beta.pref', 'messaging-email', 'communication-beta', 'Beta'),
+      artifact('z-alpha.sources', 'web-browsers', 'z-alpha', 'Alpha'),
+      artifact('a-zulu.sources', 'web-browsers', 'a-zulu', 'Zulu'),
+      artifact('communication-beta.sources', 'messaging-email', 'communication-beta', 'Beta'),
+      artifact('z-alpha.pref', 'web-browsers', 'z-alpha', 'Alpha'),
       debian,
     ], 'perVendor')
 
@@ -133,28 +133,45 @@ describe('artifact grouping', () => {
   it('combines DEB822 source stanzas by category while retaining distinct key paths', () => {
     const result = groupArtifacts([docker, firefox, debian], 'byCategory')
 
-    expect(result.map(({ filename }) => filename)).toEqual(['debian.sources', 'browser.sources', 'containers.sources'])
+    expect(result.map(({ filename }) => filename)).toEqual(['debian.sources', 'web-browsers.sources', 'containers-kubernetes.sources'])
     expect(result.map(({ description }) => description)).toEqual([
       'Debian-Basis',
-      'Paketquellen: Browser',
-      'Paketquellen: Container',
+      'Paketquellen: Webbrowser',
+      'Paketquellen: Container und Kubernetes',
     ])
     expect(result[1]?.content).toContain('Signed-By: /etc/apt/keyrings/mozilla.asc')
     expect(result[2]?.content).toContain('Signed-By: /etc/apt/keyrings/docker.asc')
   })
 
   it('uses the reviewed category sequence for grouped sources', () => {
-    const result = groupArtifacts([
-      { ...docker, filename: 'cloud-tool.sources', category: 'cloud', productId: 'cloud-tool' },
-      { ...docker, filename: 'privacy-tool.sources', category: 'privacy', productId: 'privacy-tool' },
-      { ...docker, filename: 'development-tool.sources', category: 'development', productId: 'development-tool' },
-      docker,
-      firefox,
-    ], 'byCategory')
+    const categories = [
+      'web-browsers',
+      'messaging-email',
+      'vpn-secure-networking',
+      'remote-desktop',
+      'containers-kubernetes',
+      'cloud-edge',
+      'infrastructure-automation',
+      'data-platforms',
+      'observability-logging',
+      'security-secrets',
+      'developer-workstation',
+      'runtimes-sdks',
+      'development-platforms-cicd',
+      'web-servers',
+      'file-synchronization',
+      'virtualization',
+      'games',
+      'desktop-productivity',
+    ] as const
+    const result = groupArtifacts([...categories].reverse().map((category) => ({
+      ...docker,
+      filename: `${category}-tool.sources`,
+      category,
+      productId: `${category}-tool`,
+    })), 'byCategory')
 
-    expect(result.map(({ filename }) => filename)).toEqual([
-      'browser.sources', 'privacy.sources', 'development.sources', 'cloud.sources', 'containers.sources',
-    ])
+    expect(result.map(({ filename }) => filename)).toEqual(categories.map((category) => `${category}.sources`))
   })
 
   it('rejects colliding filenames and unsupported modes', () => {

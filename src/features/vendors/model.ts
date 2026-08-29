@@ -2,14 +2,24 @@ import type { ReleaseCodename } from '../sources/model'
 import type { VendorMdiIcon } from './icons'
 
 export type VendorCategory =
-  | 'browser'
-  | 'communication'
-  | 'privacy'
-  | 'containers'
-  | 'cloud'
-  | 'development'
-  | 'database'
-  | 'monitoring'
+  | 'web-browsers'
+  | 'messaging-email'
+  | 'vpn-secure-networking'
+  | 'remote-desktop'
+  | 'containers-kubernetes'
+  | 'cloud-edge'
+  | 'infrastructure-automation'
+  | 'data-platforms'
+  | 'observability-logging'
+  | 'security-secrets'
+  | 'developer-workstation'
+  | 'runtimes-sdks'
+  | 'development-platforms-cicd'
+  | 'web-servers'
+  | 'file-synchronization'
+  | 'virtualization'
+  | 'games'
+  | 'desktop-productivity'
 
 export type SystemArchitecture = 'amd64' | 'arm64' | 'armhf' | 'i386'
 
@@ -17,7 +27,7 @@ export type OutputMode = 'perVendor' | 'combined' | 'byCategory'
 
 export type RepositorySupportLevel = 'explicit' | 'generic-debian' | 'repository-only'
 
-export type RepositoryProvenance = 'manufacturer' | 'upstream' | 'community-endorsed' | 'debian-native'
+export type RepositoryProvenance = 'manufacturer' | 'upstream' | 'community-endorsed'
 
 export type RepositoryKeyFormat = 'ascii-armored' | 'binary'
 
@@ -72,7 +82,7 @@ export interface RepositorySource {
 
 export interface VendorProduct {
   readonly id: string
-  readonly sourceId: string | null
+  readonly sourceId: string
   readonly name: string
   readonly category: VendorCategory
   readonly icon: VendorMdiIcon

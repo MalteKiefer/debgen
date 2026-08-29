@@ -6,7 +6,7 @@ const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   id: 'example',
   sourceId: 'example-source',
   name: 'Example',
-  category: 'development',
+  category: 'developer-workstation',
   icon: 'mdi-code-tags',
   packages: ['example'],
   supportedArchitectures: ['amd64'],
@@ -154,11 +154,18 @@ describe('validateRepositoryCatalog', () => {
       .not.toThrow()
   })
 
-  it('permits null source IDs exclusively for Debian-native products and rejects community security products', () => {
-    expect(() => validateRepositoryCatalog([], [product({ sourceId: null, provenance: 'debian-native' })])).not.toThrow()
-    expect(() => validateRepositoryCatalog([], [product({ sourceId: null })]))
-      .toThrow(/example.*debian-native/i)
+  it('rejects null source IDs, retired Debian-native provenance, and community security products', () => {
+    expect(() => validateRepositoryCatalog([], [product({ sourceId: null as unknown as VendorProduct['sourceId'] })]))
+      .toThrow(/example.*source id/i)
+    expect(() => validateRepositoryCatalog([source()], [product({ provenance: 'debian-native' as VendorProduct['provenance'] })]))
+      .toThrow(/example.*provenance/i)
     expect(() => validateRepositoryCatalog([source()], [product({ provenance: 'community-endorsed', securityCritical: true })]))
       .toThrow(/example.*community.*security/i)
+  })
+
+  it('accepts only the closed researched category taxonomy', () => {
+    expect(() => validateRepositoryCatalog([source()], [product({ category: 'web-servers' })])).not.toThrow()
+    expect(() => validateRepositoryCatalog([source()], [product({ category: 'development' as VendorProduct['category'] })]))
+      .toThrow(/example.*category/i)
   })
 })
