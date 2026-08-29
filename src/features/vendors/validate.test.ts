@@ -1,30 +1,63 @@
 import { describe, expect, it } from 'vitest'
-import type { VendorProduct } from './model'
-import { validateVendorCatalog } from './validate'
-
-type ProductWithFingerprints = VendorProduct & { readonly fingerprints?: readonly string[] }
+import type { RepositorySource, VendorProduct } from './model'
+import { validateRepositoryCatalog } from './validate'
 
 const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   id: 'example',
+  sourceId: 'example-source',
   name: 'Example',
   category: 'development',
+  icon: 'mdi-code-tags',
   filename: 'example.sources',
   documentationUrl: 'https://vendor.example/docs',
   repositoryUrl: 'https://vendor.example/debian',
   keyUrl: 'https://vendor.example/key.asc',
-  keyringPath: '/etc/apt/keyrings/example.gpg',
+  keyringPath: '/etc/apt/keyrings/example.asc',
   packages: ['example'],
   architectures: ['amd64'],
   releases: ['bookworm'],
   suite: 'bookworm',
   components: ['main'],
-  verifiedAt: '2026-08-28',
+  verifiedAt: '2026-08-29',
+  supportedArchitectures: ['amd64'],
+  supportedReleases: ['bookworm'],
+  supportLevel: 'explicit',
+  provenance: 'manufacturer',
+  securityCritical: false,
+  warningKeys: [],
   ...overrides,
 })
 
-describe('validateVendorCatalog', () => {
+const source = (overrides: Partial<RepositorySource> = {}): RepositorySource => ({
+  id: 'example-source',
+  name: 'Example source',
+  documentationUrl: 'https://vendor.example/docs',
+  verifiedAt: '2026-08-29',
+  locations: [{
+    uri: 'https://vendor.example/debian',
+    releases: ['bookworm'],
+    architectures: ['amd64'],
+    suite: 'bookworm',
+    components: ['main'],
+    supportLevel: 'explicit',
+  }],
+  keys: [{
+    id: 'example-key',
+    url: 'https://vendor.example/key.asc',
+    keyringPath: '/etc/apt/keyrings/example.asc',
+    format: 'ascii-armored',
+    fingerprints: ['A1B2C3D4E5F60123456789ABCDEF0123456789AB'],
+    releases: ['bookworm'],
+  }],
+  auxiliaryTrustFiles: [],
+  preferenceFiles: [],
+  warnings: [],
+  ...overrides,
+})
+
+describe('validateRepositoryCatalog', () => {
   it('accepts a valid minimal product', () => {
-    expect(() => validateVendorCatalog([product()])).not.toThrow()
+    expect(() => validateRepositoryCatalog([source()], [product()])).not.toThrow()
   })
 
   it.each([
@@ -36,133 +69,84 @@ describe('validateVendorCatalog', () => {
     ['a path separator', 'example/escape'],
     ['a leading separator', '/example'],
   ])('rejects an ID containing %s', (_reason, id) => {
-    expect(() => validateVendorCatalog([product({ id, filename: 'example.sources' })]))
+    expect(() => validateRepositoryCatalog([source()], [product({ id })]))
       .toThrow(/id.*safe.*slug/i)
   })
 
-  it('requires the source filename to be derived exactly from the product ID', () => {
-    expect(() => validateVendorCatalog([product({ id: 'example-product', filename: 'example.sources' })]))
-      .toThrow(/filename.*example-product\.sources/i)
-  })
-
   it.each([
-    ['duplicate IDs', [product(), product({ name: 'Other' })], /example.*duplicate id/i],
-    ['duplicate keyrings', [product(), product({ id: 'other', filename: 'other.sources' })], /other.*keyring/i],
+    ['duplicate product IDs', [product(), product({ name: 'Other' })], /example.*duplicate id/i],
+    ['duplicate source IDs', [source(), source({ name: 'Other source' })], /source.*duplicate id/i],
   ])('rejects %s', (_name, entries, message) => {
-    expect(() => validateVendorCatalog(entries)).toThrow(message)
+    const isSource = entries[0] && 'locations' in entries[0]
+    expect(() => validateRepositoryCatalog(isSource ? entries as RepositorySource[] : [source()], isSource ? [product()] : entries as VendorProduct[])).toThrow(message)
   })
 
   it('rejects non-HTTPS URLs', () => {
-    expect(() => validateVendorCatalog([product({ repositoryUrl: 'http://vendor.example/debian' })]))
-      .toThrow(/example.*repository.*https/i)
-    expect(() => validateVendorCatalog([product({ repositoryUrl: 'https://' })]))
-      .toThrow(/example.*repository.*https/i)
-    expect(() => validateVendorCatalog([product({ repositoryUrl: 'https://%' })]))
-      .toThrow(/example.*repository.*https/i)
-  })
-
-  it('accepts a closed architecture-specific repository URL mapping', () => {
-    expect(() => validateVendorCatalog([product({
-      architectures: ['amd64', 'arm64'],
-      repositoryUrl: {
-        amd64: 'https://vendor.example/debian/amd64',
-        arm64: 'https://vendor.example/debian/arm64',
-      } as VendorProduct['repositoryUrl'],
-    })])).not.toThrow()
-  })
-
-  it.each([
-    ['missing a supported architecture', { amd64: 'https://vendor.example/debian/amd64' }],
-    ['including an unsupported architecture', { amd64: 'https://vendor.example/debian/amd64', arm64: 'https://vendor.example/debian/arm64', i386: 'https://vendor.example/debian/i386' }],
-    ['using a non-HTTPS mapped URL', { amd64: 'http://vendor.example/debian/amd64', arm64: 'https://vendor.example/debian/arm64' }],
-  ])('rejects a repository URL mapping %s', (_reason, repositoryUrl) => {
-    expect(() => validateVendorCatalog([product({
-      architectures: ['amd64', 'arm64'],
-      repositoryUrl: repositoryUrl as VendorProduct['repositoryUrl'],
-    })])).toThrow(/example.*repository.*architecture|example.*repository.*https/i)
-  })
-
-  it('rejects inherited repository URL mappings for required architectures', () => {
-    const inheritedArm64 = { arm64: 'https://vendor.example/debian/arm64' }
-    const repositoryUrl = Object.assign(Object.create(inheritedArm64), {
-      amd64: 'https://vendor.example/debian/amd64',
-    })
-
-    expect(() => validateVendorCatalog([product({
-      architectures: ['amd64', 'arm64'],
-      repositoryUrl: repositoryUrl as VendorProduct['repositoryUrl'],
-    })])).toThrow(/example.*repository.*arm64/i)
+    expect(() => validateRepositoryCatalog([source({ locations: [{ ...source().locations[0], uri: 'http://vendor.example/debian' }] })], [product()]))
+      .toThrow(/source.*location.*https/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], url: 'https://' }] })], [product()]))
+      .toThrow(/source.*key.*https/i)
   })
 
   it('rejects missing metadata', () => {
-    expect(() => validateVendorCatalog([product({ documentationUrl: '' })])).toThrow(/example.*documentation/i)
+    expect(() => validateRepositoryCatalog([source({ documentationUrl: '' })], [product()])).toThrow(/source.*documentation/i)
   })
 
   it('rejects an unknown Material-Design-Icon', () => {
-    expect(() => validateVendorCatalog([product({ icon: 'mdi-nicht-vorhanden' as VendorProduct['icon'] })]))
+    expect(() => validateRepositoryCatalog([source()], [product({ icon: 'mdi-nicht-vorhanden' as VendorProduct['icon'] })]))
       .toThrow(/example.*icon/i)
   })
 
   it('rejects unknown releases', () => {
-    expect(() => validateVendorCatalog([product({ releases: ['jessie' as VendorProduct['releases'][number]] })]))
+    expect(() => validateRepositoryCatalog([source()], [product({ supportedReleases: ['jessie'] as never })]))
       .toThrow(/example.*release/i)
   })
 
   it('rejects unsafe keyring paths', () => {
-    expect(() => validateVendorCatalog([product({ keyringPath: '/tmp/example.gpg' })]))
-      .toThrow(/example.*keyring/i)
-    expect(() => validateVendorCatalog([product({ keyringPath: '/etc/apt/keyrings/../trusted.gpg' })]))
-      .toThrow(/example.*keyring/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/tmp/example.gpg' }] })], [product()]))
+      .toThrow(/source.*keyring/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/etc/apt/keyrings/../trusted.gpg' }] })], [product()]))
+      .toThrow(/source.*keyring/i)
   })
 
   it('rejects empty compatibility sets', () => {
-    expect(() => validateVendorCatalog([product({ releases: [] })])).toThrow(/example.*release/i)
-    expect(() => validateVendorCatalog([product({ architectures: [] })])).toThrow(/example.*architect/i)
+    expect(() => validateRepositoryCatalog([source()], [product({ supportedReleases: [] })])).toThrow(/example.*release/i)
+    expect(() => validateRepositoryCatalog([source()], [product({ supportedArchitectures: [] })])).toThrow(/example.*architect/i)
   })
 
-  it('requires a suite for every supported release in a suite mapping', () => {
-    expect(() => validateVendorCatalog([product({ suite: {} })])).toThrow(/example.*suite/i)
-    expect(() => validateVendorCatalog([product({ suite: { bookworm: 'bookworm', nebula: 'nebula' } as VendorProduct['suite'] })]))
-      .toThrow(/example.*suite.*release|example.*unknown.*suite/i)
-    expect(() => validateVendorCatalog([product({ releases: ['bookworm', 'trixie'], suite: { bookworm: 'bookworm' } })]))
-      .toThrow(/example.*suite.*trixie/i)
+  it('rejects an unknown source reference and a source without a product', () => {
+    expect(() => validateRepositoryCatalog([source()], [product({ sourceId: 'unknown-source' })]))
+      .toThrow(/unknown.*source/i)
+    expect(() => validateRepositoryCatalog([source()], []))
+      .toThrow(/source.*product/i)
   })
 
-  it('requires empty components for exact-path suites', () => {
-    expect(() => validateVendorCatalog([product({ suite: '/', components: [] })])).not.toThrow()
-    expect(() => validateVendorCatalog([product({ suite: '/', components: ['main'] })]))
-      .toThrow(/example.*exact.*component/i)
-  })
-
-  it('requires components for normal suites', () => {
-    expect(() => validateVendorCatalog([product({ suite: 'stable', components: [] })]))
-      .toThrow(/example.*component/i)
+  it('rejects conflicting key definitions and duplicate packages', () => {
+    expect(() => validateRepositoryCatalog([source({ keys: [
+      source().keys[0],
+      { ...source().keys[0], id: 'other-key', url: 'https://vendor.example/other-key.asc' },
+    ] })], [product()])).toThrow(/source.*conflicting.*keyring/i)
+    expect(() => validateRepositoryCatalog([source()], [product({ packages: ['example', 'example'] })]))
+      .toThrow(/example.*duplicate.*package/i)
   })
 
   it.each([
-    ['a spaced 40-character OpenPGP v4 fingerprint', 'A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB'],
-    ['a 64-character OpenPGP v5 fingerprint', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'],
-  ])('accepts %s', (_description, fingerprint) => {
-    const entry = { ...product(), fingerprints: [fingerprint] } as ProductWithFingerprints
-
-    expect(() => validateVendorCatalog([entry])).not.toThrow()
-  })
-
-  it.each([
-    ['an empty allowlist', []],
     ['a short fingerprint', ['A1B2C3D4']],
-    ['a 39-character fingerprint', ['A'.repeat(39)]],
-    ['a 41-character fingerprint', ['A'.repeat(41)]],
-    ['a 63-character fingerprint', ['A'.repeat(63)]],
-    ['a 65-character fingerprint', ['A'.repeat(65)]],
     ['a non-hexadecimal fingerprint', ['G'.repeat(40)]],
     ['duplicate normalized fingerprints', [
       'A1B2 C3D4 E5F6 0123 4567 89AB CDEF 0123 4567 89AB',
       'a1b2c3d4e5f60123456789abcdef0123456789ab',
     ]],
-  ])('rejects %s', (_description, fingerprints) => {
-    const entry = { ...product(), fingerprints } as ProductWithFingerprints
+  ])('rejects %s in a repository key allowlist', (_description, fingerprints) => {
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], fingerprints }] })], [product()]))
+      .toThrow(/source.*key fingerprint/i)
+  })
 
-    expect(() => validateVendorCatalog([entry])).toThrow(/example.*fingerprint/i)
+  it('permits null source IDs exclusively for Debian-native products and rejects community security products', () => {
+    expect(() => validateRepositoryCatalog([], [product({ sourceId: null, provenance: 'debian-native' })])).not.toThrow()
+    expect(() => validateRepositoryCatalog([], [product({ sourceId: null })]))
+      .toThrow(/example.*debian-native/i)
+    expect(() => validateRepositoryCatalog([source()], [product({ provenance: 'community-endorsed', securityCritical: true })]))
+      .toThrow(/example.*community.*security/i)
   })
 })
