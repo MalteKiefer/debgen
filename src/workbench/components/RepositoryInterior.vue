@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { getVendorCompatibility } from '../../features/vendors/compatibility'
 import { renderIcon } from '../../site/icons'
 import type { SiteCopy } from '../../site/locales'
@@ -18,6 +18,22 @@ const emit = defineEmits<{
 
 const query = ref('')
 const categoryFilter = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
+
+const isTypingTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) return false
+  return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable
+}
+
+const focusSearchOnSlash = (event: KeyboardEvent): void => {
+  if (event.key !== '/' || isTypingTarget(event.target) || !searchInput.value) return
+  if (searchInput.value.offsetParent === null) return
+  event.preventDefault()
+  searchInput.value.focus()
+}
+
+onMounted(() => window.addEventListener('keydown', focusSearchOnSlash))
+onUnmounted(() => window.removeEventListener('keydown', focusSearchOnSlash))
 
 const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
 
@@ -89,6 +105,7 @@ const reportIssueUrl = (product: WorkbenchHydrationProduct): string => {
         <span class="visually-hidden">{{ copy.search.label }}</span>
         <input
           id="repository-search"
+          ref="searchInput"
           type="search"
           name="q"
           :placeholder="copy.search.placeholder"
@@ -96,6 +113,7 @@ const reportIssueUrl = (product: WorkbenchHydrationProduct): string => {
           :value="query"
           @input="onQueryInput"
         >
+        <kbd class="search-field__hint" aria-hidden="true">/</kbd>
       </label>
       <label for="repository-category" class="category-field">
         <span v-html="renderIcon('filter')" />

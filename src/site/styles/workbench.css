@@ -780,6 +780,33 @@ thead th {
   padding-inline-start: 2.35rem;
 }
 
+.search-field input {
+  padding-inline-end: 2.1rem;
+}
+
+.search-field__hint {
+  position: absolute;
+  inset-inline-end: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--surface-sunken);
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-style: normal;
+  pointer-events: none;
+}
+
+.search-field input:focus + .search-field__hint {
+  display: none;
+}
+
 .result-count {
   margin: 0;
   color: var(--text-faint);
