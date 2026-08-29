@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { copyText, downloadText } from '../../features/sources/download'
 import { renderIcon } from '../../site/icons'
 import { generateSources, getOutputFilename } from '../../features/sources/generate'
@@ -132,6 +132,50 @@ const packageCommand = computed<string>(() => {
   }
 })
 
+const view = ref<'structured' | 'raw'>('structured')
+
+const fileCount = computed(() => (
+  1
+  + repositoryPlans.value.filter(plan => plan.sourceArtifact).length
+  + (installScript.value && 'content' in installScript.value ? 1 : 0)
+))
+
+const rawDump = computed(() => {
+  const sections: string[] = []
+  const divider = (label: string): string => `# ===== ${label} =====`
+
+  sections.push(divider(debianFilename.value))
+  if ('content' in debianContent.value) sections.push(debianContent.value.content.trimEnd())
+  sections.push('')
+  sections.push(divider('curl'))
+  sections.push(debianCurl.value)
+
+  for (const plan of repositoryPlans.value) {
+    if (!plan.sourceArtifact) continue
+    sections.push('')
+    sections.push(divider(plan.sourceArtifact.filename))
+    sections.push(plan.sourceArtifact.content.trimEnd())
+    sections.push('')
+    sections.push(divider('curl'))
+    sections.push(sourceCurl(plan.sourceId))
+    sections.push(sourceInstallCurl(plan.sourceId))
+  }
+
+  if (installScript.value && 'content' in installScript.value) {
+    sections.push('')
+    sections.push(divider('install-vendor-repositories.sh'))
+    sections.push(installScript.value.content.trimEnd())
+  }
+
+  if (packageCommand.value) {
+    sections.push('')
+    sections.push(divider('apt-get'))
+    sections.push(packageCommand.value.trimEnd())
+  }
+
+  return sections.join('\n')
+})
+
 async function copyContent(key: string, content: string): Promise<void> {
   try {
     await copyText(content)
@@ -153,6 +197,45 @@ function download(key: string, filename: string, content: string, mediaType = 't
 
 <template>
   <div class="export-plan">
+    <section class="export-summary" aria-label="Export summary">
+      <dl class="export-summary__grid">
+        <div><dt>Release</dt><dd>{{ state.release }}</dd></div>
+        <div><dt>Architecture</dt><dd>{{ state.architecture }}</dd></div>
+        <div><dt>Format</dt><dd>{{ state.format }}</dd></div>
+        <div><dt>Selected software</dt><dd>{{ selectedProducts.length }}</dd></div>
+        <div><dt>Unique sources</dt><dd>{{ repositoryPlans.length }}</dd></div>
+        <div><dt>Files</dt><dd>{{ fileCount }}</dd></div>
+      </dl>
+      <div class="export-view-toggle" role="radiogroup" aria-label="Export view">
+        <label :class="{ 'export-view-toggle__option--active': view === 'structured' }">
+          <input type="radio" name="export-view" value="structured" :checked="view === 'structured'" @change="view = 'structured'">
+          Structured
+        </label>
+        <label :class="{ 'export-view-toggle__option--active': view === 'raw' }">
+          <input type="radio" name="export-view" value="raw" :checked="view === 'raw'" @change="view = 'raw'">
+          Raw
+        </label>
+      </div>
+    </section>
+
+    <section v-if="view === 'raw'" class="export-block" aria-labelledby="export-raw-heading">
+      <h3 id="export-raw-heading">Combined output</h3>
+      <div class="code-panel">
+        <div class="code-panel__bar">
+          <span class="code-panel__filename">cat *</span>
+          <div class="code-panel__actions" role="group" aria-label="Combined output actions">
+            <button class="btn" type="button" @click="copyContent('raw', rawDump)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
+            <button class="btn" type="button" @click="download('raw', 'debgen-export.txt', rawDump)"><span v-html="renderIcon('download')" />{{ copy.actions.download }}</button>
+          </div>
+        </div>
+        <pre tabindex="0"><code>{{ rawDump }}</code></pre>
+      </div>
+      <p v-if="feedback.raw" class="feedback-note" :role="feedback.raw.kind === 'error' ? 'alert' : 'status'">
+        {{ feedback.raw.message }}
+      </p>
+    </section>
+
+    <template v-else>
     <section class="export-block" aria-labelledby="export-selection-heading">
       <h3 id="export-selection-heading">Selected software ({{ selectedProducts.length }})</h3>
       <p v-if="selectedProducts.length === 0" class="audit-note">
@@ -289,5 +372,6 @@ function download(key: string, filename: string, content: string, mediaType = 't
         {{ feedback.packages.message }}
       </p>
     </section>
+    </template>
   </div>
 </template>

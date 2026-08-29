@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { getVendorCompatibility } from '../../features/vendors/compatibility'
 import { renderIcon } from '../../site/icons'
 import type { SiteCopy } from '../../site/locales'
@@ -19,21 +19,90 @@ const emit = defineEmits<{
 const query = ref('')
 const categoryFilter = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
+const tableBody = ref<HTMLTableSectionElement | null>(null)
+const pageSize = ref(10)
+const currentPage = ref(1)
+
+const PAGE_SIZES = [10, 25, 50] as const
 
 const isTypingTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) return false
-  return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable
+  if (target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable) return true
+  if (target instanceof HTMLInputElement) return target.type !== 'checkbox' && target.type !== 'radio'
+  return false
 }
+
+const isSectionVisible = (): boolean => searchInput.value !== null && searchInput.value.offsetParent !== null
 
 const focusSearchOnSlash = (event: KeyboardEvent): void => {
   if (event.key !== '/' || isTypingTarget(event.target) || !searchInput.value) return
-  if (searchInput.value.offsetParent === null) return
+  if (!isSectionVisible()) return
   event.preventDefault()
   searchInput.value.focus()
 }
 
-onMounted(() => window.addEventListener('keydown', focusSearchOnSlash))
-onUnmounted(() => window.removeEventListener('keydown', focusSearchOnSlash))
+const rowCheckboxes = (): HTMLInputElement[] => (
+  tableBody.value ? [...tableBody.value.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')] : []
+)
+
+const focusedRowIndex = (checkboxes: readonly HTMLInputElement[]): number => (
+  document.activeElement instanceof HTMLInputElement ? checkboxes.indexOf(document.activeElement) : -1
+)
+
+let lastGPressAt = 0
+
+const handleVimNavigation = (event: KeyboardEvent): void => {
+  if (isTypingTarget(event.target) || !isSectionVisible()) return
+  if (event.altKey || event.ctrlKey || event.metaKey) return
+
+  if (event.key === 'j' || event.key === 'k') {
+    const checkboxes = rowCheckboxes()
+    if (checkboxes.length === 0) return
+    event.preventDefault()
+    const delta = event.key === 'j' ? 1 : -1
+    const nextIndex = Math.min(Math.max(focusedRowIndex(checkboxes) + delta, 0), checkboxes.length - 1)
+    checkboxes[nextIndex]?.focus()
+    return
+  }
+
+  if (event.key === 'g') {
+    const now = Date.now()
+    if (now - lastGPressAt < 500) {
+      lastGPressAt = 0
+      const checkboxes = rowCheckboxes()
+      if (checkboxes.length === 0) return
+      event.preventDefault()
+      checkboxes[0]?.focus()
+    } else {
+      lastGPressAt = now
+    }
+    return
+  }
+
+  if (event.key === 'G') {
+    const checkboxes = rowCheckboxes()
+    if (checkboxes.length === 0) return
+    event.preventDefault()
+    checkboxes[checkboxes.length - 1]?.focus()
+    return
+  }
+
+  if (event.key === 'n' || event.key === 'p') {
+    event.preventDefault()
+    currentPage.value = event.key === 'n'
+      ? Math.min(currentPage.value + 1, totalPages.value)
+      : Math.max(currentPage.value - 1, 1)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', focusSearchOnSlash)
+  window.addEventListener('keydown', handleVimNavigation)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', focusSearchOnSlash)
+  window.removeEventListener('keydown', handleVimNavigation)
+})
 
 const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
 
@@ -57,6 +126,26 @@ const filteredProducts = computed(() => {
     ))
   ))
 })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredProducts.value.length / pageSize.value)))
+
+const pagedProducts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredProducts.value.slice(start, start + pageSize.value)
+})
+
+watch([query, categoryFilter], () => {
+  currentPage.value = 1
+})
+
+watch([filteredProducts, pageSize], () => {
+  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
+})
+
+const onPageSizeChange = (event: Event): void => {
+  pageSize.value = Number((event.currentTarget as HTMLSelectElement).value)
+  currentPage.value = 1
+}
 
 const categoryLabel = (category: string): string => category.replace(/-/g, ' ')
 
@@ -145,9 +234,9 @@ const reportIssueUrl = (product: WorkbenchHydrationProduct): string => {
           <th scope="col"><span class="visually-hidden">Report</span></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody ref="tableBody">
         <tr
-          v-for="product in filteredProducts"
+          v-for="product in pagedProducts"
           :key="product.id"
           :data-repository-id="product.id"
         >
@@ -188,11 +277,25 @@ const reportIssueUrl = (product: WorkbenchHydrationProduct): string => {
             </a>
           </td>
         </tr>
-        <tr v-if="filteredProducts.length === 0">
+        <tr v-if="pagedProducts.length === 0">
           <td colspan="6" class="empty-result">{{ copy.search.empty }}</td>
         </tr>
       </tbody>
     </table>
+  </div>
+  <div class="pagination">
+    <label for="repository-page-size" class="pagination__size">
+      Show
+      <select id="repository-page-size" :value="pageSize" @change="onPageSizeChange">
+        <option v-for="size in PAGE_SIZES" :key="size" :value="size">{{ size }}</option>
+      </select>
+    </label>
+    <div class="pagination__nav" role="group" aria-label="Repository pages">
+      <button type="button" class="btn" :disabled="currentPage <= 1" @click="currentPage = Math.max(currentPage - 1, 1)">Prev</button>
+      <span class="pagination__status" aria-live="polite">Page {{ currentPage }} / {{ totalPages }}</span>
+      <button type="button" class="btn" :disabled="currentPage >= totalPages" @click="currentPage = Math.min(currentPage + 1, totalPages)">Next</button>
+    </div>
+    <p class="pagination__hint">j/k row &middot; gg/G top/bottom &middot; n/p page</p>
   </div>
   <p class="audit-note">{{ copy.trust.review }}</p>
 </template>

@@ -18,7 +18,6 @@ describe('Workbench validation', () => {
     const state = createDefaultState()
 
     expect(validateStep('system', state, testManifest)).toEqual({ valid: true, issues: [] })
-    expect(validateStep('debian', state, testManifest)).toEqual({ valid: true, issues: [] })
     expect(validateStep('repositories', state, testManifest)).toEqual({ valid: true, issues: [] })
     expect(validateStep('review', state, testManifest)).toEqual({ valid: true, issues: [] })
   })
@@ -32,7 +31,7 @@ describe('Workbench validation', () => {
       format: 'legacy' as const,
     }
 
-    const validation = validateStep('debian', state, testManifest)
+    const validation = validateStep('system', state, testManifest)
 
     expect(validation.valid).toBe(false)
     expect(validation.issues).toEqual(expect.arrayContaining([

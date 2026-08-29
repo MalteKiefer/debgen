@@ -27,8 +27,6 @@ const renderLanguageControl = (locale: SupportedLocale, root: boolean): string =
   return `<details class="language-control"><summary>Language${currentLocale}</summary><nav aria-label="Language"><ul>${links}</ul></nav></details>`
 }
 
-const renderThemeControl = (): string => `<details class="theme-control"><summary>${renderIcon('theme')}<span>Theme</span></summary><fieldset class="theme-options"><legend>Color theme</legend><label><input type="radio" id="theme-system" name="theme" value="system" checked>System</label><label><input type="radio" id="theme-light" name="theme" value="light">Light</label><label><input type="radio" id="theme-dark" name="theme" value="dark">Dark</label></fieldset></details>`
-
 export const renderWorkbenchPage = ({
   locale,
   copy,
@@ -63,7 +61,6 @@ export const renderWorkbenchPage = ({
 <p class="current-step"><span>Current step</span><strong>${escapeHtml(copy.steps[activeStep])}</strong></p>
 <nav class="utility-nav" aria-label="Utilities"><a href="https://github.com/MalteKiefer/debgen#readme">Docs</a><a href="/api/v1/catalog.json">API</a><a href="https://github.com/MalteKiefer/debgen">GitHub ${renderIcon('external')}</a></nav>
 ${renderLanguageControl(locale, root)}
-${renderThemeControl()}
 </header>
 <div id="workbench" tabindex="-1">${workbenchHtml}</div>
 <script id="workbench-state" type="application/json">${serializedState}</script>`

@@ -4,13 +4,13 @@ import { describe, expect, it } from 'vitest'
 import { testPayload } from './fixtures'
 
 describe('Workbench SSR boundary', () => {
-  it('renders all five useful steps in workflow order before hydration', async () => {
+  it('renders all four useful steps in workflow order before hydration', async () => {
     const { renderWorkbenchApp } = await import('../../src/workbench/server')
 
     const result = await renderWorkbenchApp(testPayload)
     const steps = [...result.html.matchAll(/data-step="([^"]+)"/gu)].map(match => match[1])
 
-    expect(steps).toEqual(['system', 'debian', 'repositories', 'review', 'export'])
+    expect(steps).toEqual(['system', 'repositories', 'review', 'export'])
     expect(result.html).toContain('id="system"')
     expect(result.html).toContain('id="export"')
     expect(result.html).toContain('<form')

@@ -2,11 +2,10 @@ import type { DebianRelease, ReleaseCodename, SourceFormat } from '../features/s
 import { getRelease, RELEASES } from '../features/sources/releases'
 import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import type { OutputMode, SystemArchitecture, VendorProduct } from '../features/vendors/model'
+import type { WorkbenchStep } from './steps'
 import { reconcileCompatibility, type ReconcileResult } from './validation'
 
-export const WORKBENCH_STEPS = ['system', 'debian', 'repositories', 'review', 'export'] as const
-
-export type WorkbenchStep = typeof WORKBENCH_STEPS[number]
+export { WORKBENCH_STEPS, type WorkbenchStep } from './steps'
 
 export interface WorkbenchState {
   readonly activeStep: WorkbenchStep

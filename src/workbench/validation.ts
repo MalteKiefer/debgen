@@ -96,10 +96,8 @@ function validateRepositories(state: WorkbenchState, manifest: WorkbenchManifest
 
 export function validateStep(step: WorkbenchStep, state: WorkbenchState, manifest: WorkbenchManifest): StepValidation {
   const issues = step === 'system'
-    ? validateSystem(state, manifest)
-    : step === 'debian'
-      ? validateDebian(state, manifest)
-      : validateRepositories(state, manifest)
+    ? validateDebian(state, manifest)
+    : validateRepositories(state, manifest)
   return { valid: issues.length === 0, issues }
 }
 

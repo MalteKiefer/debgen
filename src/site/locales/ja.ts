@@ -1,7 +1,7 @@
 import type { SiteCopy } from './en'
 
 export const ja = {
-  steps: { system: 'システム', debian: 'Debian ソース', repositories: 'リポジトリ', review: '確認', export: 'エクスポート' },
+  steps: { system: 'システムとソース', repositories: 'リポジトリ', review: '確認', export: 'エクスポート' },
   actions: { continue: '続ける', back: '戻る', copy: 'コピー', download: 'ダウンロード', export: 'プランをエクスポート' },
   errors: { invalidSelection: '選択した構成は有効ではありません。', copyFailed: 'コピーに失敗しました。内容を手動でコピーしてください。', downloadFailed: 'ダウンロードに失敗しました。ファイルを手動で保存してください。' },
   audit: { source: 'ソース', operator: '運営者', repository: 'リポジトリ', signingKey: '署名鍵', fingerprint: 'フィンガープリント', compatibility: '互換性', lastVerified: '最終確認' },

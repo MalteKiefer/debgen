@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { SiteCopy } from '../../site/locales'
-import type { WorkbenchStep } from '../state'
+import { WORKBENCH_STEPS, type WorkbenchStep } from '../steps'
 
-const workbenchSteps: readonly WorkbenchStep[] = ['system', 'debian', 'repositories', 'review', 'export']
+const workbenchSteps: readonly WorkbenchStep[] = WORKBENCH_STEPS
 
 defineProps<{
   activeStep: WorkbenchStep

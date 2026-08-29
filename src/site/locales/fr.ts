@@ -1,7 +1,7 @@
 import type { SiteCopy } from './en'
 
 export const fr = {
-  steps: { system: 'Système', debian: 'Sources Debian', repositories: 'Dépôts', review: 'Vérifier', export: 'Exporter' },
+  steps: { system: 'Système et sources', repositories: 'Dépôts', review: 'Vérifier', export: 'Exporter' },
   actions: { continue: 'Continuer', back: 'Retour', copy: 'Copier', download: 'Télécharger', export: 'Exporter le plan' },
   errors: { invalidSelection: 'La configuration sélectionnée n’est pas valide.', copyFailed: 'La copie a échoué. Copiez le contenu manuellement.', downloadFailed: 'Le téléchargement a échoué. Enregistrez le fichier manuellement.' },
   audit: { source: 'Source', operator: 'Opérateur', repository: 'Dépôt', signingKey: 'Clé de signature', fingerprint: 'Empreinte', compatibility: 'Compatibilité', lastVerified: 'Dernière vérification' },

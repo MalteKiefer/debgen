@@ -91,7 +91,7 @@ describe('build-time copy', () => {
   it.each(SUPPORTED_LOCALES)('%s supplies every static Workbench copy group', (locale) => {
     const copy = SITE_COPY[locale]
 
-    expect(Object.keys(copy.steps)).toEqual(['system', 'debian', 'repositories', 'review', 'export'])
+    expect(Object.keys(copy.steps)).toEqual(['system', 'repositories', 'review', 'export'])
     expect(copy.actions.export).not.toBe('')
     expect(copy.errors.copyFailed).not.toBe('')
     expect(copy.audit.fingerprint).not.toBe('')

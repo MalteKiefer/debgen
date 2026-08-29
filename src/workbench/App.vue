@@ -171,15 +171,6 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             </label>
           </div>
           <p class="support-note">Compatibility is checked before repository selection.</p>
-          <div class="step-actions"><a href="#debian" @click.prevent="navigate('debian')">{{ initialState.copy.actions.continue }}</a></div>
-        </StepperSection>
-
-        <StepperSection
-          step="debian"
-          :title="initialState.copy.steps.debian"
-          :number="2"
-          :active="state.activeStep === 'debian'"
-        >
           <div class="choice-grid">
             <fieldset>
               <legend>Suites</legend>
@@ -207,13 +198,13 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
               </label>
             </fieldset>
           </div>
-          <div class="step-actions"><a href="#system" @click.prevent="navigate('system')">{{ initialState.copy.actions.back }}</a><a href="#repositories" @click.prevent="navigate('repositories')">{{ initialState.copy.actions.continue }}</a></div>
+          <div class="step-actions"><a href="#repositories" @click.prevent="navigate('repositories')">{{ initialState.copy.actions.continue }}</a></div>
         </StepperSection>
 
         <StepperSection
           step="repositories"
           :title="initialState.copy.steps.repositories"
-          :number="3"
+          :number="2"
           :active="state.activeStep === 'repositories'"
         >
           <RepositoryInterior
@@ -222,13 +213,13 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             :state="state"
             @change="setRepositories"
           />
-          <div class="step-actions"><a href="#debian" @click.prevent="navigate('debian')">{{ initialState.copy.actions.back }}</a><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.continue }}</a></div>
+          <div class="step-actions"><a href="#system" @click.prevent="navigate('system')">{{ initialState.copy.actions.back }}</a><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.continue }}</a></div>
         </StepperSection>
 
         <StepperSection
           step="review"
           :title="initialState.copy.steps.review"
-          :number="4"
+          :number="3"
           :active="state.activeStep === 'review'"
         >
           <h3 class="review-subheading">Debian base</h3>
@@ -258,7 +249,7 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
         <StepperSection
           step="export"
           :title="initialState.copy.steps.export"
-          :number="5"
+          :number="4"
           :active="state.activeStep === 'export'"
         >
           <p>{{ initialState.copy.trust.review }}</p>

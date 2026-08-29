@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WorkbenchStep } from '../state'
+import { WORKBENCH_STEPS, type WorkbenchStep } from '../steps'
 
 defineProps<{
   step: WorkbenchStep
@@ -7,6 +7,8 @@ defineProps<{
   number: number
   active: boolean
 }>()
+
+const totalSteps = WORKBENCH_STEPS.length
 </script>
 
 <template>
@@ -19,7 +21,7 @@ defineProps<{
   >
     <header class="step-heading">
       <p class="eyebrow">
-        {{ String(number).padStart(2, '0') }} / 05
+        {{ String(number).padStart(2, '0') }} / {{ String(totalSteps).padStart(2, '0') }}
       </p>
       <h2 :id="`${step}-title`">
         {{ title }}

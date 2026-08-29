@@ -52,7 +52,7 @@ describe('static site build', () => {
     await buildSite({ outputDir, baseUrl: 'https://debgen.org/', renderer: renderWorkbenchApp })
     const html = await readFile(join(outputDir, 'index.html'), 'utf8')
     expect(html).toContain('data-step="system"')
-    expect(html.match(/data-step=/gu)).toHaveLength(5)
+    expect(html.match(/data-step=/gu)).toHaveLength(4)
     expect(html).toContain('<div id="workbench" tabindex="-1"><div class="workbench-layout">')
     expect(html).toContain('<script id="workbench-state" type="application/json">')
     expect(html).toMatch(/<script type="module" src="\/assets\/client-[^"]+\.js" defer><\/script>/u)

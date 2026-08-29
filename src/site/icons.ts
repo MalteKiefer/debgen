@@ -1,7 +1,6 @@
 export type WorkbenchIcon =
   | 'check'
   | 'external'
-  | 'theme'
   | 'search'
   | 'copy'
   | 'download'
@@ -12,7 +11,6 @@ export type WorkbenchIcon =
 const iconPaths: Record<WorkbenchIcon, readonly string[]> = {
   check: ['M4.5 12.5 9 17l10.5-10.5'],
   external: ['M14 5h5v5M19 5l-8 8M18 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'],
-  theme: ['M12 3a9 9 0 1 0 0 18V3Zm0 3v12a6 6 0 0 1 0-12Z'],
   search: ['M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z', 'M21 21l-4.3-4.3'],
   copy: ['M9 9h10v10H9z', 'M5 15V5h10'],
   download: ['M12 4v11', 'M7 11l5 5 5-5', 'M5 20h14'],

@@ -1,7 +1,7 @@
 import type { SiteCopy } from './en'
 
 export const zhCN = {
-  steps: { system: '系统', debian: 'Debian 软件源', repositories: '软件仓库', review: '审查', export: '导出' },
+  steps: { system: '系统与源', repositories: '软件仓库', review: '审查', export: '导出' },
   actions: { continue: '继续', back: '返回', copy: '复制', download: '下载', export: '导出计划' },
   errors: { invalidSelection: '所选配置无效。', copyFailed: '复制失败。请手动复制内容。', downloadFailed: '下载失败。请手动保存文件。' },
   audit: { source: '来源', operator: '运营方', repository: '软件仓库', signingKey: '签名密钥', fingerprint: '指纹', compatibility: '兼容性', lastVerified: '最后验证' },

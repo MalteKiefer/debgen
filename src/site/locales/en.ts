@@ -1,7 +1,6 @@
 export interface SiteCopy {
   steps: {
     system: string
-    debian: string
     repositories: string
     review: string
     export: string
@@ -47,7 +46,7 @@ export interface SiteCopy {
 }
 
 export const en = {
-  steps: { system: 'System', debian: 'Debian sources', repositories: 'Repositories', review: 'Review', export: 'Export' },
+  steps: { system: 'System & sources', repositories: 'Repositories', review: 'Review', export: 'Export' },
   actions: { continue: 'Continue', back: 'Back', copy: 'Copy', download: 'Download', export: 'Export plan' },
   errors: { invalidSelection: 'The selected configuration is not valid.', copyFailed: 'Copy failed. Copy the content manually.', downloadFailed: 'Download failed. Save the file manually.' },
   audit: { source: 'Source', operator: 'Operator', repository: 'Repository', signingKey: 'Signing key', fingerprint: 'Fingerprint', compatibility: 'Compatibility', lastVerified: 'Last verified' },

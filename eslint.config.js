@@ -28,6 +28,8 @@ export default tseslint.config(
         ResizeObserver: 'readonly',
         URLSearchParams: 'readonly',
         EventTarget: 'readonly',
+        HTMLTableSectionElement: 'readonly',
+        HTMLSelectElement: 'readonly',
       },
     },
     rules: {

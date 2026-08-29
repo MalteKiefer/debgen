@@ -16,7 +16,7 @@ import { toWorkbenchHydrationProduct } from '../../src/workbench/types'
 const testContext = {
   locale: 'en' as const,
   copy: en,
-  activeStep: 'debian' as const,
+  activeStep: 'repositories' as const,
 }
 
 const renderPage = async ({
@@ -53,7 +53,7 @@ const renderPage = async ({
 }
 
 describe('Structured Workbench page', () => {
-  it('renders the approved five-step Workbench with native landmarks', async () => {
+  it('renders the approved four-step Workbench with native landmarks', async () => {
     const html = await renderPage(testContext)
 
     expect(html).toContain('<a class="skip-link" href="#workbench">Skip to Workbench</a>')
@@ -62,12 +62,12 @@ describe('Structured Workbench page', () => {
     expect(html).toContain('<div id="workbench" tabindex="-1">')
     expect(html).toContain('href="https://github.com/MalteKiefer/debgen"')
 
-    const steps = ['system', 'debian', 'repositories', 'review', 'export'] as const
+    const steps = ['system', 'repositories', 'review', 'export'] as const
     const positions = steps.map(step => html.indexOf(`data-step="${step}"`))
     expect(positions.every(position => position >= 0)).toBe(true)
     expect(positions).toEqual([...positions].sort((left, right) => left - right))
     expect(html.match(/aria-current="step"/gu)).toHaveLength(1)
-    expect(html).toContain('<a href="#debian" aria-current="step">')
+    expect(html).toContain('<a href="#repositories" aria-current="step">')
     expect(html).not.toContain('mdi-')
     expect(html).not.toContain('<div id="app"></div>')
   })
@@ -128,29 +128,21 @@ describe('Structured Workbench page', () => {
   })
 
   it('renders only the small local decorative SVG allowlist', () => {
-    expect(renderIcon('theme')).toMatch(/^<svg aria-hidden="true"/u)
+    expect(renderIcon('search')).toMatch(/^<svg aria-hidden="true"/u)
     expect(renderIcon('external')).toContain('<path')
     expect(renderIcon('check')).not.toContain('<use')
     expect(() => (renderIcon as (name: string) => string)('mdi-menu')).toThrow('Unknown Workbench icon')
   })
 
-  it('switches color themes with native controls and CSS instead of an inert selector', async () => {
+  it('ships a dark-only palette, focus, and reduced-motion safeguards without forbidden decoration', async () => {
     const html = await renderPage(testContext)
     const css = readFileSync(resolve('src/site/styles/workbench.css'), 'utf8')
 
-    expect(html).toContain('<details class="theme-control">')
-    expect(html).toContain('<input type="radio" id="theme-system" name="theme" value="system" checked>')
-    expect(html).toContain('<input type="radio" id="theme-light" name="theme" value="light">')
-    expect(html).toContain('<input type="radio" id="theme-dark" name="theme" value="dark">')
-    expect(html).not.toContain('<select id="theme"')
-    expect(css).toContain(':root:has(#theme-light:checked)')
-    expect(css).toContain(':root:has(#theme-dark:checked)')
-  })
-
-  it('ships responsive theme, focus, and reduced-motion safeguards without forbidden decoration', () => {
-    const css = readFileSync(resolve('src/site/styles/workbench.css'), 'utf8')
-
-    expect(css).toContain('color-scheme: light dark')
+    expect(html).not.toContain('theme-control')
+    expect(html).not.toContain('id="theme-system"')
+    expect(css).not.toContain(':root:has(#theme-light:checked)')
+    expect(css).not.toContain('@media (prefers-color-scheme: light)')
+    expect(css).toContain('color-scheme: dark')
     expect(css).toContain(':focus-visible')
     expect(css).toContain('prefers-reduced-motion: reduce')
     expect(css).toContain('@media (min-width: 46rem)')
