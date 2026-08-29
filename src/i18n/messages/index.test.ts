@@ -17,42 +17,20 @@ function leafStrings(value: unknown): string[] {
   return Object.values(value).flatMap(leafStrings)
 }
 
-const EXPECTED_MESSAGE_KEYS = [
-  'counts.files.few',
-  'counts.files.many',
-  'counts.files.one',
-  'counts.files.other',
-  'counts.files.two',
-  'counts.files.zero',
-  'counts.products.few',
-  'counts.products.many',
-  'counts.products.one',
-  'counts.products.other',
-  'counts.products.two',
-  'counts.products.zero',
-  'counts.sources.few',
-  'counts.sources.many',
-  'counts.sources.one',
-  'counts.sources.other',
-  'counts.sources.two',
-  'counts.sources.zero',
-  'locale.label',
-  'locale.names.de',
-  'locale.names.en',
-  'locale.names.es',
-  'locale.names.fr',
-  'locale.names.it',
-  'locale.names.ja',
-  'locale.names.pl',
-  'locale.names.pt',
-  'locale.names.ru',
-  'locale.names.zh-CN',
-  'meta.title',
-] as const
+const canonicalMessageKeys = leafKeys(messages.en).sort()
 
 describe('locale message bundles', () => {
   it.each(Object.entries(messages))('%s has the complete exact application message schema', (_locale, bundle) => {
-    expect(leafKeys(bundle).sort()).toEqual(EXPECTED_MESSAGE_KEYS)
+    expect(canonicalMessageKeys).toHaveLength(225)
+    expect(canonicalMessageKeys).toEqual(expect.arrayContaining([
+      'compatibility.unsupportedRelease',
+      'controls.availability.bookworm',
+      'vendor.filters.compatibilityLabel',
+      'vendorCard.reportIssueAria',
+      'warnings.docker-firewall',
+      'workspace.ariaLabel',
+    ]))
+    expect(leafKeys(bundle).sort()).toEqual(canonicalMessageKeys)
   })
 
   it.each(Object.entries(messages))('%s contains no Unicode en dash or em dash', (_locale, bundle) => {

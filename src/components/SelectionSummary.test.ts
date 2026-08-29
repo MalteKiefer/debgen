@@ -57,7 +57,7 @@ describe('SelectionSummary', () => {
     expect(mobileSummary.text()).toContain('Trixie')
     expect(mobileSummary.text()).toContain('arm64')
     expect(mobileSummary.text()).toContain('3 Paketquellen ausgewählt')
-    expect(mobileSummary.text()).toContain('Je Anbieter')
+    expect(mobileSummary.text()).toContain('Je Quelle')
   })
 
   it('fixiert die mobile Aktionsleiste am Viewport und reserviert Platz gegen Überlagerungen', () => {

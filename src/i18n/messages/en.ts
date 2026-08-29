@@ -1,6 +1,9 @@
+import { interfaceEn } from './interface'
+
 export const en = {
   meta: {
     title: 'DebGen - Create Debian package sources',
+    noScript: 'DebGen needs JavaScript to generate Debian package sources.',
   },
   locale: {
     label: 'Select language',
@@ -27,12 +30,12 @@ export const en = {
       other: '{count} products',
     },
     sources: {
-      zero: '{count} sources',
-      one: '{count} source',
-      two: '{count} sources',
-      few: '{count} sources',
-      many: '{count} sources',
-      other: '{count} sources',
+      zero: '{count} sources selected',
+      one: '{count} source selected',
+      two: '{count} sources selected',
+      few: '{count} sources selected',
+      many: '{count} sources selected',
+      other: '{count} sources selected',
     },
     files: {
       zero: '{count} files',
@@ -43,6 +46,7 @@ export const en = {
       other: '{count} files',
     },
   },
+  ...interfaceEn,
 } as const
 
 type RecursiveStringSchema<T> = {

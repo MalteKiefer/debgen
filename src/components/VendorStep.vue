@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
-import type { SystemArchitecture, VendorCategory } from '../features/vendors/model'
+import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
+import { getRepositorySource } from '../features/vendors/sources'
+import { formatPlural, matchesSearch } from '../i18n/format'
+import type { SupportedLocale } from '../i18n'
 import VendorCard from './VendorCard.vue'
 
 const props = defineProps<{
@@ -16,37 +20,77 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:selectedIds': [value: string[]]
 }>()
+const { locale, t } = useI18n()
 
 const searchTerm = ref('')
 const activeCategory = ref<VendorCategory | null>(null)
+const originFilter = ref<'all' | VendorProduct['provenance']>('all')
+const compatibilityFilter = ref<'all' | 'compatible' | 'incompatible'>('all')
 const cleanupMessage = ref('')
 const pendingCleanupIds = ref<readonly string[] | null>(null)
 
-const categories: readonly { readonly id: VendorCategory, readonly label: string, readonly icon: VendorMdiIcon }[] = [
-  { id: 'browser', label: 'Browser', icon: 'mdi-web' },
-  { id: 'communication', label: 'Kommunikation', icon: 'mdi-message-text-outline' },
-  { id: 'privacy', label: 'Privatsphäre', icon: 'mdi-shield-lock-outline' },
-  { id: 'containers', label: 'Container', icon: 'mdi-cube-outline' },
-  { id: 'cloud', label: 'Cloud', icon: 'mdi-cloud-outline' },
-  { id: 'development', label: 'Entwicklung', icon: 'mdi-code-tags' },
-  { id: 'database', label: 'Datenbanken', icon: 'mdi-database-outline' },
-  { id: 'monitoring', label: 'Überwachung', icon: 'mdi-chart-line' },
-]
+const categoryIcons: Readonly<Record<string, VendorMdiIcon>> = {
+  browser: 'mdi-web', communication: 'mdi-message-text-outline', privacy: 'mdi-shield-lock-outline',
+  containers: 'mdi-cube-outline', cloud: 'mdi-cloud-outline', development: 'mdi-code-tags',
+  database: 'mdi-database-outline', monitoring: 'mdi-chart-line', webserver: 'mdi-web',
+  'remote-desktop': 'mdi-message-text-outline', games: 'mdi-chart-areaspline', 'gaming-tools': 'mdi-code-tags',
+  'desktop-environments': 'mdi-web', 'networking-vpn': 'mdi-vpn',
+  'monitoring-security': 'mdi-server-security',
+}
+const categoryMessageKeys: Readonly<Record<string, string>> = {
+  'remote-desktop': 'remoteDesktop', 'gaming-tools': 'gamingTools',
+  'desktop-environments': 'desktopEnvironments', 'networking-vpn': 'networkingVpn',
+  'monitoring-security': 'monitoringSecurity',
+}
+function categoryMessageKey(category: string): string {
+  return `categories.${categoryMessageKeys[category] ?? category}`
+}
+const categories = computed(() => [...new Set(VENDOR_PRODUCTS.map((product) => product.category))]
+  .map((id) => ({ id, icon: categoryIcons[id] ?? 'mdi-code-tags' }))
+  .sort((left, right) => t(categoryMessageKey(left.id)).localeCompare(
+    t(categoryMessageKey(right.id)), locale.value,
+  )))
+
+const originOptions = computed(() => [
+  { value: 'all', label: t('vendor.filters.allOrigins') },
+  { value: 'manufacturer', label: t('vendor.origins.manufacturer') },
+  { value: 'upstream', label: t('vendor.origins.upstream') },
+  { value: 'community-endorsed', label: t('vendor.origins.communityEndorsed') },
+  { value: 'debian-native', label: t('vendor.origins.debianNative') },
+])
+
+const compatibilityOptions = computed(() => [
+  { value: 'all', label: t('vendor.filters.allCompatibility') },
+  { value: 'compatible', label: t('vendor.filters.compatible') },
+  { value: 'incompatible', label: t('vendor.filters.incompatible') },
+])
 
 const visibleProducts = computed(() => {
-  const query = searchTerm.value.trim().toLocaleLowerCase('de-DE')
-
+  const activeLocale = locale.value as SupportedLocale
   return VENDOR_PRODUCTS.filter((product) => {
     const categoryMatches = activeCategory.value === null || product.category === activeCategory.value
-    const searchMatches = query === '' || product.name.toLocaleLowerCase('de-DE').includes(query)
+    const originMatches = originFilter.value === 'all' || product.provenance === originFilter.value
+    const compatible = getVendorCompatibility(product, props.release, props.architecture).compatible
+    const compatibilityMatches = compatibilityFilter.value === 'all'
+      || (compatibilityFilter.value === 'compatible' ? compatible : !compatible)
+    const source = product.sourceId ? getRepositorySource(product.sourceId) : undefined
+    const searchMatches = matchesSearch(
+      searchTerm.value,
+      [product.name, t(categoryMessageKey(product.category)), source?.name ?? ''],
+      [product.id, product.sourceId ?? '', ...product.packages],
+      activeLocale,
+    )
 
-    return categoryMatches && searchMatches
-  })
+    return categoryMatches && originMatches && compatibilityMatches && searchMatches
+  }).sort((left, right) => left.name.localeCompare(right.name, activeLocale))
 })
 
 const selectedCountText = computed(() => {
   const count = props.selectedIds.length
-  return `${count} ${count === 1 ? 'Paketquelle ausgewählt' : 'Paketquellen ausgewählt'}`
+  return formatPlural(locale.value as SupportedLocale, count, {
+    zero: t('counts.sources.zero', { count }), one: t('counts.sources.one', { count }), two: t('counts.sources.two', { count }),
+    few: t('counts.sources.few', { count }), many: t('counts.sources.many', { count }), other: t('counts.sources.other', { count }),
+  })
 })
 
 function updateProductSelection(productId: string, selected: boolean): void {
@@ -110,17 +154,19 @@ watch(
     pendingCleanupIds.value = result.normalizedIds
     emit('update:selectedIds', result.normalizedIds)
     const changedSystem = !previous
-      ? 'Die Auswahl wurde geprüft'
+      ? t('selection.checked')
       : previous[0] !== release
-        ? `Release ${release.charAt(0).toUpperCase()}${release.slice(1)}`
+        ? t('selection.releaseChanged', { release: release.charAt(0).toUpperCase() + release.slice(1) })
         : previous[1] !== architecture
-          ? `Architektur ${architecture}`
-          : 'Auswahl aktualisiert'
+          ? t('selection.architectureChanged', { architecture })
+          : t('selection.updated')
     const incompatiblePart = result.incompatibleNames.length > 0
-      ? `${result.incompatibleNames.join(', ')} wurde aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`
+      ? t(result.incompatibleNames.length === 1 ? 'selection.incompatibleRemoved' : 'selection.incompatibleRemovedMany', {
+          products: result.incompatibleNames.join(', '),
+        })
       : ''
     const unknownPart = result.unknownCount > 0
-      ? `${result.unknownCount === 1 ? 'Eine unbekannte Auswahl wurde' : `${result.unknownCount} unbekannte Auswahlen wurden`} entfernt.`
+      ? t(result.unknownCount === 1 ? 'selection.unknownRemoved' : 'selection.unknownRemovedMany', { count: result.unknownCount })
       : ''
     cleanupMessage.value = `${changedSystem}: ${[incompatiblePart, unknownPart].filter(Boolean).join(' ')}`
   },
@@ -133,13 +179,13 @@ watch(
     <header class="vendor-step__heading">
       <div>
         <p class="vendor-step__eyebrow">
-          Schritt 2 von 3
+          {{ t('vendor.eyebrow') }}
         </p>
         <h2 id="vendor-step-title" tabindex="-1">
-          Offizielle Software
+          {{ t('vendor.heading') }}
         </h2>
         <p>
-          Wähle geprüfte Paketquellen, die mit deinem Debian-System kompatibel sind.
+          {{ t('vendor.description') }}
         </p>
       </div>
       <v-chip prepend-icon="mdi-source-repository" variant="tonal">
@@ -149,37 +195,49 @@ watch(
 
     <div class="vendor-step__filters">
       <label class="vendor-step__search" for="vendor-search">
-        <span>Software suchen</span>
+        <span>{{ t('vendor.searchLabel') }}</span>
         <v-icon aria-hidden="true" icon="mdi-magnify" />
         <input
           id="vendor-search"
           v-model="searchTerm"
-          placeholder="Zum Beispiel Docker oder Firefox"
+          :placeholder="t('vendor.searchPlaceholder')"
           type="search"
         >
       </label>
-      <div aria-label="Software-Kategorien" class="vendor-step__categories" role="group">
+      <div :aria-label="t('vendor.categoryGroup')" class="vendor-step__categories" role="group">
         <button
           :aria-pressed="activeCategory === null"
           class="vendor-step__category"
           type="button"
           @click="activeCategory = null"
         >
-          Alle Kategorien
+          {{ t('vendor.allCategories') }}
         </button>
         <button
           v-for="category in categories"
           :key="category.id"
-          :aria-label="`Kategorie ${category.label}`"
+          :aria-label="t('vendor.categoryAria', { category: t(categoryMessageKey(category.id)) })"
           :aria-pressed="activeCategory === category.id"
           class="vendor-step__category"
           type="button"
           @click="activeCategory = category.id"
         >
           <v-icon :icon="category.icon" aria-hidden="true" size="18" />
-          {{ category.label }}
+          {{ t(categoryMessageKey(category.id)) }}
         </button>
       </div>
+      <label class="vendor-step__select-filter">
+        <span>{{ t('vendor.filters.originLabel') }}</span>
+        <select v-model="originFilter" data-testid="origin-filter">
+          <option v-for="option in originOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+        </select>
+      </label>
+      <label class="vendor-step__select-filter">
+        <span>{{ t('vendor.filters.compatibilityLabel') }}</span>
+        <select v-model="compatibilityFilter" data-testid="compatibility-filter">
+          <option v-for="option in compatibilityOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+        </select>
+      </label>
     </div>
 
     <p aria-atomic="true" aria-live="polite" class="vendor-step__status" role="status">
@@ -187,7 +245,7 @@ watch(
       <template v-if="cleanupMessage"> {{ cleanupMessage }}</template>
     </p>
 
-    <div aria-label="Produktkatalog" class="vendor-step__grid">
+    <div :aria-label="t('vendor.catalog')" class="vendor-step__grid">
       <VendorCard
         v-for="product in visibleProducts"
         :key="product.id"
@@ -199,7 +257,7 @@ watch(
       />
     </div>
     <p v-if="visibleProducts.length === 0" class="vendor-step__empty">
-      Keine Produkte entsprechen deiner Suche und Kategorie.
+      {{ t('vendor.empty') }}
     </p>
   </section>
 </template>
@@ -257,6 +315,24 @@ watch(
   border: 1px solid #8d7b84;
   border-radius: 0.5rem;
   background: #fff;
+}
+
+.vendor-step__select-filter {
+  display: grid;
+  gap: 0.25rem;
+  min-inline-size: 11rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.vendor-step__select-filter select {
+  min-block-size: 44px;
+  padding-inline: 0.65rem;
+  border: 1px solid #8d7b84;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
 }
 
 .vendor-step__search span {

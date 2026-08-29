@@ -1,11 +1,15 @@
 <script setup lang="ts">
-const currentStep = defineModel<number>({ required: true })
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const steps = [
-  { value: 1, label: 'Debian-System', icon: 'mdi-debian' },
-  { value: 2, label: 'Offizielle Software', icon: 'mdi-package-variant-closed-check' },
-  { value: 3, label: 'Prüfen und exportieren', icon: 'mdi-file-check-outline' },
-] as const
+const currentStep = defineModel<number>({ required: true })
+const { t } = useI18n()
+
+const steps = computed(() => [
+  { value: 1, label: t('progress.steps.system'), icon: 'mdi-debian' },
+  { value: 2, label: t('progress.steps.software'), icon: 'mdi-package-variant-closed-check' },
+  { value: 3, label: t('progress.steps.review'), icon: 'mdi-file-check-outline' },
+] as const)
 
 function activate(step: number): void {
   currentStep.value = step
@@ -14,7 +18,7 @@ function activate(step: number): void {
 
 <template>
   <nav
-    aria-label="Studio-Schritte"
+    :aria-label="t('progress.ariaLabel')"
     class="studio-progress"
   >
     <ol>
@@ -24,7 +28,7 @@ function activate(step: number): void {
       >
         <button
           :aria-current="currentStep === step.value ? 'step' : undefined"
-          :aria-label="`Schritt ${step.value}: ${step.label}`"
+          :aria-label="t('progress.stepAria', { step: step.value, label: step.label })"
           :class="{ 'studio-progress__button--current': currentStep === step.value }"
           type="button"
           @click="activate(step.value)"

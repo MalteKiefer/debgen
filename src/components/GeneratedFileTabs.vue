@@ -1,17 +1,35 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { copyText, downloadText } from '../features/sources/download'
 import type { GeneratedArtifact } from '../features/vendors/model'
+import { presentArtifact } from '../features/vendors/presentation'
+import { formatPlural } from '../i18n/format'
+import type { SupportedLocale } from '../i18n'
 
 const props = defineProps<{
   artifacts: readonly GeneratedArtifact[]
 }>()
+const { locale, t } = useI18n()
 
 const activeIndex = ref(0)
 const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
 let feedbackVersion = 0
 
 const activeArtifact = computed(() => props.artifacts[activeIndex.value])
+const fileCount = computed(() => formatPlural(locale.value as SupportedLocale, props.artifacts.length, {
+  zero: t('counts.files.zero', { count: props.artifacts.length }), one: t('counts.files.one', { count: props.artifacts.length }), two: t('counts.files.two', { count: props.artifacts.length }),
+  few: t('counts.files.few', { count: props.artifacts.length }), many: t('counts.files.many', { count: props.artifacts.length }), other: t('counts.files.other', { count: props.artifacts.length }),
+}))
+
+function artifactDescription(artifact: GeneratedArtifact): string {
+  const descriptor = presentArtifact(artifact)
+  const values = { ...descriptor.values }
+  if (descriptor.key === 'artifacts.descriptions.categorySources' && artifact.category) {
+    values.category = t(`categories.${artifact.category}`)
+  }
+  return t(descriptor.key, values)
+}
 
 watch(
   () => props.artifacts,
@@ -51,12 +69,12 @@ async function copyArtifact(): Promise<void> {
   try {
     await copyText(artifact.content)
     if (version !== feedbackVersion) return
-    feedback.value = { kind: 'success', message: `${artifact.filename} wurde kopiert.` }
+    feedback.value = { kind: 'success', message: t('files.copySuccess', { filename: artifact.filename }) }
   } catch {
     if (version !== feedbackVersion) return
     feedback.value = {
       kind: 'error',
-      message: 'Kopieren fehlgeschlagen. Bitte kopiere den Inhalt manuell aus der Vorschau.',
+      message: t('files.copyError'),
     }
   }
 }
@@ -68,11 +86,11 @@ function downloadArtifact(): void {
   feedback.value = null
   try {
     downloadText(artifact.filename, artifact.content)
-    feedback.value = { kind: 'success', message: `${artifact.filename} wurde heruntergeladen.` }
+    feedback.value = { kind: 'success', message: t('files.downloadSuccess', { filename: artifact.filename }) }
   } catch {
     feedback.value = {
       kind: 'error',
-      message: 'Herunterladen fehlgeschlagen. Bitte speichere den Inhalt manuell aus der Vorschau.',
+      message: t('files.downloadError'),
     }
   }
 }
@@ -82,15 +100,15 @@ function downloadArtifact(): void {
   <section aria-labelledby="generated-files-title" class="generated-files">
     <div class="generated-files__heading">
       <div>
-        <p class="review-step__eyebrow">Dateipaket</p>
-        <h3 id="generated-files-title">Erzeugte Dateien</h3>
+        <p class="review-step__eyebrow">{{ t('files.eyebrow') }}</p>
+        <h3 id="generated-files-title">{{ t('files.title') }}</h3>
       </div>
       <v-chip prepend-icon="mdi-file-multiple-outline" variant="tonal">
-        {{ artifacts.length }} {{ artifacts.length === 1 ? 'Datei' : 'Dateien' }}
+        {{ fileCount }}
       </v-chip>
     </div>
 
-    <div aria-label="Erzeugte Dateien" class="generated-files__tabs" role="tablist">
+    <div :aria-label="t('files.tabList')" class="generated-files__tabs" role="tablist">
       <button
         v-for="(artifact, index) in artifacts"
         :id="`file-tab-${index}`"
@@ -122,31 +140,31 @@ function downloadArtifact(): void {
       <div class="generated-files__meta">
         <div>
           <strong>{{ artifact.filename }}</strong>
-          <p>{{ artifact.description }}</p>
+          <p>{{ artifactDescription(artifact) }}</p>
         </div>
-        <div aria-label="Aktionen für die ausgewählte Datei" class="generated-files__actions" role="group">
+        <div :aria-label="t('files.actions')" class="generated-files__actions" role="group">
           <v-btn
-            :aria-label="`${artifact.filename} kopieren`"
+            :aria-label="t('files.copyAria', { filename: artifact.filename })"
             class="studio-touch-target"
             prepend-icon="mdi-content-copy"
             variant="tonal"
             @click="copyArtifact"
           >
-            Kopieren
+            {{ t('actions.copy') }}
           </v-btn>
           <v-btn
-            :aria-label="`${artifact.filename} herunterladen`"
+            :aria-label="t('files.downloadAria', { filename: artifact.filename })"
             class="studio-touch-target"
             color="primary"
             prepend-icon="mdi-download"
             @click="downloadArtifact"
           >
-            Herunterladen
+            {{ t('actions.download') }}
           </v-btn>
         </div>
       </div>
       <pre
-        :aria-label="`Inhalt von ${artifact.filename}`"
+        :aria-label="t('files.contentAria', { filename: artifact.filename })"
         class="generated-files__preview"
         tabindex="0"
       ><code>{{ artifact.content }}</code></pre>

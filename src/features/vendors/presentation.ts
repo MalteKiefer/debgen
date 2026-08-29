@@ -1,12 +1,95 @@
-import type { WarningKey } from './model'
+import type { CompatibilityReason } from './compatibility'
+import type { GeneratedArtifact, WarningKey } from './model'
 
-const warningMessages: Readonly<Record<string, string>> = {
-  'docker-firewall': 'Docker kann Firewall-Regeln verändern und dadurch Firewall-Regeln umgehen.',
-  'proton-vpn-supported-environment': 'Offiziell unterstützt werden nur die aktuelle stabile Debian-Version mit GNOME und kein Headless-Betrieb.',
-  'tor-not-browser': 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
-  'nvidia-container-toolkit-prerequisites': 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
-  'mariadb-no-setup-script': 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
-  'clickhouse-generic-debian': 'Das ClickHouse-Repository ist distributionsunabhängig; die Kompatibilität bezieht sich auf die bereitgestellten Paketarchitekturen.',
+export interface PresentationDescriptor {
+  readonly key: string
+  readonly values: Readonly<Record<string, string | number>>
 }
 
-export function presentWarning(key: WarningKey): string { return warningMessages[key] ?? key }
+const knownWarningKeys = new Set<WarningKey>([
+  'buildkite-agent-token-required',
+  'clickhouse-generic-debian',
+  'couchdb-interactive-configuration',
+  'datadog-api-key-required',
+  'docker-firewall',
+  'elastic-agent-enrollment',
+  'elastic-stack-resource-requirements',
+  'falco-driver-setup',
+  'gitlab-server-prerequisites',
+  'jenkins-java-prerequisite',
+  'kubernetes-node-configuration',
+  'mariadb-no-setup-script',
+  'mysql-interactive-configuration',
+  'nvidia-container-toolkit-prerequisites',
+  'opensearch-security-bootstrap',
+  'proton-vpn-supported-environment',
+  'steam-i386-multiarch',
+  'tor-not-browser',
+  'wazuh-manager-enrollment',
+  'yarn-classic-only',
+])
+
+export function presentWarning(key: WarningKey): PresentationDescriptor {
+  return knownWarningKeys.has(key)
+    ? { key: `warnings.${key}`, values: {} }
+    : { key: 'warnings.unknown', values: { warningKey: key } }
+}
+
+export function presentCompatibility(
+  reason: CompatibilityReason,
+  productName: string,
+): PresentationDescriptor {
+  if (reason.code === 'unsupported-release') {
+    return {
+      key: 'compatibility.unsupportedRelease',
+      values: {
+        product: productName,
+        release: reason.release,
+        supported: reason.supportedReleases.join(', '),
+      },
+    }
+  }
+
+  return {
+    key: 'compatibility.unsupportedArchitecture',
+    values: {
+      product: productName,
+      architecture: reason.architecture,
+      supported: reason.supportedArchitectures.join(', '),
+    },
+  }
+}
+
+export function presentArtifact(artifact: GeneratedArtifact): PresentationDescriptor {
+  if (artifact.filename === 'debian.sources' || artifact.filename === 'debian.list') {
+    return { key: 'artifacts.descriptions.debianSource', values: {} }
+  }
+  if (artifact.filename === 'install-vendor-repositories.sh') {
+    return { key: 'artifacts.descriptions.setupScript', values: {} }
+  }
+  if (artifact.filename === 'vendors.sources') {
+    return { key: 'artifacts.descriptions.combinedSources', values: {} }
+  }
+  if (artifact.filename.endsWith('.pref')) {
+    return {
+      key: 'artifacts.descriptions.preference',
+      values: { product: artifact.productName ?? artifact.filename },
+    }
+  }
+  if (artifact.productName) {
+    return {
+      key: 'artifacts.descriptions.repositorySource',
+      values: { product: artifact.productName },
+    }
+  }
+  if (artifact.category && artifact.filename === `${artifact.category}.sources`) {
+    return {
+      key: 'artifacts.descriptions.categorySources',
+      values: { category: artifact.category },
+    }
+  }
+  return {
+    key: 'artifacts.descriptions.generic',
+    values: { filename: artifact.filename },
+  }
+}

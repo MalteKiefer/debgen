@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { copyText, downloadText } from '../features/sources/download'
 import type { GeneratedArtifact } from '../features/vendors/model'
 
@@ -7,6 +8,7 @@ const props = defineProps<{
   setupArtifact: GeneratedArtifact
   packageCommand: string
 }>()
+const { t } = useI18n()
 
 const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null)
 let feedbackVersion = 0
@@ -31,12 +33,12 @@ async function copyCommand(label: string, content: string): Promise<void> {
   try {
     await copyText(content)
     if (version !== feedbackVersion) return
-    feedback.value = { kind: 'success', message: `${label} wurde kopiert.` }
+    feedback.value = { kind: 'success', message: t('install.copySuccess', { label }) }
   } catch {
     if (version !== feedbackVersion) return
     feedback.value = {
       kind: 'error',
-      message: `Kopieren fehlgeschlagen. Bitte kopiere ${label.toLowerCase()} manuell.`,
+      message: t('install.copyError', { label }),
     }
   }
 }
@@ -53,79 +55,79 @@ function downloadSetupArtifact(): void {
     )
     feedback.value = {
       kind: 'success',
-      message: `${props.setupArtifact.filename} wurde heruntergeladen.`,
+      message: t('install.downloadSuccess', { filename: props.setupArtifact.filename }),
     }
   } catch {
     feedback.value = {
       kind: 'error',
-      message: 'Herunterladen fehlgeschlagen. Bitte speichere das Setup-Skript manuell aus der Vorschau.',
+      message: t('install.downloadError'),
     }
   }
 }
 </script>
 
 <template>
-  <section aria-label="Installationsbefehle" class="install-commands">
+  <section :aria-label="t('install.ariaLabel')" class="install-commands">
     <header class="install-commands__heading">
       <div>
-        <p class="review-step__eyebrow">Installation</p>
-        <h3>Geprüfte Befehle</h3>
+        <p class="review-step__eyebrow">{{ t('install.eyebrow') }}</p>
+        <h3>{{ t('install.title') }}</h3>
       </div>
       <v-icon aria-hidden="true" color="primary" icon="mdi-console-line" size="30" />
     </header>
 
     <v-alert icon="mdi-shield-alert-outline" type="warning" variant="tonal">
-      Prüfe Dateien und Befehle vor der Ausführung. Führe sie nur auf einem System aus, das du verwaltest.
+      {{ t('install.warning') }}
     </v-alert>
 
-    <article aria-label="Repository-Einrichtung" class="install-commands__block">
+    <article :aria-label="t('install.setupAria')" class="install-commands__block">
       <div class="install-commands__block-heading">
         <div>
-          <h4>1. Repositorys einrichten</h4>
-          <p>Installiert Schlüssel und Quelldateien und aktualisiert den Paketindex.</p>
+          <h4>{{ t('install.setupTitle') }}</h4>
+          <p>{{ t('install.setupDescription') }}</p>
           <p><code>{{ setupArtifact.filename }}</code> · {{ setupArtifact.mediaType }}</p>
         </div>
-        <div aria-label="Aktionen für das Setup-Skript" class="install-commands__actions" role="group">
+        <div :aria-label="t('install.setupActions')" class="install-commands__actions" role="group">
           <v-btn
-            aria-label="Repository-Einrichtung kopieren"
+            :aria-label="t('install.setupCopyAria')"
             class="studio-touch-target"
             prepend-icon="mdi-content-copy"
             variant="tonal"
-            @click="copyCommand('Repository-Einrichtung', setupArtifact.content)"
+            @click="copyCommand(t('install.setupLabel'), setupArtifact.content)"
           >
-            Kopieren
+            {{ t('actions.copy') }}
           </v-btn>
           <v-btn
-            :aria-label="`${setupArtifact.filename} herunterladen`"
+            :aria-label="t('files.downloadAria', { filename: setupArtifact.filename })"
             class="studio-touch-target"
             prepend-icon="mdi-download"
             variant="tonal"
             @click="downloadSetupArtifact"
           >
-            Herunterladen
+            {{ t('actions.download') }}
           </v-btn>
         </div>
       </div>
-      <pre :aria-label="`Inhalt von ${setupArtifact.filename}`" tabindex="0"><code>{{ setupArtifact.content }}</code></pre>
+      <pre :aria-label="t('files.contentAria', { filename: setupArtifact.filename })" tabindex="0"><code>{{ setupArtifact.content }}</code></pre>
     </article>
 
-    <article aria-label="Paketinstallation" class="install-commands__block">
+    <article :aria-label="t('install.packagesAria')" class="install-commands__block">
       <div class="install-commands__block-heading">
         <div>
-          <h4>2. Gewählte Pakete installieren</h4>
-          <p>Diesen Befehl erst nach Prüfung der neuen Paketquellen ausführen.</p>
+          <h4>{{ t('install.packagesTitle') }}</h4>
+          <p>{{ t('install.packagesDescription') }}</p>
         </div>
         <v-btn
-          aria-label="Paketinstallation kopieren"
+          :aria-label="t('install.packagesCopyAria')"
           class="studio-touch-target"
           prepend-icon="mdi-content-copy"
           variant="tonal"
-          @click="copyCommand('Paketinstallation', packageCommand)"
+          @click="copyCommand(t('install.packageLabel'), packageCommand)"
         >
-          Kopieren
+          {{ t('actions.copy') }}
         </v-btn>
       </div>
-      <pre aria-label="Befehl zur Paketinstallation" tabindex="0"><code>{{ packageCommand }}</code></pre>
+      <pre :aria-label="t('install.packageCommandAria')" tabindex="0"><code>{{ packageCommand }}</code></pre>
     </article>
 
     <div aria-live="polite" class="install-commands__feedback">

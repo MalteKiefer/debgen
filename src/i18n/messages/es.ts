@@ -1,7 +1,8 @@
 import type { MessageSchema } from './en'
+import { interfaceEs } from './interface-romance'
 
 export const es = {
-  meta: { title: 'DebGen - Crear fuentes de paquetes de Debian' },
+  meta: { title: 'DebGen - Crear fuentes de paquetes de Debian', noScript: 'DebGen necesita JavaScript para generar fuentes de paquetes de Debian.' },
   locale: {
     label: 'Seleccionar idioma',
     names: {
@@ -11,7 +12,8 @@ export const es = {
   },
   counts: {
     products: { zero: '{count} productos', one: '{count} producto', two: '{count} productos', few: '{count} productos', many: '{count} productos', other: '{count} productos' },
-    sources: { zero: '{count} fuentes', one: '{count} fuente', two: '{count} fuentes', few: '{count} fuentes', many: '{count} fuentes', other: '{count} fuentes' },
+    sources: { zero: '{count} fuentes seleccionadas', one: '{count} fuente seleccionada', two: '{count} fuentes seleccionadas', few: '{count} fuentes seleccionadas', many: '{count} fuentes seleccionadas', other: '{count} fuentes seleccionadas' },
     files: { zero: '{count} archivos', one: '{count} archivo', two: '{count} archivos', few: '{count} archivos', many: '{count} archivos', other: '{count} archivos' },
   },
+  ...interfaceEs,
 } satisfies MessageSchema

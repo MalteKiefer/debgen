@@ -81,6 +81,38 @@ describe('VendorStep', () => {
     expect(wrapper.emitted('update:selectedIds')).toBeUndefined()
   })
 
+  it('sortiert die sichtbare Produktliste alphabetisch', () => {
+    const wrapper = mountStep()
+    const names = wrapper.findAll('[data-testid="produktkarte"] h3').map((heading) => heading.text())
+
+    expect(names).toEqual([...names].sort((left, right) => left.localeCompare(right, 'de')))
+  })
+
+  it('durchsucht lokalisierte Kategorien und unveränderte technische Produktwerte', async () => {
+    const wrapper = mountStep()
+
+    await wrapper.get('input[type="search"]').setValue('docker-ce')
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(1)
+    expect(wrapper.text()).toContain('Docker Engine')
+
+    await wrapper.get('input[type="search"]').setValue('Privatsphäre')
+    expect(wrapper.text()).toContain('Proton VPN')
+  })
+
+  it('kombiniert Kategorie-, Herkunfts- und Kompatibilitätsfilter', async () => {
+    const wrapper = mountStep({ architecture: 'arm64' })
+
+    await wrapper.get('[aria-label="Kategorie Browser"]').trigger('click')
+    await wrapper.get('[data-testid="origin-filter"]').setValue('manufacturer')
+    await wrapper.get('[data-testid="compatibility-filter"]').setValue('incompatible')
+
+    const cards = wrapper.findAll('[data-testid="produktkarte"]')
+    expect(cards.length).toBeGreaterThan(0)
+    expect(cards.every((card) => card.find('input[type="checkbox"]').attributes('disabled') !== undefined)).toBe(true)
+    expect(wrapper.text()).toContain('Google Chrome')
+    expect(wrapper.text()).not.toContain('Mozilla Firefox')
+  })
+
   it('filtert Produkte nach deutscher Kategorie', async () => {
     const wrapper = mountStep()
 

@@ -65,4 +65,20 @@ describe('VendorCard', () => {
     expect(wrapper.get('#google-chrome-kompatibilitaet').text())
       .toContain('Die Architektur „arm64“ wird von Google Chrome nicht unterstützt.')
   })
+
+  it('öffnet einen sicher vorausgefüllten Defektbericht mit Produkt-, Quelle- und Systemmetadaten', () => {
+    const wrapper = mountCard()
+    const report = wrapper.get('[data-testid="report-issue"]')
+    const url = new URL(report.attributes('href') ?? '')
+
+    expect(url.origin + url.pathname).toBe('https://github.com/maltekiefer/debgen/issues/new')
+    expect(url.searchParams.get('title')).toContain('Brave Browser')
+    expect(url.searchParams.get('body')).toContain('Product ID: brave-browser')
+    expect(url.searchParams.get('body')).toContain('Source ID: brave-browser')
+    expect(url.searchParams.get('body')).toContain('Release: trixie')
+    expect(url.searchParams.get('body')).toContain('Architecture: amd64')
+    expect(report.attributes('target')).toBe('_blank')
+    expect(report.attributes('rel')).toContain('noopener')
+    expect(report.attributes('aria-label')).toContain('Brave Browser')
+  })
 })

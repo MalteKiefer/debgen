@@ -1,7 +1,8 @@
 import type { MessageSchema } from './en'
+import { interfaceRu } from './interface-slavic-asian'
 
 export const ru = {
-  meta: { title: 'DebGen - Создание источников пакетов Debian' },
+  meta: { title: 'DebGen - Создание источников пакетов Debian', noScript: 'Для создания источников пакетов Debian в DebGen требуется JavaScript.' },
   locale: {
     label: 'Выбрать язык',
     names: {
@@ -11,7 +12,8 @@ export const ru = {
   },
   counts: {
     products: { zero: '{count} продуктов', one: '{count} продукт', two: '{count} продукта', few: '{count} продукта', many: '{count} продуктов', other: '{count} продукта' },
-    sources: { zero: '{count} источников', one: '{count} источник', two: '{count} источника', few: '{count} источника', many: '{count} источников', other: '{count} источника' },
+    sources: { zero: 'Выбрано источников: {count}', one: 'Выбран {count} источник', two: 'Выбрано {count} источника', few: 'Выбрано {count} источника', many: 'Выбрано {count} источников', other: 'Выбрано {count} источника' },
     files: { zero: '{count} файлов', one: '{count} файл', two: '{count} файла', few: '{count} файла', many: '{count} файлов', other: '{count} файла' },
   },
+  ...interfaceRu,
 } satisfies MessageSchema

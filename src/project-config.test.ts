@@ -7,13 +7,13 @@ function projectFile(path: string): string {
 }
 
 describe('project-facing configuration', () => {
-  it('declares the German document language and fallback copy', () => {
+  it('declares the canonical English document fallback before locale initialization', () => {
     const document = new DOMParser().parseFromString(projectFile('index.html'), 'text/html')
 
-    expect(document.documentElement.lang).toBe('de')
-    expect(document.title).toBe('DebGen – Debian-Paketquellen erstellen')
+    expect(document.documentElement.lang).toBe('en')
+    expect(document.title).toBe('DebGen - Create Debian package sources')
     expect(document.querySelector('noscript')?.textContent?.trim())
-      .toBe('DebGen benötigt JavaScript, um Debian-Paketquellen zu erzeugen.')
+      .toBe('DebGen needs JavaScript to generate Debian package sources.')
   })
 
   it.each([

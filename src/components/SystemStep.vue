@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ReleaseCodename, SourceFormat } from '../features/sources/model'
 import type { SystemArchitecture } from '../features/vendors/model'
 import GeneratorControls from './GeneratorControls.vue'
+
+const { t } = useI18n()
 
 defineProps<{
   release: ReleaseCodename
@@ -38,17 +41,17 @@ const emit = defineEmits<{
     <div class="system-step__heading">
       <div>
         <p class="system-step__eyebrow">
-          Schritt 1 von 3
+          {{ t('system.eyebrow') }}
         </p>
         <h2 id="system-step-title" tabindex="-1">
-          Debian-System
+          {{ t('system.heading') }}
         </h2>
         <p>
-          Lege Debian-Version, Architektur und die gewünschten Paketquellen fest.
+          {{ t('system.description') }}
         </p>
       </div>
       <v-chip
-        aria-label="Aktuelles System"
+        :aria-label="t('system.currentSystem')"
         color="primary"
         prepend-icon="mdi-cpu-64-bit"
         variant="tonal"

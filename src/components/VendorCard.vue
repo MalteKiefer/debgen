@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
 import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
 import { getRepositorySource } from '../features/vendors/sources'
-import { presentWarning } from '../features/vendors/presentation'
+import { presentCompatibility, presentWarning } from '../features/vendors/presentation'
 
 const props = defineProps<{
   product: VendorProduct
@@ -17,8 +18,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:selected': [value: boolean]
 }>()
+const { t } = useI18n()
 
-const categoryIcons: Record<VendorCategory, VendorMdiIcon> = {
+const categoryIcons: Record<string, VendorMdiIcon> = {
   browser: 'mdi-web',
   communication: 'mdi-message-text-outline',
   privacy: 'mdi-shield-lock-outline',
@@ -27,17 +29,21 @@ const categoryIcons: Record<VendorCategory, VendorMdiIcon> = {
   development: 'mdi-code-tags',
   database: 'mdi-database-outline',
   monitoring: 'mdi-chart-line',
+  webserver: 'mdi-web',
+  'remote-desktop': 'mdi-message-text-outline',
+  games: 'mdi-chart-areaspline',
+  'gaming-tools': 'mdi-code-tags',
+  'desktop-environments': 'mdi-web',
+  'networking-vpn': 'mdi-vpn',
+  'monitoring-security': 'mdi-server-security',
 }
-
-const categoryLabels: Record<VendorCategory, string> = {
-  browser: 'Browser',
-  communication: 'Kommunikation',
-  privacy: 'Privatsphäre',
-  containers: 'Container',
-  cloud: 'Cloud',
-  development: 'Entwicklung',
-  database: 'Datenbanken',
-  monitoring: 'Überwachung',
+const categoryMessageKeys: Readonly<Record<string, string>> = {
+  'remote-desktop': 'remoteDesktop', 'gaming-tools': 'gamingTools',
+  'desktop-environments': 'desktopEnvironments', 'networking-vpn': 'networkingVpn',
+  'monitoring-security': 'monitoringSecurity',
+}
+function categoryMessageKey(category: VendorCategory): string {
+  return `categories.${categoryMessageKeys[category] ?? category}`
 }
 
 const compatibility = computed(() => getVendorCompatibility(
@@ -49,14 +55,30 @@ const compatibilityMessage = computed(() => {
   if (compatibility.value.compatible) return ''
   const reason = compatibility.value.reason
   if (!reason) return ''
-  if (reason.code === 'unsupported-release') {
-    return `Das Release „${reason.release}“ wird von ${props.product.name} nicht unterstützt. Unterstützte Releases: ${reason.supportedReleases.join(', ')}.`
-  }
-  return `Die Architektur „${reason.architecture}“ wird von ${props.product.name} nicht unterstützt. Unterstützte Architekturen: ${reason.supportedArchitectures.join(', ')}.`
+  const descriptor = presentCompatibility(reason, props.product.name)
+  return t(descriptor.key, descriptor.values)
 })
 const documentationUrl = computed(() => props.product.sourceId ? getRepositorySource(props.product.sourceId)?.documentationUrl : undefined)
-const productIcon = computed(() => props.product.icon ?? categoryIcons[props.product.category])
+const productIcon = computed(() => props.product.icon ?? categoryIcons[props.product.category] ?? 'mdi-code-tags')
 const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
+const warningMessages = computed(() => props.product.warningKeys.map((warningKey) => {
+  const descriptor = presentWarning(warningKey)
+  return t(descriptor.key, descriptor.values)
+}))
+const reportIssueUrl = computed(() => {
+  const url = new globalThis.URL('https://github.com/maltekiefer/debgen/issues/new')
+  url.searchParams.set('title', `[Repository issue] ${props.product.name}`)
+  url.searchParams.set('body', [
+    `Product: ${props.product.name}`,
+    `Product ID: ${props.product.id}`,
+    `Source ID: ${props.product.sourceId ?? 'debian-native'}`,
+    `Release: ${props.release}`,
+    `Architecture: ${props.architecture}`,
+    '',
+    'Describe the problem:',
+  ].join('\n'))
+  return url.toString()
+})
 </script>
 
 <template>
@@ -75,7 +97,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       />
       <div>
         <p class="vendor-card__category">
-          {{ categoryLabels[product.category] }}
+          {{ t(categoryMessageKey(product.category)) }}
         </p>
         <h3>
           {{ product.name }}
@@ -89,7 +111,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
         size="small"
         variant="tonal"
       >
-        Offizielle Quelle
+        {{ t('vendorCard.officialSource') }}
       </v-chip>
       <span class="vendor-card__architectures">
         <v-icon aria-hidden="true" icon="mdi-cpu-64-bit" size="18" />
@@ -109,7 +131,7 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
       class="vendor-card__warning"
     >
       <v-icon aria-hidden="true" icon="mdi-alert-outline" size="18" />
-      {{ product.warningKeys.map(presentWarning).join(', ') }}
+      {{ warningMessages.join(' ') }}
     </p>
 
     <footer class="vendor-card__footer">
@@ -117,22 +139,32 @@ const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
         <input
           :id="`${product.id}-selected`"
           :aria-describedby="compatibility.compatible ? undefined : compatibilityId"
-          :aria-label="`${product.name} auswählen`"
+          :aria-label="t('vendorCard.selectAria', { product: product.name })"
           :checked="selected"
           :disabled="!compatibility.compatible"
           type="checkbox"
           @change="emit('update:selected', ($event.target as HTMLInputElement).checked)"
         >
-        <span>{{ selected ? 'Ausgewählt' : 'Auswählen' }}</span>
+        <span>{{ selected ? t('vendorCard.selected') : t('vendorCard.select') }}</span>
       </label>
       <a
-        :aria-label="`${product.name}: offizielle Anleitung (öffnet in neuem Tab)`"
+        :aria-label="t('vendorCard.documentationAria', { product: product.name })"
         :href="documentationUrl"
-        rel="noreferrer"
+        rel="noopener noreferrer"
         target="_blank"
       >
-        Anleitung
+        {{ t('vendorCard.documentation') }}
         <v-icon aria-hidden="true" icon="mdi-open-in-new" size="16" />
+      </a>
+      <a
+        :aria-label="t('vendorCard.reportIssueAria', { product: product.name })"
+        data-testid="report-issue"
+        :href="reportIssueUrl"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {{ t('vendorCard.reportIssue') }}
+        <v-icon aria-hidden="true" icon="mdi-bug-outline" size="16" />
       </a>
     </footer>
   </article>

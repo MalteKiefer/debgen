@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
@@ -13,6 +14,8 @@ import SourceOutput from './SourceOutput.vue'
 import StudioProgress from './StudioProgress.vue'
 import SystemStep from './SystemStep.vue'
 import VendorStep from './VendorStep.vue'
+
+const { t } = useI18n()
 
 const release = ref<ReleaseCodename>('trixie')
 const architecture = ref<SystemArchitecture>('amd64')
@@ -56,7 +59,7 @@ const sourceOptions = computed<SourceOptions>(() => ({
 const debianArtifact = computed<GeneratedArtifact>(() => ({
   filename: getOutputFilename(format.value),
   mediaType: 'text/plain',
-  description: 'Debian-Paketquellen',
+  description: 'debian-source',
   content: generateSources(sourceOptions.value),
 }))
 
@@ -113,11 +116,14 @@ watch([release, architecture], ([nextRelease, nextArchitecture], previousSystem)
   selectedIds.value = selectedIds.value.filter((id) => !removedIds.has(id))
   feedbackVersion += 1
   const changedSystem = previousSystem?.[0] !== nextRelease
-    ? `Release ${nextRelease.charAt(0).toUpperCase()}${nextRelease.slice(1)}`
-    : `Architektur ${nextArchitecture}`
+    ? t('selection.releaseChanged', { release: nextRelease.charAt(0).toUpperCase() + nextRelease.slice(1) })
+    : t('selection.architectureChanged', { architecture: nextArchitecture })
   feedback.value = {
     kind: 'success',
-    message: `${changedSystem}: ${removedProducts.map((product) => product.name).join(', ')} ${removedProducts.length === 1 ? 'wurde' : 'wurden'} aus der Auswahl entfernt, weil die Auswahl nicht kompatibel ist.`,
+    message: `${changedSystem}: ${t(
+      removedProducts.length === 1 ? 'selection.incompatibleRemoved' : 'selection.incompatibleRemovedMany',
+      { products: removedProducts.map((product) => product.name).join(', ') },
+    )}`,
   }
 }, { flush: 'post' })
 
@@ -142,14 +148,14 @@ async function copyGeneratedText(content: string): Promise<void> {
     if (copyVersion !== feedbackVersion) {
       return
     }
-    feedback.value = { kind: 'success', message: 'Die erzeugte Konfiguration wurde kopiert.' }
+    feedback.value = { kind: 'success', message: t('feedback.generatedCopySuccess') }
   } catch {
     if (copyVersion !== feedbackVersion) {
       return
     }
     feedback.value = {
       kind: 'error',
-      message: 'Kopieren fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und kopiere sie manuell.',
+      message: t('feedback.generatedCopyError'),
     }
   }
 }
@@ -160,11 +166,11 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
   try {
     downloadText(outputFilename, content)
-    feedback.value = { kind: 'success', message: `${outputFilename} wurde heruntergeladen.` }
+    feedback.value = { kind: 'success', message: t('feedback.generatedDownloadSuccess', { filename: outputFilename }) }
   } catch {
     feedback.value = {
       kind: 'error',
-      message: 'Herunterladen fehlgeschlagen. Bitte wähle die erzeugte Konfiguration aus und speichere sie manuell.',
+      message: t('feedback.generatedDownloadError'),
     }
   }
 }
@@ -172,7 +178,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
 <template>
   <section
-    aria-label="Debian Studio Arbeitsbereich"
+    :aria-label="t('workspace.ariaLabel')"
     class="source-generator"
   >
     <StudioProgress v-model="activeStep" />
@@ -208,7 +214,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           size="large"
           @click="generate"
         >
-          Paketquellen erzeugen
+          {{ t('actions.generateSources') }}
         </v-btn>
         <v-btn
           append-icon="mdi-arrow-right"
@@ -216,7 +222,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           variant="tonal"
           @click="activeStep = 2"
         >
-          Weiter zur Software
+          {{ t('actions.nextSoftware') }}
         </v-btn>
       </div>
 
@@ -232,7 +238,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
             variant="tonal"
             @click="copyGeneratedText(content)"
           >
-            Kopieren
+            {{ t('actions.copy') }}
           </v-btn>
           <v-btn
             class="studio-touch-target"
@@ -240,14 +246,14 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
             prepend-icon="mdi-download"
             @click="downloadGeneratedText(outputFilename, content)"
           >
-            Herunterladen
+            {{ t('actions.download') }}
           </v-btn>
         </template>
       </SourceOutput>
 
       <div
         v-else
-        aria-label="Aktionen für die erzeugte Konfiguration"
+        :aria-label="t('sourceOutput.actions')"
         class="source-output__actions"
         role="group"
       >
@@ -257,7 +263,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           disabled
           variant="tonal"
         >
-          Kopieren
+          {{ t('actions.copy') }}
         </v-btn>
         <v-btn
           class="studio-touch-target"
@@ -265,7 +271,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           disabled
           prepend-icon="mdi-download"
         >
-          Herunterladen
+          {{ t('actions.download') }}
         </v-btn>
       </div>
     </template>
@@ -283,7 +289,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           variant="text"
           @click="activeStep = 1"
         >
-          Zurück zum Debian-System
+          {{ t('actions.backSystem') }}
         </v-btn>
         <v-btn
           append-icon="mdi-arrow-right"
@@ -291,7 +297,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           color="primary"
           @click="activeStep = 3"
         >
-          Auswahl prüfen
+          {{ t('actions.reviewSelection') }}
         </v-btn>
       </div>
     </template>
@@ -311,7 +317,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           variant="text"
           @click="activeStep = 2"
         >
-          Auswahl bearbeiten
+          {{ t('actions.editSelection') }}
         </v-btn>
         <v-btn
           class="studio-touch-target"
@@ -319,7 +325,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           variant="tonal"
           @click="activeStep = 1"
         >
-          System bearbeiten
+          {{ t('actions.editSystem') }}
         </v-btn>
       </div>
     </template>

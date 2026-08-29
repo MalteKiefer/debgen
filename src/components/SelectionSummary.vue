@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { SystemArchitecture } from '../features/vendors/model'
+import { formatPlural } from '../i18n/format'
+import type { SupportedLocale } from '../i18n'
 
 const props = defineProps<{
   release: string
@@ -13,6 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   navigate: [step: number]
 }>()
+const { locale, t } = useI18n()
 
 const mobileViewport = window.matchMedia('(max-width: 700px)')
 const isMobile = ref(mobileViewport.matches)
@@ -25,10 +29,14 @@ const mobilePositionStyle = {
 const mobileBodyReserve = '12rem'
 let previousBodyPaddingBottom: string | undefined
 const mobileAction = computed(() => {
-  if (props.currentStep === 2) return { label: 'Auswahl prüfen', targetStep: 3 }
-  if (props.currentStep === 3) return { label: 'Auswahl bearbeiten', targetStep: 2 }
-  return { label: 'Weiter zur Software', targetStep: 2 }
+  if (props.currentStep === 2) return { label: t('actions.reviewSelection'), targetStep: 3 }
+  if (props.currentStep === 3) return { label: t('actions.editSelection'), targetStep: 2 }
+  return { label: t('actions.nextSoftware'), targetStep: 2 }
 })
+const sourceCount = computed(() => formatPlural(locale.value as SupportedLocale, props.repositoryCount, {
+  zero: t('counts.sources.zero', { count: props.repositoryCount }), one: t('counts.sources.one', { count: props.repositoryCount }), two: t('counts.sources.two', { count: props.repositoryCount }),
+  few: t('counts.sources.few', { count: props.repositoryCount }), many: t('counts.sources.many', { count: props.repositoryCount }), other: t('counts.sources.other', { count: props.repositoryCount }),
+}))
 
 function updateViewport(event: MediaQueryListEvent): void {
   isMobile.value = event.matches
@@ -56,15 +64,13 @@ onUnmounted(() => {
 })
 
 function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string {
-  if (mode === 'combined') return 'Kombiniert'
-  if (mode === 'byCategory') return 'Nach Kategorie'
-  return 'Je Anbieter'
+  return t(`summary.modes.${mode}`)
 }
 </script>
 
 <template>
   <aside
-    aria-label="Aktuelle Auswahl"
+    :aria-label="t('summary.ariaLabel')"
     :class="['selection-summary', { 'selection-summary--mobile': isMobile }]"
     data-testid="auswahl-zusammenfassung"
   >
@@ -75,7 +81,7 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     >
       <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
       <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
-      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ repositoryCount }} Paketquellen ausgewählt</span>
+      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ sourceCount }}</span>
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
     </div>
     <div
@@ -86,7 +92,7 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     >
       <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
       <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
-      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ repositoryCount }} Paketquellen ausgewählt</span>
+      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ sourceCount }}</span>
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
       <v-btn
         append-icon="mdi-arrow-right"

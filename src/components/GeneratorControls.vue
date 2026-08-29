@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ReleaseCodename, SourceFormat } from '../features/sources/model'
 import type { SystemArchitecture } from '../features/vendors/model'
 import { getRelease, RELEASES } from '../features/sources/releases'
@@ -14,19 +15,21 @@ const includeFirmware = defineModel<boolean>('includeFirmware', { required: true
 const includeSecurity = defineModel<boolean>('includeSecurity', { required: true })
 const includeUpdates = defineModel<boolean>('includeUpdates', { required: true })
 const includeBackports = defineModel<boolean>('includeBackports', { required: true })
+const { t } = useI18n()
 
 const availabilityId = 'release-capability-status'
 const selectedRelease = computed(() => getRelease(release.value))
 const releaseStatus = computed(() => {
   const statuses: Record<string, string> = {
-    stable: 'stabil',
-    'oldstable / LTS': 'vorherige stabile Version / LTS',
-    'oldoldstable / LTS': 'ältere stabile Version / LTS',
-    testing: 'Testversion',
-    unstable: 'instabil',
+    stable: 'controls.releaseStatus.stable',
+    'oldstable / LTS': 'controls.releaseStatus.oldstableLts',
+    'oldoldstable / LTS': 'controls.releaseStatus.oldoldstableLts',
+    testing: 'controls.releaseStatus.testing',
+    unstable: 'controls.releaseStatus.unstable',
   }
 
-  return statuses[selectedRelease.value.status] ?? selectedRelease.value.status
+  const key = statuses[selectedRelease.value.status]
+  return key ? t(key) : selectedRelease.value.status
 })
 
 const releaseItems = RELEASES.map((entry) => ({
@@ -34,15 +37,15 @@ const releaseItems = RELEASES.map((entry) => ({
   value: entry.codename,
 }))
 
-const architectureItems = [
-  { title: 'amd64 (64-Bit-PC)', value: 'amd64' },
-  { title: 'arm64 (64-Bit-ARM)', value: 'arm64' },
-  { title: 'armhf (32-Bit-ARM)', value: 'armhf' },
-  { title: 'i386 (32-Bit-PC)', value: 'i386' },
-] satisfies { title: string, value: SystemArchitecture }[]
+const architectureItems = computed(() => ([
+  { title: t('controls.architectures.amd64'), value: 'amd64' },
+  { title: t('controls.architectures.arm64'), value: 'arm64' },
+  { title: t('controls.architectures.armhf'), value: 'armhf' },
+  { title: t('controls.architectures.i386'), value: 'i386' },
+] satisfies { title: string, value: SystemArchitecture }[]))
 
 const formatItems = computed(() => selectedRelease.value.formats.map((entry) => ({
-  title: entry === 'deb822' ? 'DEB822 (.sources)' : 'Klassische sources.list (.list, veraltet)',
+  title: t(entry === 'deb822' ? 'controls.formats.deb822' : 'controls.formats.legacy'),
   value: entry,
 })))
 
@@ -56,18 +59,18 @@ const availabilityMessage = computed(() => {
     + selectedRelease.value.codename.slice(1)
 
   if (selectedRelease.value.codename === 'bullseye') {
-    return 'Bullseye bietet weder non-free-firmware noch Backports. Diese Steuerelemente sind deaktiviert. Das klassische sources.list-Format ist veraltet.'
+    return t('controls.availability.bullseye')
   }
   if (selectedRelease.value.codename === 'bookworm') {
-    return 'Bookworm unterstützt DEB822 und das veraltete klassische sources.list-Format. Die Backports-Unterstützung endete am 09.08.2026, deshalb ist dieses Steuerelement deaktiviert.'
+    return t('controls.availability.bookworm')
   }
   if (!supportsSecurity.value && !supportsUpdates.value && !supportsBackports.value) {
-    return `${name} enthält nur die Basisquelle: Security, Updates und Backports sind nicht verfügbar.`
+    return t('controls.availability.baseOnly', { release: name })
   }
   if (selectedRelease.value.formats.length === 1) {
-    return `${name} nutzt das empfohlene DEB822-Format. Security, Updates und Backports sind verfügbar.`
+    return t('controls.availability.deb822Only', { release: name })
   }
-  return `${name} unterstützt DEB822 und das veraltete klassische sources.list-Format.`
+  return t('controls.availability.legacySupported', { release: name })
 })
 
 function describedBy(supported: boolean): string | undefined {
@@ -81,7 +84,7 @@ function describedBy(supported: boolean): string | undefined {
     variant="outlined"
   >
     <v-card-title id="generator-controls-title">
-      Paketquellen konfigurieren
+      {{ t('controls.title') }}
     </v-card-title>
     <v-card-subtitle>
       {{ releaseStatus }}
@@ -91,23 +94,23 @@ function describedBy(supported: boolean): string | undefined {
       <div class="generator-controls__selects">
         <v-select
           v-model="release"
-          aria-label="Debian-Version"
+          :aria-label="t('controls.fields.release')"
           :items="releaseItems"
-          label="Debian-Version"
+          :label="t('controls.fields.release')"
         variant="outlined"
       />
         <v-select
           v-model="architecture"
-          aria-label="Architektur"
+          :aria-label="t('controls.fields.architecture')"
           :items="architectureItems"
-          label="Architektur"
+          :label="t('controls.fields.architecture')"
           variant="outlined"
         />
         <v-select
           v-model="format"
-          aria-label="Ausgabeformat"
+          :aria-label="t('controls.fields.format')"
           :items="formatItems"
-          label="Ausgabeformat"
+          :label="t('controls.fields.format')"
           variant="outlined"
         />
       </div>
@@ -125,71 +128,71 @@ function describedBy(supported: boolean): string | undefined {
 
       <div class="generator-controls__groups">
         <fieldset>
-          <legend>Paketindizes</legend>
+          <legend>{{ t('controls.groups.packageIndexes') }}</legend>
           <v-switch
             v-model="includeSource"
-            aria-label="Quellpakete"
+            :aria-label="t('controls.options.sourcePackages')"
             color="primary"
             hide-details
-            label="Quellpakete"
+            :label="t('controls.options.sourcePackages')"
           />
         </fieldset>
 
         <fieldset>
-          <legend>Repository-Komponenten</legend>
+          <legend>{{ t('controls.groups.repositoryComponents') }}</legend>
           <v-checkbox
             v-model="includeContrib"
-            aria-label="Contrib"
+            :aria-label="t('controls.options.contrib')"
             color="primary"
             hide-details
-            label="Contrib"
+            :label="t('controls.options.contrib')"
           />
           <v-checkbox
             v-model="includeNonFree"
-            aria-label="Non-free"
+            :aria-label="t('controls.options.nonFree')"
             color="primary"
             hide-details
-            label="Non-free"
+            :label="t('controls.options.nonFree')"
           />
           <v-checkbox
             v-model="includeFirmware"
-            aria-label="Non-free firmware"
+            :aria-label="t('controls.options.nonFreeFirmware')"
             :aria-describedby="describedBy(supportsFirmware)"
             color="primary"
             :disabled="!supportsFirmware"
             hide-details
-            label="Non-free firmware"
+            :label="t('controls.options.nonFreeFirmware')"
           />
         </fieldset>
 
         <fieldset>
-          <legend>Zusätzliche Suiten</legend>
+          <legend>{{ t('controls.groups.additionalSuites') }}</legend>
           <v-checkbox
             v-model="includeSecurity"
-            aria-label="Security"
+            :aria-label="t('controls.options.security')"
             :aria-describedby="describedBy(supportsSecurity)"
             color="primary"
             :disabled="!supportsSecurity"
             hide-details
-            label="Security"
+            :label="t('controls.options.security')"
           />
           <v-checkbox
             v-model="includeUpdates"
-            aria-label="Updates"
+            :aria-label="t('controls.options.updates')"
             :aria-describedby="describedBy(supportsUpdates)"
             color="primary"
             :disabled="!supportsUpdates"
             hide-details
-            label="Updates"
+            :label="t('controls.options.updates')"
           />
           <v-checkbox
             v-model="includeBackports"
-            aria-label="Backports"
+            :aria-label="t('controls.options.backports')"
             :aria-describedby="describedBy(supportsBackports)"
             color="primary"
             :disabled="!supportsBackports"
             hide-details
-            label="Backports"
+            :label="t('controls.options.backports')"
           />
         </fieldset>
       </div>

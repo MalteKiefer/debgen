@@ -28,6 +28,7 @@ const artifacts: readonly GeneratedArtifact[] = [
     content: 'Types: deb\nURIs: https://brave.example/\n',
     category: 'browser',
     productId: 'brave-browser',
+    productName: 'Brave Browser',
   },
 ]
 

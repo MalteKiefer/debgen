@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>
+
 <template>
   <header
     class="studio-header"
@@ -5,17 +11,17 @@
   >
     <div>
       <p class="studio-header__eyebrow">
-        DebGen
+        {{ t('header.brand') }}
       </p>
       <h1>
-        Debian Studio
+        {{ t('header.title') }}
       </h1>
       <p class="studio-header__trust">
-        Nur offizielle Paketquellen – transparent konfiguriert und vor dem Einsatz prüfbar.
+        {{ t('header.trust') }}
       </p>
     </div>
 
-    <nav aria-label="Projektlinks">
+    <nav :aria-label="t('header.projectLinks')">
       <v-btn
         class="studio-touch-target"
         href="https://de.liberapay.com/beli3ver"
@@ -24,7 +30,7 @@
         target="_blank"
         variant="text"
       >
-        Liberapay
+        {{ t('header.liberapay') }}
       </v-btn>
       <v-btn
         class="studio-touch-target"
@@ -34,7 +40,7 @@
         target="_blank"
         variant="text"
       >
-        GitHub
+        {{ t('header.github') }}
       </v-btn>
     </nav>
   </header>
