@@ -16,10 +16,9 @@ export type CompatibilityReason =
       readonly supportedArchitectures: readonly SystemArchitecture[]
     }
 
-export interface CompatibilityResult {
-  readonly compatible: boolean
-  readonly reason?: CompatibilityReason
-}
+export type CompatibilityResult =
+  | { readonly compatible: true }
+  | { readonly compatible: false, readonly reason: CompatibilityReason }
 
 export function getVendorCompatibility(
   product: VendorProduct,
