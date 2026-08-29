@@ -9,7 +9,10 @@ import {
 const { locale, t } = useI18n()
 
 function updateLocale(event: Event): void {
-  setLocale((event.target as HTMLSelectElement).value as SupportedLocale)
+  const target = event.target
+  if (target && 'value' in target && typeof target.value === 'string') {
+    setLocale(target.value as SupportedLocale)
+  }
 }
 </script>
 
