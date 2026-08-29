@@ -8,7 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate:api && vue-tsc -b && vite build && tsx scripts/build-site.ts",
+    "build:client": "vite build",
+    "build:ssr": "vite build --ssr src/workbench/server.ts --outDir dist/.ssr",
+    "build:site": "tsx scripts/build-site.ts",
+    "build": "npm run generate:api && vue-tsc -b && npm run build:client && npm run build:ssr && npm run build:site",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "vue-tsc -b",

@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import { configDefaults, defineConfig } from 'vitest/config'
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   base: process.env.VITE_BASE_PATH ?? '/',
   publicDir: 'public',
   plugins: [
@@ -18,7 +18,10 @@ export default defineConfig({
   build: {
     assetsDir: 'assets',
     chunkSizeWarningLimit: 500,
-    manifest: true,
+    manifest: !isSsrBuild,
+    rollupOptions: isSsrBuild
+      ? { output: { entryFileNames: 'server.js' } }
+      : { input: fileURLToPath(new URL('./src/workbench/client.ts', import.meta.url)) },
   },
   test: {
     exclude: [...configDefaults.exclude, '**/.worktrees/**'],
@@ -31,4 +34,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

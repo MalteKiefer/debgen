@@ -301,6 +301,10 @@ h1 {
   scroll-margin-block-start: 1rem;
 }
 
+#workbench[data-enhanced="true"] .workbench-step:not([data-active="true"]) {
+  display: none;
+}
+
 .step-heading {
   display: flex;
   align-items: baseline;
