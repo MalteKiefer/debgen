@@ -2,11 +2,11 @@
 import { computed } from 'vue'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
-import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
+import type { LegacyVendorProduct, SystemArchitecture, VendorCategory } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
 
 const props = defineProps<{
-  product: VendorProduct
+  product: LegacyVendorProduct
   release: ReleaseCodename
   architecture: SystemArchitecture
   selected: boolean

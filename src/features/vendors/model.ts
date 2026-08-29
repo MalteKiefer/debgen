@@ -74,11 +74,25 @@ export interface RepositorySource {
 
 export interface VendorProduct {
   readonly id: string
-  /**
-   * Transitional optional properties keep the pre-source catalog type-safe until
-   * its dedicated migration. validateRepositoryCatalog requires every field.
-   */
-  readonly sourceId?: string | null
+  readonly sourceId: string | null
+  readonly name: string
+  readonly category: VendorCategory
+  readonly icon: VendorMdiIcon
+  readonly packages: readonly string[]
+  readonly supportedReleases: readonly ReleaseCodename[]
+  readonly supportedArchitectures: readonly SystemArchitecture[]
+  readonly supportLevel: RepositorySupportLevel
+  readonly provenance: RepositoryProvenance
+  readonly securityCritical: boolean
+  readonly warningKeys: readonly WarningKey[]
+}
+
+/**
+ * Temporary shape for the pre-source catalog. Task 2 replaces this with
+ * RepositorySource references and the authoritative VendorProduct shape.
+ */
+export interface LegacyVendorProduct {
+  readonly id: string
   readonly name: string
   readonly category: VendorCategory
   /** Optional product pictogram for the selection UI; category icons remain the fallback. */
@@ -98,12 +112,6 @@ export interface VendorProduct {
   readonly fingerprints?: readonly string[]
   readonly warning?: string
   readonly preferences?: string
-  readonly supportedReleases?: readonly ReleaseCodename[]
-  readonly supportedArchitectures?: readonly SystemArchitecture[]
-  readonly supportLevel?: RepositorySupportLevel
-  readonly provenance?: RepositoryProvenance
-  readonly securityCritical?: boolean
-  readonly warningKeys?: readonly WarningKey[]
 }
 
 export interface GeneratedArtifact {

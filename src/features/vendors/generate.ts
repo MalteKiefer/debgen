@@ -3,7 +3,7 @@ import { VENDOR_PRODUCTS } from './catalog'
 import type {
   GeneratedArtifact,
   SystemArchitecture,
-  VendorProduct,
+  LegacyVendorProduct,
   VendorRepositoryUrl,
 } from './model'
 import type { ReleaseCodename } from '../sources/model'
@@ -14,7 +14,7 @@ export interface VendorGenerationConfig {
   readonly architecture: SystemArchitecture
   readonly productIds: readonly string[]
   /** Allows static API generation to pass its already validated product set. */
-  readonly products?: readonly VendorProduct[]
+  readonly products?: readonly LegacyVendorProduct[]
 }
 
 export interface InstallScriptOptions {
@@ -35,7 +35,7 @@ function ownRepositoryUrl(repositoryUrl: VendorRepositoryUrl, architecture: Syst
   return url
 }
 
-function suiteFor(product: VendorProduct, release: ReleaseCodename): string {
+function suiteFor(product: LegacyVendorProduct, release: ReleaseCodename): string {
   if (typeof product.suite === 'string') return product.suite
   const suite = product.suite[release]
   if (!suite) throw new Error('Vendor "' + product.id + '" is missing a suite for release ' + release + '.')
@@ -48,7 +48,7 @@ function compareCodePoints(left: string, right: string): number {
   return 0
 }
 
-function selectedProducts(config: VendorGenerationConfig): readonly VendorProduct[] {
+function selectedProducts(config: VendorGenerationConfig): readonly LegacyVendorProduct[] {
   const products = config.products ?? VENDOR_PRODUCTS
   validateVendorCatalog(products)
   const byId = new Map(products.map((product) => [product.id, product]))
@@ -65,7 +65,7 @@ function selectedProducts(config: VendorGenerationConfig): readonly VendorProduc
   return [...selected].sort((left, right) => compareCodePoints(left.id, right.id))
 }
 
-function sourceArtifact(product: VendorProduct, config: VendorGenerationConfig): GeneratedArtifact {
+function sourceArtifact(product: LegacyVendorProduct, config: VendorGenerationConfig): GeneratedArtifact {
   const suite = suiteFor(product, config.release)
   const fields = [
     'Types: deb',
@@ -87,7 +87,7 @@ function sourceArtifact(product: VendorProduct, config: VendorGenerationConfig):
   }
 }
 
-function preferenceArtifact(product: VendorProduct): GeneratedArtifact | undefined {
+function preferenceArtifact(product: LegacyVendorProduct): GeneratedArtifact | undefined {
   if (!product.preferences) return undefined
   return {
     filename: product.id + '.pref',
@@ -112,7 +112,7 @@ function shellQuote(value: string): string {
   return '\'' + value.replace(/'/g, "'\"'\"'") + '\''
 }
 
-function packageInstallCommand(products: readonly VendorProduct[]): string {
+function packageInstallCommand(products: readonly LegacyVendorProduct[]): string {
   const packages = products.flatMap((product) => product.packages)
   return packages.length > 0 ? 'apt-get install -y ' + packages.map(shellQuote).join(' ') + '\n' : ''
 }
@@ -125,7 +125,7 @@ function shellComment(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').replace(/[\t ]+/g, ' ').trim()
 }
 
-function keyInstallCommands(product: VendorProduct, index: number): string[] {
+function keyInstallCommands(product: LegacyVendorProduct, index: number): string[] {
   const lines = [
     '# Signaturschlüssel für ' + shellComment(product.name),
     'temporary_key="$temporary_directory/key-' + index + '"',

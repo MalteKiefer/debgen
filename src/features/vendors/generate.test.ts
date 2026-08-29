@@ -5,9 +5,9 @@ import {
   generateVendorArtifacts,
   type VendorGenerationConfig,
 } from './generate'
-import type { VendorProduct } from './model'
+import type { LegacyVendorProduct } from './model'
 
-type ProductWithFingerprint = VendorProduct & { readonly fingerprints?: readonly string[] }
+type ProductWithFingerprint = LegacyVendorProduct & { readonly fingerprints?: readonly string[] }
 
 function product(overrides: Partial<ProductWithFingerprint> = {}): ProductWithFingerprint {
   return {

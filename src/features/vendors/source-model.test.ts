@@ -48,17 +48,7 @@ const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   name: 'Vendor Product',
   category: 'development',
   icon: 'mdi-code-tags',
-  filename: 'vendor-product.sources',
-  documentationUrl: 'https://vendor.example/docs',
-  repositoryUrl: 'https://vendor.example/apt',
-  keyUrl: 'https://vendor.example/archive-key.asc',
-  keyringPath: '/etc/apt/keyrings/vendor-archive.asc',
   packages: ['vendor-product'],
-  architectures: ['amd64'],
-  releases: ['bookworm'],
-  suite: 'bookworm',
-  components: ['main'],
-  verifiedAt: '2026-08-29',
   supportedReleases: ['bookworm'],
   supportedArchitectures: ['amd64'],
   supportLevel: 'explicit',
@@ -67,6 +57,9 @@ const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   warningKeys: [],
   ...overrides,
 })
+
+const authoritativeSourceId: string | null = product().sourceId
+void authoritativeSourceId
 
 describe('repository source model', () => {
   it('allows products to share a source with multiple release-scoped keys', () => {
@@ -90,7 +83,7 @@ describe('repository source model', () => {
 
     expect(() => validateRepositoryCatalog([shared], [
       product(),
-      product({ id: 'vendor-tools', filename: 'vendor-tools.sources', packages: ['vendor-tools'] }),
+      product({ id: 'vendor-tools', packages: ['vendor-tools'] }),
     ])).not.toThrow()
   })
 
@@ -115,6 +108,10 @@ describe('repository source model', () => {
     }
 
     expect(auxiliaryTrustDestinationPath(auxiliary)).toBe('/etc/debsig/policies/onepassword-policy.pol')
+    expect(() => auxiliaryTrustDestinationPath({ ...auxiliary, id: '../outside' as AuxiliaryTrustFile['id'] }))
+      .toThrow(/auxiliary trust file.*safe.*id/i)
+    expect(() => auxiliaryTrustDestinationPath({ ...auxiliary, destination: 'unknown' as AuxiliaryTrustFile['destination'] }))
+      .toThrow(/auxiliary trust destination/i)
     expect(() => validateRepositoryCatalog([
       source({ auxiliaryTrustFiles: [auxiliary] }),
     ], [product()])).not.toThrow()
@@ -137,7 +134,7 @@ describe('repository source model', () => {
   it('requires each selected compatibility combination to have a source location', () => {
     expect(() => validateRepositoryCatalog([
       source({ locations: [location({ releases: ['bookworm'], architectures: ['amd64'] })] }),
-    ], [product({ supportedArchitectures: ['amd64', 'arm64'], architectures: ['amd64', 'arm64'] })]))
+    ], [product({ supportedArchitectures: ['amd64', 'arm64'] })]))
       .toThrow(/vendor-product.*missing.*bookworm\/arm64/i)
   })
 })

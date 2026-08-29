@@ -7,7 +7,7 @@ import { RELEASES } from '../src/features/sources/releases'
 import { VENDOR_PRODUCTS } from '../src/features/vendors/catalog'
 import { getVendorCompatibility } from '../src/features/vendors/compatibility'
 import { generateInstallScript, generateVendorArtifacts } from '../src/features/vendors/generate'
-import type { SystemArchitecture, VendorProduct } from '../src/features/vendors/model'
+import type { LegacyVendorProduct, SystemArchitecture } from '../src/features/vendors/model'
 import { validateVendorCatalog } from '../src/features/vendors/validate'
 
 interface ManifestFile {
@@ -33,7 +33,7 @@ interface VendorResource {
 interface VendorManifestEntry {
   id: string
   name: string
-  category: VendorProduct['category']
+  category: LegacyVendorProduct['category']
   documentationUrl: string
   verifiedAt: string
   compatibility: VendorResource[]
@@ -68,7 +68,7 @@ function canonicalSource(release: typeof RELEASES[number], format: SourceFormat)
   })
 }
 
-function artifactRelativeUrl(product: VendorProduct, release: ReleaseCodename, architecture: SystemArchitecture, filename: string): string {
+function artifactRelativeUrl(product: LegacyVendorProduct, release: ReleaseCodename, architecture: SystemArchitecture, filename: string): string {
   return `vendors/${product.id}/${release}/${architecture}/${filename}`
 }
 

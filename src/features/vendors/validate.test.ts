@@ -8,17 +8,7 @@ const product = (overrides: Partial<VendorProduct> = {}): VendorProduct => ({
   name: 'Example',
   category: 'development',
   icon: 'mdi-code-tags',
-  filename: 'example.sources',
-  documentationUrl: 'https://vendor.example/docs',
-  repositoryUrl: 'https://vendor.example/debian',
-  keyUrl: 'https://vendor.example/key.asc',
-  keyringPath: '/etc/apt/keyrings/example.asc',
   packages: ['example'],
-  architectures: ['amd64'],
-  releases: ['bookworm'],
-  suite: 'bookworm',
-  components: ['main'],
-  verifiedAt: '2026-08-29',
   supportedArchitectures: ['amd64'],
   supportedReleases: ['bookworm'],
   supportLevel: 'explicit',
@@ -88,6 +78,14 @@ describe('validateRepositoryCatalog', () => {
       .toThrow(/source.*key.*https/i)
   })
 
+  it.each([
+    ['a line feed in a location URL', { locations: [{ ...source().locations[0], uri: 'https://vendor.example/debian\ntrusted' }] }],
+    ['a carriage return in a key URL', { keys: [{ ...source().keys[0], url: 'https://vendor.example/key.asc\rtrusted' }] }],
+  ])('rejects %s before URL normalization', (_description, overrides) => {
+    expect(() => validateRepositoryCatalog([source(overrides)], [product()]))
+      .toThrow(/source.*https/i)
+  })
+
   it('rejects missing metadata', () => {
     expect(() => validateRepositoryCatalog([source({ documentationUrl: '' })], [product()])).toThrow(/source.*documentation/i)
   })
@@ -104,6 +102,12 @@ describe('validateRepositoryCatalog', () => {
 
   it('rejects unsafe keyring paths', () => {
     expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/tmp/example.gpg' }] })], [product()]))
+      .toThrow(/source.*keyring/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/etc/apt/keyrings/example;touch.gpg' }] })], [product()]))
+      .toThrow(/source.*keyring/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/etc/apt/keyrings/example$(touch).gpg' }] })], [product()]))
+      .toThrow(/source.*keyring/i)
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/etc/apt/keyrings/example\ntrusted.gpg' }] })], [product()]))
       .toThrow(/source.*keyring/i)
     expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], keyringPath: '/etc/apt/keyrings/../trusted.gpg' }] })], [product()]))
       .toThrow(/source.*keyring/i)
@@ -140,6 +144,14 @@ describe('validateRepositoryCatalog', () => {
   ])('rejects %s in a repository key allowlist', (_description, fingerprints) => {
     expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], fingerprints }] })], [product()]))
       .toThrow(/source.*key fingerprint/i)
+  })
+
+  it.each([
+    ['a spaced lowercase 40-character fingerprint', 'a1b2 c3d4 e5f6 0123 4567 89ab cdef 0123 4567 89ab'],
+    ['a 64-character OpenPGP v5 fingerprint', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'],
+  ])('accepts %s in a repository key allowlist', (_description, fingerprint) => {
+    expect(() => validateRepositoryCatalog([source({ keys: [{ ...source().keys[0], fingerprints: [fingerprint] }] })], [product()]))
+      .not.toThrow()
   })
 
   it('permits null source IDs exclusively for Debian-native products and rejects community security products', () => {

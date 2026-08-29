@@ -3,6 +3,7 @@ import type {
   RepositoryKey,
   RepositoryLocation,
   RepositorySource,
+  LegacyVendorProduct,
   VendorProduct,
 } from './model'
 import { isVendorMdiIcon } from './icons'
@@ -12,19 +13,29 @@ const ARCHITECTURES = new Set(['amd64', 'arm64', 'armhf', 'i386'])
 const CATEGORIES = new Set(['browser', 'communication', 'privacy', 'containers', 'cloud', 'development', 'database', 'monitoring'])
 const SAFE_VENDOR_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const FULL_OPENPGP_FINGERPRINT = /^(?:[A-F0-9]{40}|[A-F0-9]{64})$/
+const SAFE_KEYRING_PATH = /^\/(?:etc\/apt\/keyrings|usr\/share\/keyrings)\/[A-Za-z0-9][A-Za-z0-9._+-]*\.(?:asc|gpg|pgp)$/
+
+const hasRawControlCharacter = (value: string): boolean =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0)
+    return code <= 0x1f || code === 0x7f
+  })
 
 export function normalizeOpenPgpFingerprint(fingerprint: string): string {
   return fingerprint.replace(/[\t\n\r ]/g, '').toUpperCase()
 }
 
-const requireText = (product: VendorProduct, field: string, value: unknown): void => {
+const requireText = (product: LegacyVendorProduct, field: string, value: unknown): void => {
   if (typeof value !== 'string' || value.trim() === '') {
     throw new Error(`Vendor "${product.id}" is missing ${field} metadata.`)
   }
 }
 
-const requireHttps = (product: VendorProduct, field: string, value: unknown): void => {
+const requireHttps = (product: LegacyVendorProduct, field: string, value: unknown): void => {
   requireText(product, field, value)
+  if (hasRawControlCharacter(value as string)) {
+    throw new Error(`Vendor "${product.id}" ${field} must be a valid HTTPS URL.`)
+  }
   let url: URL
   try {
     url = new URL(value as string)
@@ -36,7 +47,7 @@ const requireHttps = (product: VendorProduct, field: string, value: unknown): vo
   }
 }
 
-const validateRepositoryUrl = (product: VendorProduct): void => {
+const validateRepositoryUrl = (product: LegacyVendorProduct): void => {
   if (typeof product.repositoryUrl === 'string') {
     requireHttps(product, 'repository URL', product.repositoryUrl)
     return
@@ -51,7 +62,7 @@ const validateRepositoryUrl = (product: VendorProduct): void => {
     throw new Error(`Vendor "${product.id}" repository URL mapping must define every supported architecture.`)
   }
   for (const [architecture, url] of Object.entries(product.repositoryUrl)) {
-    if (!ARCHITECTURES.has(architecture) || !product.architectures.includes(architecture as VendorProduct['architectures'][number])) {
+    if (!ARCHITECTURES.has(architecture) || !product.architectures.includes(architecture as LegacyVendorProduct['architectures'][number])) {
       throw new Error(`Vendor "${product.id}" repository URL mapping has an unsupported architecture: ${architecture}.`)
     }
     requireHttps(product, `repository URL for ${architecture}`, url)
@@ -63,7 +74,7 @@ const validateRepositoryUrl = (product: VendorProduct): void => {
   }
 }
 
-export function validateVendorCatalog(products: readonly VendorProduct[]): void {
+export function validateVendorCatalog(products: readonly LegacyVendorProduct[]): void {
   if (!Array.isArray(products)) throw new Error('Vendor catalog must be an array.')
 
   const ids = new Set<string>()
@@ -98,8 +109,7 @@ export function validateVendorCatalog(products: readonly VendorProduct[]): void 
     requireHttps(product, 'key URL', product.keyUrl)
     requireText(product, 'keyring path', product.keyringPath)
     const hasPathTraversal = /(^|\/)\.\.?($|\/)/.test(product.keyringPath) || product.keyringPath.includes('//')
-    if (hasPathTraversal
-      || (!product.keyringPath.startsWith('/etc/apt/keyrings/') && !product.keyringPath.startsWith('/usr/share/keyrings/'))) {
+    if (hasPathTraversal || !SAFE_KEYRING_PATH.test(product.keyringPath)) {
       throw new Error(`Vendor "${id}" keyring path is unsafe; use /etc/apt/keyrings or /usr/share/keyrings.`)
     }
     requireText(product, 'verification date', product.verifiedAt)
@@ -204,6 +214,9 @@ const requireProductText = (productId: string, field: string, value: unknown): s
 
 const requireRepositoryHttps = (sourceId: string, field: string, value: unknown): void => {
   const urlValue = requireRepositoryText(sourceId, field, value)
+  if (hasRawControlCharacter(urlValue)) {
+    throw repositoryError(sourceId, `${field} must be a valid HTTPS URL`)
+  }
   try {
     const url = new URL(urlValue)
     if (url.protocol !== 'https:' || !url.hostname) throw new Error('not HTTPS')
@@ -235,8 +248,7 @@ const requireClosedValues = (
 const requireSafePath = (sourceId: string, field: string, value: unknown): void => {
   const path = requireRepositoryText(sourceId, field, value)
   const hasPathTraversal = /(^|\/)\.\.?($|\/)/.test(path) || path.includes('\\') || path.includes('//')
-  if (hasPathTraversal
-    || (!path.startsWith('/etc/apt/keyrings/') && !path.startsWith('/usr/share/keyrings/'))) {
+  if (hasPathTraversal || !SAFE_KEYRING_PATH.test(path)) {
     throw repositoryError(sourceId, `${field} is unsafe; use /etc/apt/keyrings or /usr/share/keyrings`)
   }
 }
@@ -292,9 +304,13 @@ const validateKey = (sourceId: string, key: RepositoryKey): void => {
 }
 
 export function auxiliaryTrustDestinationPath(file: AuxiliaryTrustFile): string {
+  if (!SAFE_VENDOR_ID.test(file.id)) {
+    throw new Error(`Auxiliary trust file "${file.id}" must use a safe lowercase ASCII ID.`)
+  }
   switch (file.destination) {
     case 'debsig-policy': return `/etc/debsig/policies/${file.id}.pol`
     case 'debsig-keyring': return `/usr/share/debsig/keyrings/${file.id}.gpg`
+    default: throw new Error(`Unknown auxiliary trust destination: ${String(file.destination)}.`)
   }
 }
 
@@ -305,6 +321,7 @@ const validateAuxiliaryTrustFile = (sourceId: string, file: AuxiliaryTrustFile):
   if (typeof file.destination !== 'string' || !AUXILIARY_DESTINATIONS.has(file.destination)) {
     throw repositoryError(sourceId, 'has an unknown auxiliary trust destination')
   }
+  auxiliaryTrustDestinationPath(file)
   requireRepositoryText(sourceId, 'auxiliary trust file media type', file.mediaType)
   if (file.fingerprint !== undefined) requireFingerprints(sourceId, 'auxiliary trust file fingerprint', [file.fingerprint], false)
 }

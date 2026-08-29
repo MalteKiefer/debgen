@@ -1,5 +1,5 @@
 import { VENDOR_PRODUCTS } from './catalog'
-import type { VendorProduct, SystemArchitecture } from './model'
+import type { LegacyVendorProduct, SystemArchitecture } from './model'
 import type { ReleaseCodename } from '../sources/model'
 
 export interface VendorCompatibility {
@@ -9,7 +9,7 @@ export interface VendorCompatibility {
 
 /** Check a product against the release and architecture metadata in the catalog. */
 export function getVendorCompatibility(
-  product: VendorProduct,
+  product: LegacyVendorProduct,
   release: ReleaseCodename,
   architecture: SystemArchitecture,
 ): VendorCompatibility {
@@ -33,17 +33,17 @@ export function getVendorCompatibility(
 export function compatibleProducts(
   release: ReleaseCodename,
   architecture: SystemArchitecture,
-): readonly VendorProduct[]
+): readonly LegacyVendorProduct[]
 export function compatibleProducts(
-  products: readonly VendorProduct[],
+  products: readonly LegacyVendorProduct[],
   release: ReleaseCodename,
   architecture: SystemArchitecture,
-): readonly VendorProduct[]
+): readonly LegacyVendorProduct[]
 export function compatibleProducts(
-  productsOrRelease: readonly VendorProduct[] | ReleaseCodename,
+  productsOrRelease: readonly LegacyVendorProduct[] | ReleaseCodename,
   releaseOrArchitecture: ReleaseCodename | SystemArchitecture,
   architecture?: SystemArchitecture,
-): readonly VendorProduct[] {
+): readonly LegacyVendorProduct[] {
   const usingCatalog = typeof productsOrRelease === 'string'
   const products = usingCatalog ? VENDOR_PRODUCTS : productsOrRelease
   const release = usingCatalog ? productsOrRelease : releaseOrArchitecture as ReleaseCodename

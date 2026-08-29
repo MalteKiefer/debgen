@@ -1,4 +1,4 @@
-import type { VendorProduct } from './model'
+import type { LegacyVendorProduct } from './model'
 import { validateVendorCatalog } from './validate'
 
 function deepFreeze<T>(value: T): T {
@@ -9,7 +9,7 @@ function deepFreeze<T>(value: T): T {
   return value
 }
 
-const catalog: VendorProduct[] = [
+const catalog: LegacyVendorProduct[] = [
   {
     id: 'brave-browser', name: 'Brave Browser', category: 'browser', icon: 'mdi-shield-check', filename: 'brave-browser.sources',
     documentationUrl: 'https://brave.com/linux/', repositoryUrl: 'https://brave-browser-apt-release.s3.brave.com/', keyUrl: 'https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg', keyringPath: '/usr/share/keyrings/brave-browser-archive-keyring.gpg', packages: ['brave-browser'], architectures: ['amd64', 'arm64'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], suite: 'stable', components: ['main'], verifiedAt: '2026-08-28',
@@ -114,8 +114,8 @@ const catalog: VendorProduct[] = [
 
 validateVendorCatalog(catalog)
 
-export const VENDOR_PRODUCTS: readonly VendorProduct[] = deepFreeze(catalog)
+export const VENDOR_PRODUCTS: readonly LegacyVendorProduct[] = deepFreeze(catalog)
 
-export function getVendorProduct(id: string): VendorProduct | undefined {
+export function getVendorProduct(id: string): LegacyVendorProduct | undefined {
   return VENDOR_PRODUCTS.find((product) => product.id === id)
 }
