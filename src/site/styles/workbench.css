@@ -1,0 +1,482 @@
+:root {
+  color-scheme: light dark;
+  --accent: #a80030;
+  --background: #f8f8f7;
+  --surface: #ffffff;
+  --surface-muted: #f0f0ee;
+  --text: #171717;
+  --text-muted: #626262;
+  --border: #d2d2cf;
+  --control-border: #8c8c88;
+  --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--sans);
+  background: var(--background);
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 0;
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+svg {
+  flex: 0 0 auto;
+  vertical-align: -0.2em;
+}
+
+button,
+input,
+select {
+  min-height: 2.75rem;
+  max-width: 100%;
+  border: 1px solid var(--control-border);
+  border-radius: 2px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+button,
+select {
+  padding: 0.55rem 0.7rem;
+}
+
+input {
+  padding: 0.55rem 0.65rem;
+}
+
+input[type="checkbox"] {
+  width: 1.125rem;
+  min-height: 1.125rem;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  transform: translateY(-180%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: transform 120ms ease-out;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  min-height: 3.5rem;
+  padding: 0.45rem clamp(0.75rem, 2vw, 1.5rem);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  text-decoration: none;
+}
+
+.brand strong {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.brand span,
+.current-step span,
+.theme-control span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.current-step {
+  display: none;
+  margin: 0;
+}
+
+.current-step > * {
+  display: block;
+}
+
+.utility-nav {
+  display: flex;
+  gap: 0.75rem;
+  margin-inline-start: auto;
+  font-size: 0.8125rem;
+}
+
+.utility-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
+}
+
+.theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.theme-control select {
+  min-height: 2.5rem;
+  padding-block: 0.35rem;
+}
+
+.workbench-layout {
+  min-width: 0;
+}
+
+.workbench-layout > nav {
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.workflow-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(7.5rem, 1fr));
+  min-width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-list a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 3px solid transparent;
+  text-decoration: none;
+}
+
+.workflow-list a[aria-current="step"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.step-number {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+main {
+  min-width: 0;
+  padding: 1rem clamp(0.75rem, 3vw, 2rem) 4rem;
+}
+
+h1,
+h2,
+p {
+  overflow-wrap: anywhere;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  letter-spacing: -0.03em;
+}
+
+.lede {
+  max-width: 52rem;
+  margin: 0.35rem 0 1.5rem;
+  color: var(--text-muted);
+}
+
+.workbench-form {
+  border-top: 1px solid var(--border);
+}
+
+.workbench-step {
+  padding: 1.25rem 0 1.5rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-block-start: 1rem;
+}
+
+.step-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.step-heading h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.control-grid,
+.choice-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.control-grid > label,
+.workbench-step > label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  font-weight: 650;
+}
+
+.control-grid select,
+.workbench-step > label > input {
+  width: 100%;
+}
+
+fieldset {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+}
+
+legend {
+  padding-inline: 0.3rem;
+  font-weight: 700;
+}
+
+fieldset label,
+.compact-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2rem;
+}
+
+.support-note,
+.audit-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.status-icon {
+  color: var(--text);
+}
+
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.step-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.primary-action {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.table-scroll {
+  max-width: 100%;
+  margin-top: 0.9rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  min-width: 38rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+thead {
+  background: var(--surface-muted);
+  font-size: 0.8125rem;
+}
+
+.change-plan {
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+
+.change-plan div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.change-plan dt {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.change-plan dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+code,
+pre {
+  font-family: var(--mono);
+}
+
+pre {
+  max-width: 100%;
+  padding: 0.85rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  font-size: 0.8125rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #ff5c83;
+    --background: #111211;
+    --surface: #191a19;
+    --surface-muted: #222321;
+    --text: #f2f2ef;
+    --text-muted: #b2b2ac;
+    --border: #3d3e3a;
+    --control-border: #777873;
+  }
+}
+
+@media (min-width: 46rem) {
+  .current-step {
+    display: block;
+  }
+
+  .workbench-layout {
+    display: grid;
+    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  }
+
+  .workbench-layout > nav {
+    overflow: visible;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .workflow-list {
+    position: sticky;
+    inset-block-start: 0;
+    display: block;
+    min-width: 0;
+    padding: 0.75rem 0;
+  }
+
+  .workflow-list a {
+    border-right: 3px solid transparent;
+    border-bottom: 0;
+  }
+
+  .control-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .change-plan div {
+    grid-template-columns: minmax(9rem, 0.35fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .site-header,
+  .workbench-layout {
+    max-width: 96rem;
+    margin-inline: auto;
+  }
+
+  .site-header {
+    border-inline: 1px solid var(--border);
+  }
+
+  .workbench-layout {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    border-inline: 1px solid var(--border);
+  }
+
+  main {
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
