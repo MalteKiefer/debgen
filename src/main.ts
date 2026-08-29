@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import { i18n, initializeLocale } from './i18n'
 import vuetify from './plugins/vuetify'
 import './styles/main.scss'
 
-createApp(App).use(vuetify).mount('#app')
+initializeLocale()
+createApp(App).use(i18n).use(vuetify).mount('#app')
