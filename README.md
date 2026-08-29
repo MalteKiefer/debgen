@@ -43,7 +43,3 @@ Node `>=24.15.0 <25`.
 - [Catalog maintenance](docs/catalog-maintenance.md) — product matrix, admission policy, key rotation, vendor audits
 - [Translations](docs/translations.md) — locale schema, fallback, plural rules
 - [Static API](docs/api.md) — manifests, canonical sources, curl safety, relative URL resolution
-
-## GitHub Pages
-
-Deploys on push to `master` via Actions. Base path comes from `configure-pages`, so it works for the custom domain and for forks alike, no hard-coded repo name. To enable on a fork: **Settings > Pages > Build and deployment > GitHub Actions**.
