@@ -1,5 +1,5 @@
 import type { SeoMetadata } from './model'
-import { canonicalUrl, sitePath, buildAlternates } from './routes'
+import { canonicalUrl, sitePath, buildAlternates, SITE_ORIGIN } from './routes'
 import type { SiteCopy } from './locales/en'
 import type { SupportedLocale } from '../i18n/locales'
 
@@ -77,4 +77,4 @@ export const renderSitemap = (entries: readonly SitemapEntry[]): string => {
   return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>\n`
 }
 
-export const renderRobots = (): string => `User-agent: *\nAllow: /\nSitemap: ${canonicalUrl('/sitemap.xml')}\n`
+export const renderRobots = (): string => `User-agent: *\nAllow: /\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`

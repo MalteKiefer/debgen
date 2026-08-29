@@ -57,8 +57,8 @@ describe('SEO discovery artifacts', () => {
     expect(sitemap).toContain('<loc>https://debgen.org/de/repositories/docker-engine/</loc>')
   })
 
-  it('publishes a crawler directive that names the sitemap', () => {
-    expect(renderRobots()).toContain('Sitemap: https://debgen.org/sitemap.xml')
+  it('publishes the exact file URL for the sitemap', () => {
+    expect(renderRobots()).toBe('User-agent: *\nAllow: /\nSitemap: https://debgen.org/sitemap.xml\n')
   })
 
   it('builds website and breadcrumb structured data for localized content', () => {
