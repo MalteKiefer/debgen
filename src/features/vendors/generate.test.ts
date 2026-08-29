@@ -128,28 +128,37 @@ describe('vendor artifact generation', () => {
     expect(artifacts[0]?.content).toContain('URIs: https://vendor.example/debian/arm64\n')
   })
 
-  it('omits Components for an exact-path suite', () => {
-    const exactPathSource = source({ locations: [location({ suite: '/', components: [] })] })
+  it.each(['binary/', 'apt/stable/', './', '/'])('omits Components for exact-path suite %s', (suite) => {
+    const exactPathSource = source({ locations: [location({ suite, components: [] })] })
     const artifacts = generateVendorArtifacts(config({ catalog: catalog([product()], [exactPathSource]) }))
 
-    expect(artifacts[0]?.content).toBe([
-      'Types: deb',
-      'URIs: https://vendor.example/debian',
-      'Suites: /',
-      'Architectures: amd64',
-      'Signed-By: /etc/apt/keyrings/example-tool.gpg',
-      '',
-    ].join('\n'))
+    expect(artifacts[0]?.content).toContain(`Suites: ${suite}\n`)
+    expect(artifacts[0]?.content).not.toContain('Components:')
+  })
+
+  it.each([
+    ['jenkins-lts', 'binary/'],
+    ['sublime-text', 'apt/stable/'],
+    ['typora', './'],
+  ])('generates the real %s exact-path catalog source without Components', (productId, suite) => {
+    const artifacts = generateVendorArtifacts({
+      release: productId === 'jenkins-lts' ? 'trixie' : 'bookworm',
+      architecture: 'amd64',
+      productIds: [productId],
+    })
+
+    expect(artifacts[0]?.content).toContain(`Suites: ${suite}\n`)
+    expect(artifacts[0]?.content).not.toContain('Components:')
   })
 
   it('adds preferences and a warning as distinct, reviewable artifacts', () => {
     const selectedSource = source({
-      preferenceFiles: [{ id: 'example-tool', content: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n' }],
+      preferenceFiles: [{ id: 'vendor-priority', content: 'Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n' }],
       warnings: ['Hat eine wichtige Betriebswirkung.'],
     })
     const artifacts = generateVendorArtifacts(config({ catalog: catalog([product()], [selectedSource]) }))
 
-    expect(artifacts.map((artifact) => artifact.filename)).toEqual(['example-tool.sources', 'example-tool.pref'])
+    expect(artifacts.map((artifact) => artifact.filename)).toEqual(['example-tool.sources', 'vendor-priority.pref'])
     expect(artifacts.map((artifact) => artifact.productName)).toEqual(['Example Tool', 'Example Tool'])
     expect(artifacts[0]?.riskNotes).toEqual(['Hat eine wichtige Betriebswirkung.'])
     expect(artifacts[1]?.content).toBe('Package: example-tool\nPin: origin vendor.example\nPin-Priority: 1000\n')
@@ -300,6 +309,40 @@ describe('vendor artifact generation', () => {
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
     expect(script.content).toContain("expected_fingerprints='573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62\n8540A6F18833A80E9C1653A42FD21310B49F6B46\n9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3'")
+  })
+
+  it('installs the allowlisted 1Password auxiliary trust files once for a shared source', () => {
+    const selectedConfig: VendorGenerationConfig = {
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: ['onepassword', 'onepassword-cli'],
+    }
+    const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
+
+    expect(script.content.match(/# Zusätzliche Vertrauensdatei onepassword-policy/g)).toHaveLength(1)
+    expect(script.content.match(/# Zusätzliche Vertrauensdatei onepassword-keyring/g)).toHaveLength(1)
+    expect(script.content).toContain("install -d -m 0755 '/etc/debsig/policies/AC2D62742012EA22'")
+    expect(script.content).toContain("install -m 0644 \"$temporary_auxiliary\" '/etc/debsig/policies/AC2D62742012EA22/1password.pol'")
+    expect(script.content).toContain("install -d -m 0755 '/usr/share/debsig/keyrings/AC2D62742012EA22'")
+    expect(script.content).toContain("expected_fingerprints='3FEF9748469ADBE15DA7CA80AC2D62742012EA22'")
+    expect(script.content).toContain('gpg --dearmor --yes --output "$dearmored_auxiliary" "$temporary_auxiliary"')
+    expect(script.content).toContain("install -m 0644 \"$dearmored_auxiliary\" '/usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg'")
+  })
+
+  it('emits and deduplicates preferences from unique selected real catalog sources', () => {
+    const nginxArtifacts = generateVendorArtifacts({
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: ['nginx-stable', 'nginx-mainline'],
+    })
+    const syncthingArtifacts = generateVendorArtifacts({
+      release: 'bookworm',
+      architecture: 'amd64',
+      productIds: ['syncthing-stable-v2'],
+    })
+
+    expect(nginxArtifacts.filter(({ filename }) => filename === 'nginx.pref')).toHaveLength(1)
+    expect(syncthingArtifacts.map(({ filename }) => filename)).toContain('syncthing.pref')
   })
 
   it('preserves the complete pre-migration artifact corpus across all compatible catalog combinations', () => {

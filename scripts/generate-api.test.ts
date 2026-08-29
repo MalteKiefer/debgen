@@ -313,7 +313,7 @@ describe('versioned static API generation', () => {
         sourceId: null,
         packages: [...product.packages],
         documentationUrl: null,
-        verifiedAt: '2026-08-28',
+        verifiedAt: '2026-08-29',
         compatibility: [...RELEASES]
           .map((release) => release.codename)
           .sort((left, right) => left.localeCompare(right, 'en'))
@@ -326,7 +326,7 @@ describe('versioned static API generation', () => {
     }
     expect(vendors.find((vendor) => vendor.id === 'brave-browser')).toMatchObject({
       documentationUrl: 'https://brave.com/linux/',
-      verifiedAt: '2026-08-28',
+      verifiedAt: '2026-08-29',
       compatibility: expect.arrayContaining([
         {
           release: 'trixie',

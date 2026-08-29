@@ -57,7 +57,7 @@ interface ApiCatalog {
 
 const API_ARCHITECTURES: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
 const API_MANIFEST_BASE = 'https://debgen.invalid/api/v1/'
-const LEGACY_VENDOR_MANIFEST_VERIFIED_AT = '2026-08-28'
+const VENDOR_MANIFEST_VERIFIED_AT = '2026-08-29'
 const SAFE_MANIFEST_RELATIVE_URL = /^[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?)*$/
 
 function withSingleTrailingNewline(content: string): string {
@@ -152,7 +152,7 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
       documentationUrl: product.sourceId === null
         ? null
         : getRepositorySource(product.sourceId)?.documentationUrl ?? null,
-      verifiedAt: LEGACY_VENDOR_MANIFEST_VERIFIED_AT,
+      verifiedAt: VENDOR_MANIFEST_VERIFIED_AT,
       compatibility,
     })
   }

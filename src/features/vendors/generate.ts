@@ -3,7 +3,7 @@ import { VENDOR_PRODUCTS } from './catalog'
 import type { GeneratedArtifact, RepositoryKey, RepositorySource, SystemArchitecture, VendorProduct } from './model'
 import { REPOSITORY_SOURCES } from './sources'
 import type { ReleaseCodename } from '../sources/model'
-import { normalizeOpenPgpFingerprint, validateRepositoryCatalog } from './validate'
+import { auxiliaryTrustDestinationPath, normalizeOpenPgpFingerprint, validateRepositoryCatalog } from './validate'
 
 export interface VendorGenerationCatalog {
   readonly products: readonly VendorProduct[]
@@ -83,15 +83,36 @@ function sourceArtifact(product: VendorProduct, config: VendorGenerationConfig, 
   const source = sourceFor(product, sources); const location = locationFor(source, config); const key = keyFor(source, config.release); const notes = riskNotes(product, source)
   return {
     filename: `${product.id}.sources`, mediaType: 'text/plain', description: `Paketquelle für ${product.name}`,
-    content: trailing(['Types: deb', `URIs: ${location.uri}`, `Suites: ${location.suite}`, `Architectures: ${config.architecture}`, ...(location.suite === '/' ? [] : [`Components: ${location.components.join(' ')}`]), `Signed-By: ${key.keyringPath}`].join('\n')),
+    content: trailing(['Types: deb', `URIs: ${location.uri}`, `Suites: ${location.suite}`, `Architectures: ${config.architecture}`, ...(location.suite.endsWith('/') ? [] : [`Components: ${location.components.join(' ')}`]), `Signed-By: ${key.keyringPath}`].join('\n')),
     category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}),
   }
 }
-function preferenceArtifacts(product: VendorProduct, sources: readonly RepositorySource[]): readonly GeneratedArtifact[] {
-  const source = sourceFor(product, sources); const notes = riskNotes(product, source)
-  return source.preferenceFiles.filter((file) => file.id === product.id).map((file) => ({ filename: `${file.id}.pref`, mediaType: 'text/plain', description: `Paketpriorität für ${product.name}`, content: trailing(file.content), category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}) }))
+function preferenceArtifacts(product: VendorProduct, source: RepositorySource): readonly GeneratedArtifact[] {
+  const notes = riskNotes(product, source)
+  return source.preferenceFiles.map((file) => ({ filename: `${file.id}.pref`, mediaType: 'text/plain', description: `Paketpriorität für ${product.name}`, content: trailing(file.content), category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}) }))
 }
-export function generateVendorArtifacts(config: VendorGenerationConfig): GeneratedArtifact[] { const catalog = generationCatalog(config); return selectedProducts(config, catalog.products).flatMap((product) => [sourceArtifact(product, config, catalog.sources), ...preferenceArtifacts(product, catalog.sources)]) }
+export function generateVendorArtifacts(config: VendorGenerationConfig): GeneratedArtifact[] {
+  const catalog = generationCatalog(config)
+  const products = selectedProducts(config, catalog.products)
+  const seenSources = new Set<string>()
+  const preferenceContents = new Map<string, string>()
+  const artifacts: GeneratedArtifact[] = []
+  for (const product of products) {
+    const source = sourceFor(product, catalog.sources)
+    artifacts.push(sourceArtifact(product, config, catalog.sources))
+    if (seenSources.has(source.id)) continue
+    seenSources.add(source.id)
+    for (const artifact of preferenceArtifacts(product, source)) {
+      const existing = preferenceContents.get(artifact.filename)
+      if (existing !== undefined && existing !== artifact.content) throw new Error(`Conflicting preference file definition: ${artifact.filename}.`)
+      if (existing === undefined) {
+        preferenceContents.set(artifact.filename, artifact.content)
+        artifacts.push(artifact)
+      }
+    }
+  }
+  return artifacts
+}
 function packageCommand(products: readonly VendorProduct[]): string { const packages = products.flatMap((product) => product.packages); return packages.length ? `apt-get install -y ${packages.map(quote).join(' ')}\n` : '' }
 export function generatePackageInstallCommand(config: VendorGenerationConfig): string { const catalog = generationCatalog(config); return packageCommand(selectedProducts(config, catalog.products)) }
 function keyCommands(source: RepositorySource, productName: string, release: ReleaseCodename, index: number): string[] {
@@ -101,10 +122,50 @@ function keyCommands(source: RepositorySource, productName: string, release: Rel
   else lines.push(`install -m 0644 "$temporary_key" ${quote(key.keyringPath)}`)
   return [...lines, '']
 }
+function auxiliaryTrustCommands(sources: readonly RepositorySource[]): string[] {
+  const lines: string[] = []
+  const installedDestinations = new Map<string, string>()
+  for (const [sourceIndex, source] of sources.entries()) {
+    for (const [fileIndex, file] of source.auxiliaryTrustFiles.entries()) {
+      const destination = auxiliaryTrustDestinationPath(file)
+      const definition = JSON.stringify({ url: file.url, mediaType: file.mediaType, fingerprint: file.fingerprint })
+      const existing = installedDestinations.get(destination)
+      if (existing !== undefined && existing !== definition) throw new Error(`Conflicting auxiliary trust file definition: ${destination}.`)
+      if (existing !== undefined) continue
+      installedDestinations.set(destination, definition)
+      const directory = destination.slice(0, destination.lastIndexOf('/'))
+      const temporaryPath = `$temporary_directory/auxiliary-${sourceIndex}-${fileIndex}`
+      lines.push(
+        `# Zusätzliche Vertrauensdatei ${comment(file.id)}`,
+        `install -d -m 0755 ${quote(directory)}`,
+        `temporary_auxiliary="${temporaryPath}"`,
+        `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_auxiliary" ${quote(file.url)}`,
+      )
+      if (file.fingerprint !== undefined) {
+        lines.push(
+          `expected_fingerprints=${quote(normalizeOpenPgpFingerprint(file.fingerprint))}`,
+          'auxiliary_key_metadata="$(gpg --show-keys --with-colons "$temporary_auxiliary")"',
+          'actual_fingerprints="$(printf \'%s\\n\' "$auxiliary_key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"',
+          'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then',
+          '  echo "Der Fingerprint der zusätzlichen Vertrauensdatei stimmt nicht mit dem erwarteten Wert überein." >&2',
+          '  exit 1',
+          'fi',
+          `dearmored_auxiliary="${temporaryPath}.gpg"`,
+          'gpg --dearmor --yes --output "$dearmored_auxiliary" "$temporary_auxiliary"',
+          `install -m 0644 "$dearmored_auxiliary" ${quote(destination)}`,
+        )
+      } else {
+        lines.push(`install -m 0644 "$temporary_auxiliary" ${quote(destination)}`)
+      }
+      lines.push('')
+    }
+  }
+  return lines
+}
 const safeArtifact = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(?:sources|pref)$/
 function artifactCommands(artifacts: readonly GeneratedArtifact[]): string[] { const lines = ['install -d -m 0755 /etc/apt/sources.list.d', ...(artifacts.some((artifact) => artifact.filename.endsWith('.pref')) ? ['install -d -m 0755 /etc/apt/preferences.d'] : [])]; for (const [index, artifact] of artifacts.entries()) { if (!safeArtifact.test(artifact.filename)) throw new Error(`Artifact filename must be a safe lowercase .sources or .pref slug: ${artifact.filename}.`); const directory = artifact.filename.endsWith('.pref') ? '/etc/apt/preferences.d/' : '/etc/apt/sources.list.d/'; let marker = `DEBGEN_ARTIFACT_${index}`; let suffix = 1; const contentLines = new Set(artifact.content.split('\n')); while (contentLines.has(marker)) marker = `DEBGEN_ARTIFACT_${index}_${suffix++}`; lines.push(`cat > ${quote(directory + artifact.filename)} <<'${marker}'`, artifact.content.replace(/\n$/, ''), marker, `chmod 0644 ${quote(directory + artifact.filename)}`, '') } return lines }
 export function generateInstallScript(config: VendorGenerationConfig, artifacts: readonly GeneratedArtifact[], options: InstallScriptOptions = {}): GeneratedArtifact {
   const catalog = generationCatalog(config); const products = selectedProducts(config, catalog.products); const sources = [...new Map(products.map((product) => { const source = sourceFor(product, catalog.sources); return [source.id, { source, productName: product.name }] })).values()]; const warnings = [...new Set(products.flatMap((product) => riskNotes(product, sourceFor(product, catalog.sources)) ?? []))]
-  const content = trailing(['#!/usr/bin/env bash', 'set -euo pipefail', '', '# Prüfen Sie diese Befehle und Dateien vor der Ausführung.', ...warnings.map((warning) => `# WARNUNG: ${comment(warning)}`), ...(warnings.length ? [''] : []), 'apt-get install -y ca-certificates curl gpg', 'install -d -m 0755 /etc/apt/keyrings', 'umask 077', 'temporary_directory="$(mktemp -d)"', 'trap \'rm -rf "$temporary_directory"\' EXIT', '', ...sources.flatMap(({ source, productName }, index) => keyCommands(source, productName, config.release, index)), ...artifactCommands(artifacts), 'apt-get update', ...(products.length && options.includePackageInstallation !== false ? [packageCommand(products).trimEnd()] : [])].join('\n'))
+  const content = trailing(['#!/usr/bin/env bash', 'set -euo pipefail', '', '# Prüfen Sie diese Befehle und Dateien vor der Ausführung.', ...warnings.map((warning) => `# WARNUNG: ${comment(warning)}`), ...(warnings.length ? [''] : []), 'apt-get install -y ca-certificates curl gpg', 'install -d -m 0755 /etc/apt/keyrings', 'umask 077', 'temporary_directory="$(mktemp -d)"', 'trap \'rm -rf "$temporary_directory"\' EXIT', '', ...sources.flatMap(({ source, productName }, index) => keyCommands(source, productName, config.release, index)), ...auxiliaryTrustCommands(sources.map(({ source }) => source)), ...artifactCommands(artifacts), 'apt-get update', ...(products.length && options.includePackageInstallation !== false ? [packageCommand(products).trimEnd()] : [])].join('\n'))
   return { filename: 'install-vendor-repositories.sh', mediaType: 'text/x-shellscript', description: 'Installationsanweisungen für ausgewählte Herstellerquellen', content, ...(warnings.length ? { riskNotes: warnings } : {}) }
 }
