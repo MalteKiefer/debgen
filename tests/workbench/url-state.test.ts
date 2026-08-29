@@ -50,6 +50,39 @@ describe('Workbench URL state', () => {
     ]))
   })
 
+  it('fails closed when repeated scalar system parameters conflict', () => {
+    const parsed = parseWorkbenchUrl(new URL([
+      'https://debgen.org/?release=bookworm&release=trixie',
+      '&arch=arm64&arch=amd64&format=legacy&format=deb822',
+    ].join('')), testManifest)
+
+    expect(parsed.state).toEqual(expect.objectContaining({
+      release: 'trixie',
+      architecture: 'amd64',
+      format: 'deb822',
+    }))
+    expect(parsed.warnings).toEqual([
+      expect.objectContaining({ code: 'invalid-release', field: 'release' }),
+      expect.objectContaining({ code: 'invalid-architecture', field: 'arch' }),
+      expect.objectContaining({ code: 'invalid-format', field: 'format' }),
+    ])
+  })
+
+  it('keeps main when component query values omit it and defaults backports to disabled', () => {
+    const parsed = parseWorkbenchUrl(new URL('https://debgen.org/?component=contrib'), testManifest)
+
+    expect(parsed.state.components).toEqual(['main', 'contrib'])
+    expect(parsed.state.includeBackports).toBe(false)
+  })
+
+  it('normalizes equivalent repository query sets to the same sorted state', () => {
+    const first = parseWorkbenchUrl(new URL('https://debgen.org/?repo=zabbix-7-4&repo=docker-engine&repo=docker-engine'), testManifest)
+    const second = parseWorkbenchUrl(new URL('https://debgen.org/?repo=docker-engine&repo=zabbix-7-4'), testManifest)
+
+    expect(first.state.repositories).toEqual(['docker-engine', 'zabbix-7-4'])
+    expect(second.state).toEqual(first.state)
+  })
+
   it('serializes non-default official-source choices and repositories in deterministic parameter order', () => {
     const query = serializeWorkbenchUrl({
       ...createDefaultState(),
@@ -58,13 +91,22 @@ describe('Workbench URL state', () => {
       includeUpdates: false,
       includeBackports: false,
       components: ['main'],
-      repositories: ['zabbix', 'docker-engine'],
+      repositories: ['zabbix-7-4', 'docker-engine'],
       outputMode: 'combined',
     })
 
     expect(query.toString()).toBe([
       'release=trixie&arch=amd64&format=deb822&source=1',
-      'suite=base&component=main&repo=docker-engine&repo=zabbix&mode=combined',
+      'suite=base&component=main&repo=docker-engine&repo=zabbix-7-4&mode=combined',
     ].join('&'))
+  })
+
+  it('does not serialize unknown repository IDs from an untrusted state object', () => {
+    const query = serializeWorkbenchUrl({
+      ...createDefaultState(),
+      repositories: ['unknown-product', 'docker-engine'],
+    })
+
+    expect(query.toString()).toBe('release=trixie&arch=amd64&format=deb822&repo=docker-engine')
   })
 })

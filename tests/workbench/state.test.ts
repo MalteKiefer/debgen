@@ -17,7 +17,7 @@ describe('Workbench state', () => {
       includeSource: false,
       includeSecurity: true,
       includeUpdates: true,
-      includeBackports: true,
+      includeBackports: false,
       components: ['main', 'non-free-firmware'],
       repositories: [],
       outputMode: 'perVendor',
@@ -34,21 +34,30 @@ describe('Workbench state', () => {
       repositories: ['docker-engine'],
     }
 
-    const next = reduceWorkbenchState(previous, {
+    const transition = reduceWorkbenchState({
+      ...previous,
+      includeBackports: true,
+      repositories: ['docker-engine', 'proton-vpn'],
+    }, {
       type: 'set-system',
-      release: 'trixie',
-      architecture: 'arm64',
-      format: 'deb822',
+      release: 'bullseye',
+      architecture: 'amd64',
+      format: 'legacy',
     })
 
-    expect(next).toEqual(expect.objectContaining({
-      release: 'trixie',
-      architecture: 'arm64',
-      format: 'deb822',
+    expect(transition.state).toEqual(expect.objectContaining({
+      release: 'bullseye',
+      architecture: 'amd64',
+      format: 'legacy',
+      includeBackports: false,
+      components: ['main'],
       repositories: ['docker-engine'],
     }))
-    expect(next).not.toBe(previous)
-    expect(next.repositories).not.toBe(previous.repositories)
+    expect(transition.removed).toEqual([
+      expect.objectContaining({ id: 'proton-vpn', code: 'unsupported-release' }),
+    ])
+    expect(transition.state).not.toBe(previous)
+    expect(transition.state.repositories).not.toBe(previous.repositories)
     expect(previous).toEqual(expect.objectContaining({
       release: 'bookworm',
       architecture: 'amd64',
@@ -58,11 +67,15 @@ describe('Workbench state', () => {
   })
 
   it('normalizes repository selections into a stable duplicate-free list', () => {
-    const next = reduceWorkbenchState(createDefaultState(), {
+    const transition = reduceWorkbenchState(createDefaultState(), {
       type: 'set-repositories',
-      repositories: ['zabbix', 'docker-engine', 'zabbix'],
+      repositories: ['proton-vpn', 'docker-engine', 'proton-vpn', 'unknown-product'],
     })
 
-    expect(next.repositories).toEqual(['docker-engine', 'zabbix'])
+    expect(transition.state.repositories).toEqual(['docker-engine', 'proton-vpn'])
+    expect(transition.removed).toEqual([
+      expect.objectContaining({ id: 'proton-vpn', code: 'duplicate-repository' }),
+      expect.objectContaining({ id: 'unknown-product', code: 'unknown-repository' }),
+    ])
   })
 })

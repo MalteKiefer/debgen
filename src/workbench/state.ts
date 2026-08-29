@@ -1,6 +1,8 @@
 import type { DebianRelease, ReleaseCodename, SourceFormat } from '../features/sources/model'
-import { getRelease } from '../features/sources/releases'
+import { getRelease, RELEASES } from '../features/sources/releases'
+import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import type { OutputMode, SystemArchitecture, VendorProduct } from '../features/vendors/model'
+import { reconcileCompatibility, type ReconcileResult } from './validation'
 
 export const WORKBENCH_STEPS = ['system', 'debian', 'repositories', 'review', 'export'] as const
 
@@ -23,6 +25,11 @@ export interface WorkbenchState {
 export interface WorkbenchManifest {
   readonly releases: readonly DebianRelease[]
   readonly products: readonly VendorProduct[]
+}
+
+export const DEFAULT_WORKBENCH_MANIFEST: WorkbenchManifest = {
+  releases: RELEASES,
+  products: VENDOR_PRODUCTS,
 }
 
 export type WorkbenchAction =
@@ -57,6 +64,8 @@ const compareCodePoints = (left: string, right: string): number => left < right 
 
 const uniqueSorted = (values: readonly string[]): string[] => [...new Set(values)].sort(compareCodePoints)
 
+const OUTPUT_MODES: readonly OutputMode[] = ['perVendor', 'combined', 'byCategory']
+
 export function createStateForRelease(release: DebianRelease): WorkbenchState {
   return {
     activeStep: 'system',
@@ -66,7 +75,7 @@ export function createStateForRelease(release: DebianRelease): WorkbenchState {
     includeSource: false,
     includeSecurity: release.capabilities.security,
     includeUpdates: release.capabilities.updates,
-    includeBackports: release.capabilities.backports,
+    includeBackports: false,
     components: [...release.recommendedComponents],
     repositories: [],
     outputMode: 'perVendor',
@@ -77,21 +86,45 @@ export function createDefaultState(): WorkbenchState {
   return createStateForRelease(getRelease())
 }
 
-export function reduceWorkbenchState(state: WorkbenchState, action: WorkbenchAction): WorkbenchState {
+function normalizeForRelease(state: WorkbenchState, release: DebianRelease): WorkbenchState {
+  const requestedComponents = new Set(state.components)
+  return {
+    ...state,
+    release: release.codename,
+    format: release.formats.includes(state.format) ? state.format : release.formats[0] as SourceFormat,
+    includeSecurity: state.includeSecurity && release.capabilities.security,
+    includeUpdates: state.includeUpdates && release.capabilities.updates,
+    includeBackports: state.includeBackports && release.capabilities.backports,
+    components: release.components.filter((component) => component === 'main' || requestedComponents.has(component)),
+    repositories: [...state.repositories],
+    outputMode: OUTPUT_MODES.includes(state.outputMode) ? state.outputMode : 'perVendor',
+  }
+}
+
+const reconcile = (state: WorkbenchState): ReconcileResult => reconcileCompatibility(state, DEFAULT_WORKBENCH_MANIFEST)
+
+export function reduceWorkbenchState(state: WorkbenchState, action: WorkbenchAction): ReconcileResult {
   switch (action.type) {
     case 'set-active-step':
-      return { ...state, activeStep: action.activeStep, components: [...state.components], repositories: [...state.repositories] }
-    case 'set-system':
-      return {
+      return reconcile(normalizeForRelease({
         ...state,
-        release: action.release,
+        activeStep: action.activeStep,
+        components: [...state.components],
+        repositories: [...state.repositories],
+      }, getRelease(state.release)))
+    case 'set-system': {
+      const release = getRelease(action.release)
+      return reconcile(normalizeForRelease({
+        ...state,
+        release: release.codename,
         architecture: action.architecture,
         format: action.format,
         components: [...state.components],
         repositories: [...state.repositories],
-      }
+      }, release))
+    }
     case 'set-official-sources':
-      return {
+      return reconcile(normalizeForRelease({
         ...state,
         includeSource: action.includeSource,
         includeSecurity: action.includeSecurity,
@@ -99,10 +132,19 @@ export function reduceWorkbenchState(state: WorkbenchState, action: WorkbenchAct
         includeBackports: action.includeBackports,
         components: uniqueSorted(action.components),
         repositories: [...state.repositories],
-      }
+      }, getRelease(state.release)))
     case 'set-repositories':
-      return { ...state, components: [...state.components], repositories: uniqueSorted(action.repositories) }
+      return reconcile(normalizeForRelease({
+        ...state,
+        components: [...state.components],
+        repositories: [...action.repositories],
+      }, getRelease(state.release)))
     case 'set-output-mode':
-      return { ...state, components: [...state.components], repositories: [...state.repositories], outputMode: action.outputMode }
+      return reconcile(normalizeForRelease({
+        ...state,
+        components: [...state.components],
+        repositories: [...state.repositories],
+        outputMode: action.outputMode,
+      }, getRelease(state.release)))
   }
 }

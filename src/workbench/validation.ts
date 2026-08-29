@@ -30,6 +30,8 @@ export interface ReconcileResult {
 
 const OUTPUT_MODES: readonly OutputMode[] = ['perVendor', 'combined', 'byCategory']
 
+const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
+
 const knownArchitectures = (manifest: WorkbenchManifest): ReadonlySet<SystemArchitecture> => new Set(
   manifest.products.flatMap((product) => product.supportedArchitectures),
 )
@@ -127,7 +129,7 @@ export function reconcileCompatibility(state: WorkbenchState, manifest: Workbenc
   }
 
   return {
-    state: { ...state, components: [...state.components], repositories },
+    state: { ...state, components: [...state.components], repositories: repositories.sort(compareCodePoints) },
     removed,
   }
 }
