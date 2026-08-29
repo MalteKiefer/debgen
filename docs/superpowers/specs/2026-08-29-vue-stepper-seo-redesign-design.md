@@ -120,8 +120,9 @@ Provide one dominant Download reviewed plan action. Secondary controls offer ind
 
 - System sans-serif for interface text and system monospace for commands, paths, hosts, packages, fingerprints, and state summaries.
 - Debian red only for the primary action, current step, selection, and visible focus.
-- Flat surfaces, subtle separators, compact spacing, and dense technical tables.
-- No gradients, ornamental metrics, nested card stacks, excessive pills, icon-only navigation, or icon font.
+- Card-based surfaces (subtle border and low-opacity shadow, not glassmorphism or nested card stacks), compact spacing, and dense technical tables.
+- No gradients, ornamental metrics, excessive pills, icon-only navigation, or icon font.
+- Generated commands and file contents render inside a dark, editor-style code panel with a filename toolbar and inline copy/download actions.
 - A small local inline SVG set is allowed when an icon communicates faster than text.
 - Full light/dark theme support, visible focus, reduced motion, high contrast, 320-pixel layouts, and safe wrapping or contained scrolling for long technical values.
 

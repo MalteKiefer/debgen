@@ -167,16 +167,32 @@ function download(key: string, filename: string, content: string, mediaType = 't
     <section class="export-block" aria-labelledby="export-debian-heading">
       <h3 id="export-debian-heading">Debian base &mdash; <code>{{ debianFilename }}</code></h3>
       <template v-if="'content' in debianContent">
-        <pre :aria-label="`${debianFilename} content`" tabindex="0"><code>{{ debianContent.content }}</code></pre>
-        <div class="export-actions" role="group" aria-label="Debian source actions">
-          <button type="button" @click="copyContent('debian', debianContent.content)">{{ copy.actions.copy }}</button>
-          <button type="button" @click="download('debian', debianFilename, debianContent.content)">{{ copy.actions.download }}</button>
+        <div class="code-panel">
+          <div class="code-panel__bar">
+            <span class="code-panel__filename">{{ debianFilename }}</span>
+            <div class="code-panel__actions" role="group" aria-label="Debian source actions">
+              <button class="btn" type="button" @click="copyContent('debian', debianContent.content)">{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="download('debian', debianFilename, debianContent.content)">{{ copy.actions.download }}</button>
+            </div>
+          </div>
+          <pre :aria-label="`${debianFilename} content`" tabindex="0"><code>{{ debianContent.content }}</code></pre>
         </div>
-        <p v-if="feedback.debian" :role="feedback.debian.kind === 'error' ? 'alert' : 'status'">
+        <p v-if="feedback.debian" class="feedback-note" :role="feedback.debian.kind === 'error' ? 'alert' : 'status'">
           {{ feedback.debian.message }}
         </p>
         <p class="curl-label">Safe retrieval &mdash; save, inspect, then apply:</p>
-        <pre><code>{{ debianCurl }}</code></pre>
+        <div class="code-panel">
+          <div class="code-panel__bar">
+            <span class="code-panel__filename">curl</span>
+            <div class="code-panel__actions" role="group" aria-label="Debian curl command actions">
+              <button class="btn" type="button" @click="copyContent('debian-curl', debianCurl)">{{ copy.actions.copy }}</button>
+            </div>
+          </div>
+          <pre><code>{{ debianCurl }}</code></pre>
+        </div>
+        <p v-if="feedback['debian-curl']" class="feedback-note" :role="feedback['debian-curl']?.kind === 'error' ? 'alert' : 'status'">
+          {{ feedback['debian-curl']?.message }}
+        </p>
       </template>
       <p v-else class="audit-note" role="alert">{{ debianContent.error }}</p>
     </section>
@@ -191,37 +207,59 @@ function download(key: string, filename: string, content: string, mediaType = 't
         <code>{{ plan.sourceId }}</code> &mdash; {{ plan.productNames.join(', ') }}
       </h3>
       <template v-if="plan.sourceArtifact">
-        <pre tabindex="0"><code>{{ plan.sourceArtifact.content }}</code></pre>
-        <div class="export-actions" role="group" :aria-label="`${plan.sourceId} source actions`">
-          <button type="button" @click="copyContent(plan.sourceId, plan.sourceArtifact.content)">{{ copy.actions.copy }}</button>
-          <button type="button" @click="download(plan.sourceId, plan.sourceArtifact.filename, plan.sourceArtifact.content)">{{ copy.actions.download }}</button>
+        <div class="code-panel">
+          <div class="code-panel__bar">
+            <span class="code-panel__filename">{{ plan.sourceArtifact.filename }}</span>
+            <div class="code-panel__actions" role="group" :aria-label="`${plan.sourceId} source actions`">
+              <button class="btn" type="button" @click="copyContent(plan.sourceId, plan.sourceArtifact.content)">{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="download(plan.sourceId, plan.sourceArtifact.filename, plan.sourceArtifact.content)">{{ copy.actions.download }}</button>
+            </div>
+          </div>
+          <pre tabindex="0"><code>{{ plan.sourceArtifact.content }}</code></pre>
         </div>
-        <p v-if="feedback[plan.sourceId]" :role="feedback[plan.sourceId]?.kind === 'error' ? 'alert' : 'status'">
+        <p v-if="feedback[plan.sourceId]" class="feedback-note" :role="feedback[plan.sourceId]?.kind === 'error' ? 'alert' : 'status'">
           {{ feedback[plan.sourceId]?.message }}
         </p>
         <p v-if="plan.sourceArtifact.riskNotes?.length" class="audit-note" role="alert">
           {{ plan.sourceArtifact.riskNotes.join(' ') }}
         </p>
         <p class="curl-label">Safe retrieval &mdash; save, inspect, then apply:</p>
-        <pre><code>{{ sourceCurl(plan.sourceId) }}
+        <div class="code-panel">
+          <div class="code-panel__bar">
+            <span class="code-panel__filename">curl</span>
+            <div class="code-panel__actions" role="group" :aria-label="`${plan.sourceId} curl actions`">
+              <button class="btn" type="button" @click="copyContent(`${plan.sourceId}-curl`, `${sourceCurl(plan.sourceId)}\n${sourceInstallCurl(plan.sourceId)}`)">{{ copy.actions.copy }}</button>
+            </div>
+          </div>
+          <pre><code>{{ sourceCurl(plan.sourceId) }}
 {{ sourceInstallCurl(plan.sourceId) }}</code></pre>
+        </div>
+        <p v-if="feedback[`${plan.sourceId}-curl`]" class="feedback-note" :role="feedback[`${plan.sourceId}-curl`]?.kind === 'error' ? 'alert' : 'status'">
+          {{ feedback[`${plan.sourceId}-curl`]?.message }}
+        </p>
       </template>
     </section>
 
     <section v-if="installScript" class="export-block" aria-labelledby="export-install-heading">
       <h3 id="export-install-heading">Reviewed installation script</h3>
       <template v-if="'content' in installScript">
-        <pre tabindex="0"><code>{{ installScript.content }}</code></pre>
-        <div class="export-actions" role="group" aria-label="Install script actions">
-          <button type="button" @click="copyContent('install', installScript.content)">{{ copy.actions.copy }}</button>
-          <button
-            type="button"
-            @click="download('install', 'install-vendor-repositories.sh', installScript.content, 'text/x-shellscript')"
-          >
-            {{ copy.actions.download }}
-          </button>
+        <div class="code-panel">
+          <div class="code-panel__bar">
+            <span class="code-panel__filename">install-vendor-repositories.sh</span>
+            <div class="code-panel__actions" role="group" aria-label="Install script actions">
+              <button class="btn" type="button" @click="copyContent('install', installScript.content)">{{ copy.actions.copy }}</button>
+              <button
+                class="btn"
+                type="button"
+                @click="download('install', 'install-vendor-repositories.sh', installScript.content, 'text/x-shellscript')"
+              >
+                {{ copy.actions.download }}
+              </button>
+            </div>
+          </div>
+          <pre tabindex="0"><code>{{ installScript.content }}</code></pre>
         </div>
-        <p v-if="feedback.install" :role="feedback.install.kind === 'error' ? 'alert' : 'status'">
+        <p v-if="feedback.install" class="feedback-note" :role="feedback.install.kind === 'error' ? 'alert' : 'status'">
           {{ feedback.install.message }}
         </p>
         <p class="audit-note">
@@ -233,11 +271,16 @@ function download(key: string, filename: string, content: string, mediaType = 't
 
     <section v-if="packageCommand" class="export-block" aria-labelledby="export-packages-heading">
       <h3 id="export-packages-heading">Package installation</h3>
-      <pre tabindex="0"><code>{{ packageCommand }}</code></pre>
-      <div class="export-actions" role="group" aria-label="Package command actions">
-        <button type="button" @click="copyContent('packages', packageCommand)">{{ copy.actions.copy }}</button>
+      <div class="code-panel">
+        <div class="code-panel__bar">
+          <span class="code-panel__filename">apt-get</span>
+          <div class="code-panel__actions" role="group" aria-label="Package command actions">
+            <button class="btn" type="button" @click="copyContent('packages', packageCommand)">{{ copy.actions.copy }}</button>
+          </div>
+        </div>
+        <pre tabindex="0"><code>{{ packageCommand }}</code></pre>
       </div>
-      <p v-if="feedback.packages" :role="feedback.packages.kind === 'error' ? 'alert' : 'status'">
+      <p v-if="feedback.packages" class="feedback-note" :role="feedback.packages.kind === 'error' ? 'alert' : 'status'">
         {{ feedback.packages.message }}
       </p>
     </section>

@@ -157,6 +157,6 @@ describe('Structured Workbench page', () => {
     expect(css).toContain('@media (min-width: 80rem)')
     expect(css).toContain('#workbench[data-enhanced="true"] .workbench-step:not([data-active="true"])')
     expect(css).not.toMatch(/\.skip-link\s*\{[^}]*var\(--accent\)/su)
-    expect(css).not.toMatch(/gradient|box-shadow|position:\s*fixed|\.v-|mdi-/u)
+    expect(css).not.toMatch(/gradient|position:\s*fixed|\.v-|mdi-/u)
   })
 })
