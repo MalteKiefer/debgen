@@ -1,7 +1,7 @@
 # DebGen Vue Stepper and Technical SEO Redesign
 
 Date: 2026-08-29
-Status: design approved in conversation, written specification pending final review
+Status: approved
 Supersedes: `docs/superpowers/specs/2026-08-29-html-first-workbench-redesign-design.md` where this document differs
 
 ## Objective
