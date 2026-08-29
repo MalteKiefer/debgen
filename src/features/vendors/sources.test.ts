@@ -1,50 +1,71 @@
 import { describe, expect, it } from 'vitest'
+import type { RepositorySource } from './model'
 import { REPOSITORY_SOURCES, getRepositorySource } from './sources'
 
-const expectedSourceIds = [
-  'brave-browser', 'mozilla', 'google-chrome', 'microsoft-edge', 'vivaldi', 'opera',
-  'signal', 'proton-vpn', 'mullvad', 'tor', 'docker', 'kubernetes-v1-36',
-  'google-cloud', 'microsoft-azure-cli', 'github-cli', 'hashicorp', 'postgresql-pgdg',
-  'mongodb-community-8-0', 'grafana', 'nvidia-container-toolkit', 'mariadb-community-11-8',
-  'redis-open-source', 'clickhouse', 'influxdb-3-core', 'zabbix-7-4',
+const expectedSources = [
+  { id: 'brave-browser', name: 'Brave Browser', documentationUrl: 'https://brave.com/linux/', verifiedAt: '2026-08-29', locations: ['https://brave-browser-apt-release.s3.brave.com/|trixie,bookworm,bullseye,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['brave-browser-signing-key|https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg|/usr/share/keyrings/brave-browser-archive-keyring.gpg|binary||trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'mozilla', name: 'Mozilla', documentationUrl: 'https://support.mozilla.org/en-US/kb/install-firefox-linux', verifiedAt: '2026-08-29', locations: ['https://packages.mozilla.org/apt|trixie,bookworm,bullseye|amd64,arm64|mozilla|main|explicit'], keys: ['mozilla-signing-key|https://packages.mozilla.org/apt/repo-signing-key.gpg|/etc/apt/keyrings/packages.mozilla.org.asc|ascii-armored|35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3|trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [{ id: 'mozilla-firefox', content: 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' }], warnings: [] },
+  { id: 'google-chrome', name: 'Google Chrome', documentationUrl: 'https://support.google.com/chrome/a/answer/9025903', verifiedAt: '2026-08-29', locations: ['https://dl.google.com/linux/chrome/deb/|trixie,bookworm,bullseye,forky,sid|amd64|stable|main|explicit'], keys: ['google-chrome-signing-key|https://dl.google.com/linux/linux_signing_key.pub|/etc/apt/keyrings/google-chrome.asc|ascii-armored|EB4C1BFD4F042F6DDDCCEC917721F63BD38B4796|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'microsoft-edge', name: 'Microsoft Edge', documentationUrl: 'https://learn.microsoft.com/en-us/linux/packages', verifiedAt: '2026-08-29', locations: ['https://packages.microsoft.com/repos/edge|trixie,bookworm,bullseye,forky,sid|amd64|stable|main|explicit'], keys: ['microsoft-edge-signing-key|https://packages.microsoft.com/keys/microsoft.asc|/etc/apt/keyrings/microsoft-edge.gpg|ascii-armored|BC528686B50D79E339D3721CEB3E94ADBE1229CF|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'vivaldi', name: 'Vivaldi', documentationUrl: 'https://help.vivaldi.com/desktop/install-update/obtaining-official-builds/', verifiedAt: '2026-08-29', locations: ['https://repo.vivaldi.com/stable/deb/|trixie,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['vivaldi-signing-key|https://repo.vivaldi.com/stable/linux_signing_key.pub|/etc/apt/keyrings/vivaldi.gpg|ascii-armored||trixie,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'opera', name: 'Opera', documentationUrl: 'https://deb.opera.com/manual.html', verifiedAt: '2026-08-29', locations: ['https://deb.opera.com/opera-stable/|trixie,bookworm,bullseye,forky,sid|amd64|stable|non-free|explicit'], keys: ['opera-signing-key|https://deb.opera.com/archive.key|/etc/apt/keyrings/opera.gpg|ascii-armored|6C86BE214648376680CA957B11EE8C00B693A745|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'signal', name: 'Signal', documentationUrl: 'https://signal.org/download/linux/', verifiedAt: '2026-08-29', locations: ['https://updates.signal.org/desktop/apt/|trixie,bookworm,bullseye,forky,sid|amd64|xenial|main|explicit'], keys: ['signal-signing-key|https://updates.signal.org/desktop/apt/keys.asc|/usr/share/keyrings/signal-desktop-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'proton-vpn', name: 'Proton VPN', documentationUrl: 'https://protonvpn.com/support/linux-vpn-setup', verifiedAt: '2026-08-29', locations: ['https://repo.protonvpn.com/debian|trixie|amd64,arm64|stable|main|explicit'], keys: ['proton-vpn-signing-key|https://repo.protonvpn.com/debian/public_key.asc|/etc/apt/keyrings/protonvpn-stable-archive-keyring.gpg|ascii-armored||trixie'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['proton-vpn-supported-environment'] },
+  { id: 'mullvad', name: 'Mullvad', documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux', verifiedAt: '2026-08-29', locations: ['https://repository.mullvad.net/deb/stable|trixie,bookworm,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['mullvad-signing-key|https://repository.mullvad.net/deb/mullvad-keyring.asc|/usr/share/keyrings/mullvad-keyring.asc|ascii-armored|A1198702FC3E0A09A9AE5B75D5A1D4F266DE8DDF|trixie,bookworm,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'tor', name: 'Tor', documentationUrl: 'https://support.torproject.org/little-t-tor/getting-started/installing/', verifiedAt: '2026-08-29', locations: ['https://deb.torproject.org/torproject.org|trixie|amd64|trixie|main|explicit', 'https://deb.torproject.org/torproject.org|trixie|arm64|trixie|main|explicit', 'https://deb.torproject.org/torproject.org|bookworm|amd64|bookworm|main|explicit', 'https://deb.torproject.org/torproject.org|bookworm|arm64|bookworm|main|explicit', 'https://deb.torproject.org/torproject.org|bullseye|amd64|bullseye|main|explicit', 'https://deb.torproject.org/torproject.org|bullseye|arm64|bullseye|main|explicit'], keys: ['tor-signing-key|https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc|/usr/share/keyrings/deb.torproject.org-keyring.gpg|ascii-armored|A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89|trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['tor-not-browser'] },
+  { id: 'docker', name: 'Docker', documentationUrl: 'https://docs.docker.com/engine/install/debian/', verifiedAt: '2026-08-29', locations: ['https://download.docker.com/linux/debian|trixie|amd64|trixie|stable|explicit', 'https://download.docker.com/linux/debian|trixie|arm64|trixie|stable|explicit', 'https://download.docker.com/linux/debian|trixie|armhf|trixie|stable|explicit', 'https://download.docker.com/linux/debian|bookworm|amd64|bookworm|stable|explicit', 'https://download.docker.com/linux/debian|bookworm|arm64|bookworm|stable|explicit', 'https://download.docker.com/linux/debian|bookworm|armhf|bookworm|stable|explicit', 'https://download.docker.com/linux/debian|bullseye|amd64|bullseye|stable|explicit', 'https://download.docker.com/linux/debian|bullseye|arm64|bullseye|stable|explicit', 'https://download.docker.com/linux/debian|bullseye|armhf|bullseye|stable|explicit'], keys: ['docker-signing-key|https://download.docker.com/linux/debian/gpg|/etc/apt/keyrings/docker.asc|ascii-armored||trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['docker-firewall'] },
+  { id: 'kubernetes-v1-36', name: 'Kubernetes v1.36', documentationUrl: 'https://v1-36.docs.kubernetes.io/docs/tasks/tools/install-kubectl-linux/', verifiedAt: '2026-08-29', locations: ['https://pkgs.k8s.io/core:/stable:/v1.36/deb/|trixie,bookworm,bullseye,forky,sid|amd64,arm64|/||explicit'], keys: ['kubernetes-v1-36-signing-key|https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key|/etc/apt/keyrings/kubernetes-apt-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'google-cloud', name: 'Google Cloud', documentationUrl: 'https://docs.cloud.google.com/sdk/docs/install-sdk', verifiedAt: '2026-08-29', locations: ['https://packages.cloud.google.com/apt|trixie,bookworm,bullseye|amd64,arm64|cloud-sdk|main|explicit'], keys: ['google-cloud-signing-key|https://packages.cloud.google.com/apt/doc/apt-key.gpg|/usr/share/keyrings/cloud.google.gpg|binary||trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'microsoft-azure-cli', name: 'Microsoft Azure CLI', documentationUrl: 'https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux', verifiedAt: '2026-08-29', locations: ['https://packages.microsoft.com/repos/azure-cli/|bookworm|amd64|bookworm|main|explicit', 'https://packages.microsoft.com/repos/azure-cli/|bookworm|arm64|bookworm|main|explicit', 'https://packages.microsoft.com/repos/azure-cli/|bullseye|amd64|bullseye|main|explicit', 'https://packages.microsoft.com/repos/azure-cli/|bullseye|arm64|bullseye|main|explicit'], keys: ['microsoft-azure-cli-signing-key|https://packages.microsoft.com/keys/microsoft.asc|/etc/apt/keyrings/microsoft-azure-cli.gpg|ascii-armored|BC528686B50D79E339D3721CEB3E94ADBE1229CF|bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'github-cli', name: 'GitHub CLI', documentationUrl: 'https://github.com/cli/cli/blob/trunk/docs/install_linux.md', verifiedAt: '2026-08-29', locations: ['https://cli.github.com/packages|trixie,bookworm,bullseye,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['github-cli-signing-key|https://cli.github.com/packages/githubcli-archive-keyring.gpg|/usr/share/keyrings/githubcli-archive-keyring.gpg|binary|2C6106201985B60E6C7AC87323F3D4EA75716059,7F38BBB59D064DBCB3D84D725612B36462313325|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'hashicorp', name: 'HashiCorp', documentationUrl: 'https://developer.hashicorp.com/terraform/install', verifiedAt: '2026-08-29', locations: ['https://apt.releases.hashicorp.com|trixie|amd64|trixie|main|explicit', 'https://apt.releases.hashicorp.com|trixie|arm64|trixie|main|explicit', 'https://apt.releases.hashicorp.com|bookworm|amd64|bookworm|main|explicit', 'https://apt.releases.hashicorp.com|bookworm|arm64|bookworm|main|explicit', 'https://apt.releases.hashicorp.com|bullseye|amd64|bullseye|main|explicit', 'https://apt.releases.hashicorp.com|bullseye|arm64|bullseye|main|explicit'], keys: ['hashicorp-signing-key|https://apt.releases.hashicorp.com/gpg|/usr/share/keyrings/hashicorp-archive-keyring.gpg|ascii-armored|798AEC654E5C15428C8E42EEAA16FCBCA621E701|trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'postgresql-pgdg', name: 'PostgreSQL PGDG', documentationUrl: 'https://wiki.postgresql.org/wiki/Apt', verifiedAt: '2026-08-29', locations: ['https://apt.postgresql.org/pub/repos/apt/|trixie|amd64|trixie-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|trixie|arm64|trixie-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|bookworm|amd64|bookworm-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|bookworm|arm64|bookworm-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|bullseye|amd64|bullseye-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|bullseye|arm64|bullseye-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|forky|amd64|forky-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|forky|arm64|forky-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|sid|amd64|sid-pgdg|main|explicit', 'https://apt.postgresql.org/pub/repos/apt/|sid|arm64|sid-pgdg|main|explicit'], keys: ['postgresql-pgdg-signing-key|https://www.postgresql.org/media/keys/ACCC4CF8.asc|/usr/share/keyrings/postgresql-apt.gpg|ascii-armored|B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'mongodb-community-8-0', name: 'MongoDB Community 8.0', documentationUrl: 'https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-debian/', verifiedAt: '2026-08-29', locations: ['https://repo.mongodb.org/apt/debian|bookworm|amd64|bookworm/mongodb-org/8.0|main|explicit'], keys: ['mongodb-community-8-0-signing-key|https://pgp.mongodb.com/server-8.0.asc|/usr/share/keyrings/mongodb-server-8.0.gpg|ascii-armored||bookworm'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'grafana', name: 'Grafana', documentationUrl: 'https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/', verifiedAt: '2026-08-29', locations: ['https://apt.grafana.com|trixie,bookworm,bullseye,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['grafana-signing-key|https://apt.grafana.com/gpg-full.key|/etc/apt/keyrings/grafana.asc|ascii-armored|4E40DDF6D76E284A4A6780E48C8C34C524098CB6,0E22EB88E39E12277A7760AE9E439B102CF3C0C6,B53AE77BADB630A683046005963FA27710458545|trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'nvidia-container-toolkit', name: 'NVIDIA Container Toolkit', documentationUrl: 'https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html', verifiedAt: '2026-08-29', locations: ['https://nvidia.github.io/libnvidia-container/stable/deb/amd64|trixie|amd64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64|trixie|arm64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64|bookworm|amd64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64|bookworm|arm64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64|bullseye|amd64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64|bullseye|arm64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64|forky|amd64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64|forky|arm64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/amd64|sid|amd64|/||explicit', 'https://nvidia.github.io/libnvidia-container/stable/deb/arm64|sid|arm64|/||explicit'], keys: ['nvidia-container-toolkit-signing-key|https://nvidia.github.io/libnvidia-container/gpgkey|/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['nvidia-container-toolkit-prerequisites'] },
+  { id: 'mariadb-community-11-8', name: 'MariaDB Community 11.8', documentationUrl: 'https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/installing-mariadb/binary-packages/gpg', verifiedAt: '2026-08-29', locations: ['https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|trixie|amd64|trixie|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|trixie|arm64|trixie|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|bookworm|amd64|bookworm|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|bookworm|arm64|bookworm|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|bullseye|amd64|bullseye|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|bullseye|arm64|bullseye|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|sid|amd64|sid|main|explicit', 'https://dlm.mariadb.com/repo/mariadb-server/11.8/repo/debian|sid|arm64|sid|main|explicit'], keys: ['mariadb-community-11-8-signing-key|https://mariadb.org/mariadb_release_signing_key.pgp|/etc/apt/keyrings/mariadb-server-11-8.pgp|ascii-armored|177F4010FE56CA3336300305F1656F24C74CD1D8|trixie,bookworm,bullseye,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['mariadb-no-setup-script'] },
+  { id: 'redis-open-source', name: 'Redis Open Source', documentationUrl: 'https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/', verifiedAt: '2026-08-29', locations: ['https://packages.redis.io/deb|trixie|amd64|trixie|main|explicit', 'https://packages.redis.io/deb|trixie|arm64|trixie|main|explicit', 'https://packages.redis.io/deb|bookworm|amd64|bookworm|main|explicit', 'https://packages.redis.io/deb|bookworm|arm64|bookworm|main|explicit'], keys: ['redis-open-source-signing-key|https://packages.redis.io/gpg|/usr/share/keyrings/redis-archive-keyring.gpg|ascii-armored||trixie,bookworm'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'clickhouse', name: 'ClickHouse', documentationUrl: 'https://clickhouse.com/docs/en/getting-started/install/', verifiedAt: '2026-08-29', locations: ['https://packages.clickhouse.com/deb|trixie,bookworm,bullseye,forky,sid|amd64,arm64|stable|main|generic-debian'], keys: ['clickhouse-signing-key|https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key|/usr/share/keyrings/clickhouse-keyring.gpg|ascii-armored||trixie,bookworm,bullseye,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: ['clickhouse-generic-debian'] },
+  { id: 'influxdb-3-core', name: 'InfluxDB 3 Core', documentationUrl: 'https://docs.influxdata.com/influxdb3/core/install/', verifiedAt: '2026-08-29', locations: ['https://repos.influxdata.com/debian|trixie,bookworm,forky,sid|amd64,arm64|stable|main|explicit'], keys: ['influxdb-3-core-signing-key|https://repos.influxdata.com/influxdata-archive.key|/usr/share/keyrings/influxdata-archive.gpg|ascii-armored|24C975CBA61A024EE1B631787C3D57159FC2F927|trixie,bookworm,forky,sid'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
+  { id: 'zabbix-7-4', name: 'Zabbix 7.4', documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages', verifiedAt: '2026-08-29', locations: ['https://repo.zabbix.com/zabbix/7.4/stable/debian|trixie|amd64|trixie|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|trixie|arm64|trixie|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bookworm|amd64|bookworm|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bookworm|arm64|bookworm|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bullseye|amd64|bullseye|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bullseye|arm64|bullseye|main|explicit'], keys: ['zabbix-7-4-signing-key|https://repo.zabbix.com/zabbix-official-repo.key|/etc/apt/keyrings/zabbix-official-repo.gpg|ascii-armored||trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
 ] as const
 
+function sourceMetadata(source: RepositorySource) {
+  return {
+    id: source.id,
+    name: source.name,
+    documentationUrl: source.documentationUrl,
+    verifiedAt: source.verifiedAt,
+    locations: source.locations.map((location) => [
+      location.uri,
+      location.releases.join(','),
+      location.architectures.join(','),
+      location.suite,
+      location.components.join(','),
+      location.supportLevel,
+    ].join('|')),
+    keys: source.keys.map((key) => [
+      key.id,
+      key.url,
+      key.keyringPath,
+      key.format,
+      key.fingerprints.join(','),
+      key.releases.join(','),
+    ].join('|')),
+    auxiliaryTrustFiles: source.auxiliaryTrustFiles,
+    preferenceFiles: source.preferenceFiles,
+    warnings: source.warnings,
+  }
+}
+
 describe('repository source migration', () => {
-  it('provides the immutable 25-source catalog required by the original products', () => {
-    expect(REPOSITORY_SOURCES.map((source) => source.id)).toEqual(expectedSourceIds)
-    expect(Object.isFrozen(REPOSITORY_SOURCES)).toBe(true)
-    expect(REPOSITORY_SOURCES.every(Object.isFrozen)).toBe(true)
+  it('retains the exact authoritative definition for every original source', () => {
+    expect(REPOSITORY_SOURCES.map(sourceMetadata)).toEqual(expectedSources)
   })
 
-  it('preserves representative legacy source definitions without product-owned repository fields', () => {
-    expect(getRepositorySource('mullvad')).toMatchObject({
-      id: 'mullvad',
-      documentationUrl: 'https://mullvad.net/en/help/install-mullvad-app-linux',
-      locations: [{
-        uri: 'https://repository.mullvad.net/deb/stable',
-        releases: ['trixie', 'bookworm', 'forky', 'sid'],
-        architectures: ['amd64', 'arm64'],
-        suite: 'stable',
-        components: ['main'],
-        supportLevel: 'explicit',
-      }],
-      keys: [{
-        url: 'https://repository.mullvad.net/deb/mullvad-keyring.asc',
-        keyringPath: '/usr/share/keyrings/mullvad-keyring.asc',
-        format: 'ascii-armored',
-        fingerprints: ['A1198702FC3E0A09A9AE5B75D5A1D4F266DE8DDF'],
-        releases: ['trixie', 'bookworm', 'forky', 'sid'],
-      }],
-    })
-    expect(getRepositorySource('kubernetes-v1-36')).toMatchObject({
-      locations: [{ suite: '/', components: [] }],
-    })
-    expect(getRepositorySource('mozilla')).toMatchObject({
-      preferenceFiles: [{
-        id: 'mozilla-firefox',
-        content: 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n',
-      }],
-    })
+  it('provides an immutable source catalog', () => {
+    expect(Object.isFrozen(REPOSITORY_SOURCES)).toBe(true)
+    expect(REPOSITORY_SOURCES.every(Object.isFrozen)).toBe(true)
   })
 
   it('resolves known source IDs and leaves unknown IDs unresolved', () => {

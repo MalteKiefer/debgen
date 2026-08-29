@@ -83,8 +83,6 @@ export interface VendorProduct {
   readonly provenance: RepositoryProvenance
   readonly securityCritical: boolean
   readonly warningKeys: readonly WarningKey[]
-  /** Retained for the byte-compatible legacy vendor manifest. */
-  readonly verifiedAt?: string
 }
 
 export interface GeneratedArtifact {
