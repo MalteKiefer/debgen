@@ -107,11 +107,14 @@ const expectedProducts = [
   { id: 'dbeaver-community', sourceId: 'dbeaver', name: 'DBeaver Community', category: 'data-platforms', icon: 'mdi-database-outline', packages: ['dbeaver-ce'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'upstream', securityCritical: false, warningKeys: [] },
   { id: 'buildkite-agent', sourceId: 'buildkite-agent', name: 'Buildkite Agent', category: 'development-platforms-cicd', icon: 'mdi-code-tags', packages: ['buildkite-agent'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'manufacturer', securityCritical: true, warningKeys: ['buildkite-agent-token-required'] },
   { id: 'buildkite-cli', sourceId: 'buildkite-cli', name: 'Buildkite CLI', category: 'development-platforms-cicd', icon: 'mdi-code-tags', packages: ['bk'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'openvpn-community', sourceId: 'openvpn-community', name: 'OpenVPN Community', category: 'vpn-secure-networking', icon: 'mdi-vpn', packages: ['openvpn'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [] },
+  { id: 'librewolf', sourceId: 'librewolf', name: 'LibreWolf', category: 'web-browsers', icon: 'mdi-web', packages: ['librewolf'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'upstream', securityCritical: true, warningKeys: [] },
+  { id: 'lutris', sourceId: 'lutris', name: 'Lutris', category: 'games', icon: 'mdi-code-tags', packages: ['lutris'], supportedReleases: ['trixie'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'community-endorsed', securityCritical: false, warningKeys: [] },
 ] as const satisfies readonly VendorProduct[]
 
-describe('100-product vendor catalog', () => {
+describe('103-product vendor catalog', () => {
   it('matches the exact authoritative metadata table in approved order', () => {
-    expect(VENDOR_PRODUCTS).toHaveLength(100)
+    expect(VENDOR_PRODUCTS).toHaveLength(103)
     expect(VENDOR_PRODUCTS).toEqual(expectedProducts)
   })
 
@@ -157,9 +160,9 @@ describe('100-product vendor catalog', () => {
       category,
       VENDOR_PRODUCTS.filter((product) => product.category === category).length,
     ]))).toEqual({
-      'web-browsers': 8,
+      'web-browsers': 9,
       'messaging-email': 3,
-      'vpn-secure-networking': 10,
+      'vpn-secure-networking': 11,
       'containers-kubernetes': 4,
       'cloud-edge': 3,
       'developer-workstation': 7,
@@ -173,7 +176,7 @@ describe('100-product vendor catalog', () => {
       'development-platforms-cicd': 7,
       'web-servers': 3,
       'file-synchronization': 1,
-      games: 1,
+      games: 2,
       'desktop-productivity': 2,
     })
   })
@@ -189,6 +192,9 @@ describe('100-product vendor catalog', () => {
     expect(getVendorProduct('docker-engine')?.name).toBe('Docker Engine')
     expect(getVendorProduct('zerotier-one')?.sourceId).toBe('zerotier-one')
     expect(getVendorProduct('netbird')?.sourceId).toBe('netbird')
+    expect(getVendorProduct('openvpn-community')?.packages).toEqual(['openvpn'])
+    expect(getVendorProduct('librewolf')?.supportedArchitectures).toEqual(['amd64', 'arm64'])
+    expect(getVendorProduct('lutris')?.provenance).toBe('community-endorsed')
     expect(getVendorProduct('nodejs')).toBeUndefined()
     expect(getVendorProduct('libreoffice')).toBeUndefined()
     expect(getVendorProduct('unknown-product')).toBeUndefined()
