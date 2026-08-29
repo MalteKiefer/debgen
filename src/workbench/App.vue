@@ -28,6 +28,12 @@ const currentRelease = computed(() => props.initialState.manifest.releases.find(
   release => release.codename === state.value.release,
 ) ?? props.initialState.manifest.releases[0]!)
 
+const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
+
+const selectedProducts = computed(() => props.initialState.manifest.products
+  .filter(product => state.value.repositories.includes(product.id))
+  .sort((left, right) => compareCodePoints(left.name, right.name)))
+
 const updateState = (nextState: WorkbenchState): void => {
   state.value = {
     ...nextState,
@@ -225,11 +231,26 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
           :number="4"
           :active="state.activeStep === 'review'"
         >
+          <h3 class="review-subheading">Debian base</h3>
           <dl class="change-plan">
             <div><dt>{{ initialState.copy.audit.source }}</dt><dd>deb.debian.org/debian</dd></div>
             <div><dt>{{ initialState.copy.audit.operator }}</dt><dd>Debian Project</dd></div>
             <div><dt>{{ initialState.copy.audit.signingKey }}</dt><dd><code>{{ currentRelease.keyring }}</code></dd></div>
             <div><dt>{{ initialState.copy.audit.compatibility }}</dt><dd>Checked against {{ state.release }} and {{ state.architecture }}</dd></div>
+          </dl>
+
+          <h3 class="review-subheading">Third-party repositories ({{ selectedProducts.length }})</h3>
+          <p v-if="selectedProducts.length === 0" class="audit-note">
+            No third-party repositories selected. Add software in the Repositories step to include it here.
+          </p>
+          <dl v-else class="change-plan">
+            <div v-for="product in selectedProducts" :key="product.id">
+              <dt>{{ product.name }}</dt>
+              <dd>
+                <code>{{ product.packages.join(' ') }}</code>
+                <span class="cell-sub">{{ product.provenance }} &middot; {{ product.supportLevel }}</span>
+              </dd>
+            </div>
           </dl>
           <div class="step-actions"><a href="#repositories" @click.prevent="navigate('repositories')">{{ initialState.copy.actions.back }}</a><a href="#export" @click.prevent="navigate('export')">{{ initialState.copy.actions.continue }}</a></div>
         </StepperSection>

@@ -594,6 +594,16 @@ thead th {
   padding-block: 0.65rem;
 }
 
+.review-subheading {
+  margin: var(--space-5) 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.review-subheading:first-of-type {
+  margin-top: 0;
+}
+
 .change-plan {
   margin: 0;
   border-top: 1px solid var(--border);
@@ -620,10 +630,53 @@ thead th {
 
 /* Repository search + badges */
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .repository-toolbar {
   display: grid;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
+}
+
+.repository-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.search-field,
+.category-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.category-field {
+  flex: 0 1 12rem;
+}
+
+.search-field > span:first-child,
+.category-field > span:first-child {
+  position: absolute;
+  inset-inline-start: 0.65rem;
+  display: flex;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.search-field input,
+.category-field select {
+  width: 100%;
+  padding-inline-start: 2.35rem;
 }
 
 .result-count {
@@ -646,7 +699,9 @@ thead th {
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   background: var(--surface-sunken);
@@ -657,6 +712,27 @@ thead th {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   white-space: nowrap;
+}
+
+.badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.report-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  text-decoration: none;
+}
+
+.report-link:hover {
+  background: var(--surface-muted);
+  color: var(--accent-strong);
 }
 
 .badge[data-provenance="manufacturer"],
@@ -823,6 +899,36 @@ code {
   background: none;
   color: inherit;
   white-space: pre;
+}
+
+.hljs-comment {
+  color: #8a8680;
+  font-style: italic;
+}
+
+.hljs-string,
+.hljs-meta .hljs-string {
+  color: #9fd88a;
+}
+
+.hljs-keyword,
+.hljs-built_in,
+.hljs-literal {
+  color: #7ab6ff;
+}
+
+.hljs-variable,
+.hljs-variable.language_ {
+  color: #ffb86c;
+}
+
+.hljs-number {
+  color: #d19cff;
+}
+
+.hljs-operator,
+.hljs-punctuation {
+  color: var(--code-text);
 }
 
 pre {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import { copyText, downloadText } from '../../features/sources/download'
+import { renderIcon } from '../../site/icons'
 import { generateSources, getOutputFilename } from '../../features/sources/generate'
 import {
   generateInstallScript,
@@ -11,6 +12,7 @@ import {
 import type { SiteCopy } from '../../site/locales'
 import type { WorkbenchState } from '../state'
 import type { WorkbenchHydrationProduct } from '../types'
+import CodeBlock from './CodeBlock.vue'
 
 const props = defineProps<{
   copy: SiteCopy
@@ -171,8 +173,8 @@ function download(key: string, filename: string, content: string, mediaType = 't
           <div class="code-panel__bar">
             <span class="code-panel__filename">{{ debianFilename }}</span>
             <div class="code-panel__actions" role="group" aria-label="Debian source actions">
-              <button class="btn" type="button" @click="copyContent('debian', debianContent.content)">{{ copy.actions.copy }}</button>
-              <button class="btn" type="button" @click="download('debian', debianFilename, debianContent.content)">{{ copy.actions.download }}</button>
+              <button class="btn" type="button" @click="copyContent('debian', debianContent.content)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="download('debian', debianFilename, debianContent.content)"><span v-html="renderIcon('download')" />{{ copy.actions.download }}</button>
             </div>
           </div>
           <pre :aria-label="`${debianFilename} content`" tabindex="0"><code>{{ debianContent.content }}</code></pre>
@@ -185,10 +187,10 @@ function download(key: string, filename: string, content: string, mediaType = 't
           <div class="code-panel__bar">
             <span class="code-panel__filename">curl</span>
             <div class="code-panel__actions" role="group" aria-label="Debian curl command actions">
-              <button class="btn" type="button" @click="copyContent('debian-curl', debianCurl)">{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="copyContent('debian-curl', debianCurl)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
             </div>
           </div>
-          <pre><code>{{ debianCurl }}</code></pre>
+          <CodeBlock :code="debianCurl" lang="bash" aria-label="Debian curl command" />
         </div>
         <p v-if="feedback['debian-curl']" class="feedback-note" :role="feedback['debian-curl']?.kind === 'error' ? 'alert' : 'status'">
           {{ feedback['debian-curl']?.message }}
@@ -211,8 +213,8 @@ function download(key: string, filename: string, content: string, mediaType = 't
           <div class="code-panel__bar">
             <span class="code-panel__filename">{{ plan.sourceArtifact.filename }}</span>
             <div class="code-panel__actions" role="group" :aria-label="`${plan.sourceId} source actions`">
-              <button class="btn" type="button" @click="copyContent(plan.sourceId, plan.sourceArtifact.content)">{{ copy.actions.copy }}</button>
-              <button class="btn" type="button" @click="download(plan.sourceId, plan.sourceArtifact.filename, plan.sourceArtifact.content)">{{ copy.actions.download }}</button>
+              <button class="btn" type="button" @click="copyContent(plan.sourceId, plan.sourceArtifact.content)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="download(plan.sourceId, plan.sourceArtifact.filename, plan.sourceArtifact.content)"><span v-html="renderIcon('download')" />{{ copy.actions.download }}</button>
             </div>
           </div>
           <pre tabindex="0"><code>{{ plan.sourceArtifact.content }}</code></pre>
@@ -228,11 +230,14 @@ function download(key: string, filename: string, content: string, mediaType = 't
           <div class="code-panel__bar">
             <span class="code-panel__filename">curl</span>
             <div class="code-panel__actions" role="group" :aria-label="`${plan.sourceId} curl actions`">
-              <button class="btn" type="button" @click="copyContent(`${plan.sourceId}-curl`, `${sourceCurl(plan.sourceId)}\n${sourceInstallCurl(plan.sourceId)}`)">{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="copyContent(`${plan.sourceId}-curl`, `${sourceCurl(plan.sourceId)}\n${sourceInstallCurl(plan.sourceId)}`)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
             </div>
           </div>
-          <pre><code>{{ sourceCurl(plan.sourceId) }}
-{{ sourceInstallCurl(plan.sourceId) }}</code></pre>
+          <CodeBlock
+            :code="`${sourceCurl(plan.sourceId)}\n${sourceInstallCurl(plan.sourceId)}`"
+            lang="bash"
+            :aria-label="`${plan.sourceId} curl commands`"
+          />
         </div>
         <p v-if="feedback[`${plan.sourceId}-curl`]" class="feedback-note" :role="feedback[`${plan.sourceId}-curl`]?.kind === 'error' ? 'alert' : 'status'">
           {{ feedback[`${plan.sourceId}-curl`]?.message }}
@@ -247,17 +252,17 @@ function download(key: string, filename: string, content: string, mediaType = 't
           <div class="code-panel__bar">
             <span class="code-panel__filename">install-vendor-repositories.sh</span>
             <div class="code-panel__actions" role="group" aria-label="Install script actions">
-              <button class="btn" type="button" @click="copyContent('install', installScript.content)">{{ copy.actions.copy }}</button>
+              <button class="btn" type="button" @click="copyContent('install', installScript.content)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
               <button
                 class="btn"
                 type="button"
                 @click="download('install', 'install-vendor-repositories.sh', installScript.content, 'text/x-shellscript')"
               >
-                {{ copy.actions.download }}
+                <span v-html="renderIcon('download')" />{{ copy.actions.download }}
               </button>
             </div>
           </div>
-          <pre tabindex="0"><code>{{ installScript.content }}</code></pre>
+          <CodeBlock :code="installScript.content" lang="bash" aria-label="Install script content" />
         </div>
         <p v-if="feedback.install" class="feedback-note" :role="feedback.install.kind === 'error' ? 'alert' : 'status'">
           {{ feedback.install.message }}
@@ -275,10 +280,10 @@ function download(key: string, filename: string, content: string, mediaType = 't
         <div class="code-panel__bar">
           <span class="code-panel__filename">apt-get</span>
           <div class="code-panel__actions" role="group" aria-label="Package command actions">
-            <button class="btn" type="button" @click="copyContent('packages', packageCommand)">{{ copy.actions.copy }}</button>
+            <button class="btn" type="button" @click="copyContent('packages', packageCommand)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
           </div>
         </div>
-        <pre tabindex="0"><code>{{ packageCommand }}</code></pre>
+        <CodeBlock :code="packageCommand" lang="bash" aria-label="Package installation command" />
       </div>
       <p v-if="feedback.packages" class="feedback-note" :role="feedback.packages.kind === 'error' ? 'alert' : 'status'">
         {{ feedback.packages.message }}

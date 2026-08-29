@@ -26,6 +26,7 @@ export default tseslint.config(
         window: 'readonly',
         MediaQueryListEvent: 'readonly',
         ResizeObserver: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
     rules: {
