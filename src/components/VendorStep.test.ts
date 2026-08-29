@@ -21,7 +21,7 @@ describe('VendorStep', () => {
   it('zeigt alle Katalogprodukte und die Anzahl der ausgewählten Paketquellen', () => {
     const wrapper = mountStep({ selectedIds: ['brave-browser', 'github-cli'] })
 
-    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(25)
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(100)
     expect(wrapper.get('[role="status"]').text()).toContain('2 Paketquellen ausgewählt')
   })
 
@@ -86,7 +86,7 @@ describe('VendorStep', () => {
 
     await wrapper.get('[aria-label="Kategorie Browser"]').trigger('click')
 
-    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(6)
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(8)
     expect(wrapper.text()).toContain('Brave Browser')
     expect(wrapper.text()).not.toContain('Docker Engine')
   })

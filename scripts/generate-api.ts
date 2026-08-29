@@ -105,6 +105,8 @@ async function writeVendorResources(outputRoot: string): Promise<VendorManifestE
   const releases = [...RELEASES].map((release) => release.codename).sort(compareText)
 
   for (const product of [...VENDOR_PRODUCTS].sort((left, right) => compareText(left.id, right.id))) {
+    // Debian-native products are selectable packages, not third-party repository resources.
+    if (product.sourceId === null) continue
     const compatibility: VendorResource[] = []
     for (const release of releases) {
       for (const architecture of [...API_ARCHITECTURES].sort(compareText)) {

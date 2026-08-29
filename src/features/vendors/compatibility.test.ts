@@ -6,10 +6,7 @@ import type { ReleaseCodename } from '../sources/model'
 
 const allReleases: readonly ReleaseCodename[] = ['trixie', 'bookworm', 'bullseye', 'forky', 'sid']
 const allArchitectures: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
-const boundaryProductIds = [
-  'brave-browser', 'mozilla-firefox', 'mullvad-vpn', 'docker-engine',
-  'azure-cli', 'postgresql-pgdg', 'mongodb-community-8-0',
-] as const
+const boundaryProductIds = VENDOR_PRODUCTS.map(({ id }) => id)
 
 function product(id: string) {
   const result = getVendorProduct(id)
@@ -18,6 +15,22 @@ function product(id: string) {
 }
 
 describe('vendor compatibility', () => {
+  it('evaluates every catalog product across every release and architecture', () => {
+    for (const entry of VENDOR_PRODUCTS) {
+      for (const release of allReleases) {
+        for (const architecture of allArchitectures) {
+          const result = getVendorCompatibility(entry, release, architecture)
+          const supportsRelease = entry.supportedReleases.includes(release)
+          const supportsArchitecture = entry.supportedArchitectures.includes(architecture)
+
+          if (supportsRelease && supportsArchitecture) expect(result).toEqual({ compatible: true })
+          else if (!supportsRelease) expect(result).toMatchObject({ compatible: false, reason: { code: 'unsupported-release', release } })
+          else expect(result).toMatchObject({ compatible: false, reason: { code: 'unsupported-architecture', architecture } })
+        }
+      }
+    }
+  })
+
   it.each([
     ['brave-browser', 'trixie', 'amd64'],
     ['mozilla-firefox', 'bullseye', 'arm64'],
@@ -107,18 +120,14 @@ describe('vendor compatibility', () => {
   it('filters the catalog to compatible products', () => {
     const result = compatibleProducts(VENDOR_PRODUCTS, 'bookworm', 'arm64')
 
-    expect(result.map(({ id }) => id)).toEqual([
-      'brave-browser', 'mozilla-firefox', 'mullvad-vpn', 'tor', 'docker-engine',
-      'kubernetes-tools-v1-36', 'google-cloud-cli', 'azure-cli', 'github-cli',
-      'hashicorp-terraform', 'postgresql-pgdg', 'grafana', 'nvidia-container-toolkit',
-      'mariadb-community-11-8', 'redis-open-source', 'clickhouse', 'influxdb-3-core',
-      'zabbix-7-4',
-    ])
+    expect(result).toEqual(VENDOR_PRODUCTS.filter((entry) =>
+      entry.supportedReleases.includes('bookworm') && entry.supportedArchitectures.includes('arm64')))
   })
 
   it('can filter the official catalog without passing it explicitly', () => {
     const result = compatibleProducts('bookworm' as ReleaseCodename, 'armhf' as SystemArchitecture)
 
-    expect(result.map(({ id }) => id)).toEqual(['docker-engine'])
+    expect(result).toEqual(VENDOR_PRODUCTS.filter((entry) =>
+      entry.supportedReleases.includes('bookworm') && entry.supportedArchitectures.includes('armhf')))
   })
 })

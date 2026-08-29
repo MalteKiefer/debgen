@@ -30,6 +30,17 @@ const expectedSources = [
   { id: 'zabbix-7-4', name: 'Zabbix 7.4', documentationUrl: 'https://www.zabbix.com/documentation/current/en/manual/installation/install_from_packages', verifiedAt: '2026-08-29', locations: ['https://repo.zabbix.com/zabbix/7.4/stable/debian|trixie|amd64|trixie|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|trixie|arm64|trixie|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bookworm|amd64|bookworm|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bookworm|arm64|bookworm|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bullseye|amd64|bullseye|main|explicit', 'https://repo.zabbix.com/zabbix/7.4/stable/debian|bullseye|arm64|bullseye|main|explicit'], keys: ['zabbix-7-4-signing-key|https://repo.zabbix.com/zabbix-official-repo.key|/etc/apt/keyrings/zabbix-official-repo.gpg|ascii-armored||trixie,bookworm,bullseye'], auxiliaryTrustFiles: [], preferenceFiles: [], warnings: [] },
 ] as const
 
+const expectedAdditionalSourceIds = [
+  'onepassword', 'visual-studio-code', 'microsoft-prod', 'tailscale', 'cloudflare-warp',
+  'cloudflared', 'opentofu', 'anydesk', 'sublime', 'element', 'oracle-virtualbox',
+  'gitlab-ce', 'gitlab-runner', 'jenkins-lts', 'nginx-stable', 'elastic-9', 'syncthing',
+  'corretto', 'adoptium', 'caddy', 'yarn', 'mozilla-thunderbird', 'gitlab-ee',
+  'jenkins-weekly', 'nginx-mainline', 'azul-zulu', 'bellsoft-liberica', 'teamviewer',
+  'steam', 'google-earth', 'typora', 'warp', 'nordvpn', 'ivpn', 'teleport-18', 'wazuh',
+  'apache-couchdb', 'neo4j', 'icinga', 'mysql-8-4', 'opensearch-3', 'datadog', 'falco',
+  'trivy', 'crowdsec', 'fluent-bit', 'dbeaver', 'buildkite-agent', 'buildkite-cli',
+] as const
+
 function sourceMetadata(source: RepositorySource) {
   return {
     id: source.id,
@@ -60,7 +71,49 @@ function sourceMetadata(source: RepositorySource) {
 
 describe('repository source migration', () => {
   it('retains the exact authoritative definition for every original source', () => {
-    expect(REPOSITORY_SOURCES.map(sourceMetadata)).toEqual(expectedSources)
+    expect(REPOSITORY_SOURCES.slice(0, expectedSources.length).map(sourceMetadata)).toEqual(expectedSources)
+  })
+
+  it('adds exactly the approved source definitions in stable order', () => {
+    expect(REPOSITORY_SOURCES.slice(expectedSources.length).map(({ id }) => id)).toEqual(expectedAdditionalSourceIds)
+  })
+
+  it('models shared, release-scoped, multi-key, exact-path, auxiliary and preference cases', () => {
+    const onepassword = getRepositorySource('onepassword')
+    expect(onepassword).toMatchObject({
+      locations: [
+        { uri: 'https://downloads.1password.com/linux/debian/amd64', architectures: ['amd64'], suite: 'stable', components: ['main'] },
+        { uri: 'https://downloads.1password.com/linux/debian/arm64', architectures: ['arm64'], suite: 'stable', components: ['main'] },
+      ],
+      auxiliaryTrustFiles: [
+        { id: 'onepassword-policy', url: 'https://downloads.1password.com/linux/debian/debsig/1password.pol', destination: 'debsig-policy', mediaType: 'application/xml' },
+        { id: 'onepassword-keyring', url: 'https://downloads.1password.com/linux/keys/1password.asc', destination: 'debsig-keyring', mediaType: 'application/pgp-keys', fingerprint: '3FEF9748469ADBE15DA7CA80AC2D62742012EA22' },
+      ],
+    })
+
+    expect(getRepositorySource('opentofu')?.keys).toEqual([
+      { id: 'opentofu-release-key', url: 'https://get.opentofu.org/opentofu.gpg', keyringPath: '/etc/apt/keyrings/opentofu.gpg', format: 'binary', fingerprints: [], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'] },
+      { id: 'opentofu-package-key', url: 'https://packages.opentofu.org/opentofu/tofu/gpgkey', keyringPath: '/etc/apt/keyrings/opentofu-repo.gpg', format: 'ascii-armored', fingerprints: [], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'] },
+    ])
+
+    expect(getRepositorySource('tailscale')?.keys.map(({ url, releases }) => ({ url, releases }))).toEqual([
+      { url: 'https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg', releases: ['trixie'] },
+      { url: 'https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg', releases: ['bookworm'] },
+      { url: 'https://pkgs.tailscale.com/stable/debian/bullseye.noarmor.gpg', releases: ['bullseye'] },
+      { url: 'https://pkgs.tailscale.com/stable/debian/forky.noarmor.gpg', releases: ['forky'] },
+      { url: 'https://pkgs.tailscale.com/stable/debian/sid.noarmor.gpg', releases: ['sid'] },
+    ])
+
+    expect(getRepositorySource('microsoft-prod')?.locations.map(({ uri, releases, suite }) => ({ uri, releases, suite }))).toEqual([
+      { uri: 'https://packages.microsoft.com/debian/13/prod', releases: ['trixie'], suite: 'trixie' },
+      { uri: 'https://packages.microsoft.com/debian/12/prod', releases: ['bookworm'], suite: 'bookworm' },
+    ])
+    expect(getRepositorySource('sublime')?.locations[0]).toMatchObject({ suite: 'apt/stable/', components: [] })
+    expect(getRepositorySource('jenkins-lts')?.locations[0]).toMatchObject({ suite: 'binary/', components: [] })
+    expect(getRepositorySource('jenkins-weekly')?.locations[0]).toMatchObject({ suite: 'binary/', components: [] })
+
+    expect(getRepositorySource('nginx-stable')?.preferenceFiles).toEqual([{ id: 'nginx', content: 'Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n' }])
+    expect(getRepositorySource('syncthing')?.preferenceFiles).toEqual([{ id: 'syncthing', content: 'Package: *\nPin: origin apt.syncthing.net\nPin-Priority: 990\n' }])
   })
 
   it('provides an immutable source catalog', () => {

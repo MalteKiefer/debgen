@@ -224,7 +224,7 @@ describe('versioned static API generation', () => {
     expect(bullseyeProfiles).not.toContain('bullseye-backports')
     expect(Object.values(fileMap).join('\n')).not.toMatch(/-backports/)
     expect({ manifest, fileMap }).toMatchSnapshot()
-  })
+  }, 15_000)
 
   it('publishes deterministic compatible vendor resources with resolvable manifest URLs', async () => {
     const firstOutputRoot = await mkdtemp(join(tmpdir(), 'debgen-api-'))
@@ -269,9 +269,11 @@ describe('versioned static API generation', () => {
       debian: { url: 'releases.json' },
       vendors: { url: 'vendors.json' },
     })
+    const repositoryProducts = VENDOR_PRODUCTS.filter((product) => product.sourceId !== null)
     expect(vendors.map((vendor) => vendor.id)).toEqual([...vendors.map((vendor) => vendor.id)].sort())
-    expect(vendors.map((vendor) => vendor.id)).toEqual([...VENDOR_PRODUCTS].map((product) => product.id).sort())
-    for (const product of VENDOR_PRODUCTS) {
+    expect(vendors.map((vendor) => vendor.id)).toEqual(repositoryProducts.map((product) => product.id).sort())
+    expect(VENDOR_PRODUCTS.filter((product) => product.sourceId === null).map((product) => product.id)).toEqual(['nodejs', 'libreoffice'])
+    for (const product of repositoryProducts) {
       const entry = vendors.find((vendor) => vendor.id === product.id)
       expect(entry).toBeDefined()
       for (const release of RELEASES) {

@@ -294,9 +294,17 @@ describe('vendor artifact generation', () => {
   it('preserves the complete pre-migration artifact corpus across all compatible catalog combinations', () => {
     const releases = ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'] as const
     const architectures = ['amd64', 'arm64', 'armhf', 'i386'] as const
+    const originalProductIds = [
+      'brave-browser', 'mozilla-firefox', 'google-chrome', 'microsoft-edge', 'vivaldi',
+      'opera', 'signal-desktop', 'proton-vpn', 'mullvad-vpn', 'tor', 'docker-engine',
+      'kubernetes-tools-v1-36', 'google-cloud-cli', 'azure-cli', 'github-cli',
+      'hashicorp-terraform', 'postgresql-pgdg', 'mongodb-community-8-0', 'grafana',
+      'nvidia-container-toolkit', 'mariadb-community-11-8', 'redis-open-source',
+      'clickhouse', 'influxdb-3-core', 'zabbix-7-4',
+    ] as const
     const entries: string[] = []
 
-    for (const product of VENDOR_PRODUCTS) {
+    for (const product of VENDOR_PRODUCTS.filter(({ id }) => originalProductIds.includes(id as typeof originalProductIds[number]))) {
       for (const release of releases) {
         for (const architecture of architectures) {
           if (!getVendorCompatibility(product, release, architecture).compatible) continue
