@@ -253,6 +253,7 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             :base-path="initialState.basePath"
             :copy="initialState.copy"
             :products="initialState.manifest.products"
+            :site-origin="initialState.siteOrigin"
             :state="state"
           />
           <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="submit" class="primary-action">{{ initialState.copy.actions.export }}</button></div>

@@ -21,6 +21,7 @@ export interface WorkbenchHydrationPayload {
   readonly locale: SupportedLocale
   readonly path: string
   readonly basePath: string
+  readonly siteOrigin: string
   readonly copy: SiteCopy
   readonly state: WorkbenchState
   readonly manifest: WorkbenchHydrationManifest

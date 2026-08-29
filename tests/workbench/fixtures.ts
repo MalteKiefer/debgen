@@ -7,6 +7,7 @@ export const testPayload: WorkbenchHydrationPayload = {
   locale: 'en',
   path: '/en/',
   basePath: '/',
+  siteOrigin: 'https://debgen.org',
   copy: en,
   state: {
     activeStep: 'review',

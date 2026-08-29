@@ -17,6 +17,7 @@ const props = defineProps<{
   state: WorkbenchState
   products: readonly WorkbenchHydrationProduct[]
   basePath: string
+  siteOrigin: string
 }>()
 
 interface Feedback {
@@ -30,11 +31,7 @@ const selectedProducts = computed(() => props.products
   .filter(product => props.state.repositories.includes(product.id))
   .sort((left, right) => left.name.localeCompare(right.name)))
 
-const apiRoot = computed(() => (
-  typeof window === 'undefined'
-    ? `${props.basePath}api/v1`
-    : `${window.location.origin}${props.basePath}api/v1`
-))
+const apiRoot = computed(() => `${props.siteOrigin}${props.basePath}api/v1`)
 
 const debianFilename = computed(() => getOutputFilename(props.state.format))
 

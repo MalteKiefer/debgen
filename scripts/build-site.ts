@@ -140,6 +140,7 @@ const writeVersionedApi = async (outputDir: string): Promise<void> => {
 export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptions): Promise<BuildManifest> {
   const resolvedOutputDir = await realpath(resolve(outputDir))
   const basePath = resolveBasePath(baseUrl)
+  const siteOrigin = new URL(baseUrl).origin
   const locales = [...siteLocales]
   const pages = locales.map(locale => `${locale}/index.html`)
   const workbenchBuild = await readWorkbenchBuild(resolvedOutputDir, renderer)
@@ -158,6 +159,7 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
       locale,
       path: deploymentPath(path, basePath),
       basePath,
+      siteOrigin,
       copy: getSiteCopyForBuild(locale),
       state: createDefaultState(),
       manifest: {

@@ -33,6 +33,7 @@ const renderPage = async ({
     locale,
     path: sitePath(locale),
     basePath: '/',
+    siteOrigin: 'https://debgen.org',
     copy,
     state,
     manifest: {
