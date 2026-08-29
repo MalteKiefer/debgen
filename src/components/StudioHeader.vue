@@ -10,7 +10,7 @@ const { t } = useI18n()
     class="studio-header"
     role="banner"
   >
-    <div>
+    <div class="studio-header__identity">
       <p class="studio-header__eyebrow">
         {{ t('header.brand') }}
       </p>

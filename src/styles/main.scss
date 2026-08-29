@@ -33,6 +33,7 @@ button, input, select, textarea { font: inherit; }
 
 .studio-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -43,6 +44,8 @@ button, input, select, textarea { font: inherit; }
   backdrop-filter: blur(18px);
   color: #fff8fa;
 }
+
+.studio-header__identity { flex: 1 1 28rem; min-width: 0; }
 
 .studio-header__eyebrow,
 .system-step__eyebrow,
@@ -59,8 +62,12 @@ button, input, select, textarea { font: inherit; }
 .studio-header h1, .studio-header__trust { margin: 0; }
 .studio-header h1 { font-size: clamp(1.65rem, 4vw, 2.35rem); font-weight: 780; letter-spacing: -0.045em; }
 .studio-header__trust { max-width: 42rem; margin-top: 0.4rem; color: #e9dfe3; line-height: 1.55; }
-.studio-header nav { display: flex; gap: 0.25rem; }
+.studio-header__controls { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.25rem; }
 .studio-header .v-btn { color: #fff8fa; }
+
+.language-select { display: inline-flex; min-width: 0; align-items: center; gap: 0.35rem; }
+.language-select__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.language-select__control { max-width: 9rem; padding-inline: 0.45rem; border: 1px solid rgb(255 255 255 / 35%); border-radius: 0.45rem; background: #2b1722; color: #fff8fa; }
 
 .studio-touch-target,
 .studio-touch-target.v-btn { min-block-size: 44px; }
@@ -246,9 +253,10 @@ a:focus-visible {
 
 @media (max-width: 700px) {
   .app-main { width: min(calc(100% - 0.75rem), 76rem); min-height: calc(100vh - 7rem); margin-block: 0.5rem 1rem; padding: 0.65rem; border-radius: 1rem; }
-  .studio-header { align-items: flex-start; padding: 0.8rem; }
+  .studio-header { align-items: flex-start; gap: 0.7rem; padding: 0.8rem; }
+  .studio-header__identity, .studio-header__controls { flex-basis: 100%; }
+  .studio-header__controls { justify-content: flex-start; }
   .studio-header__trust { font-size: 0.9rem; }
-  .studio-header nav .v-btn:first-child { display: none; }
   .studio-progress ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; }
   .studio-progress button { flex-direction: column; gap: 0.25rem; min-height: 58px; padding: 0.4rem 0.2rem; font-size: 0.68rem; line-height: 1.15; }
   .generator-controls__selects, .generator-controls__groups { grid-template-columns: 1fr; }

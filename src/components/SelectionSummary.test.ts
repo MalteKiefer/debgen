@@ -17,13 +17,13 @@ function setMobileViewport(matches: boolean): void {
   }))
 }
 
-function mountSummary(currentStep: 1 | 2 | 3 = 1) {
+function mountSummary(currentStep: 1 | 2 | 3 = 1, productCount = 3) {
   return mount(SelectionSummary, {
     attachTo: document.body,
     props: {
       release: 'trixie',
       architecture: 'arm64',
-      productCount: 3,
+      productCount,
       sourceCount: 2,
       packageCount: 4,
       outputMode: 'perVendor',
@@ -97,5 +97,14 @@ describe('SelectionSummary', () => {
     expect(skip.classes()).toContain('studio-touch-target')
     await skip.trigger('click')
     expect(wrapper.emitted('skipSoftware')).toEqual([[]])
+  })
+
+  it('offers to add software from mobile output when the selection is empty', () => {
+    setMobileViewport(true)
+    const wrapper = mountSummary(3, 0)
+    const action = wrapper.get('[data-testid="mobile-schrittaktion"]')
+
+    expect(action.text()).toContain('Software hinzufügen')
+    expect(action.attributes('aria-label')).toBe('Software hinzufügen')
   })
 })

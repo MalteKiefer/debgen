@@ -33,7 +33,10 @@ const mobileBodyReserve = '12rem'
 let previousBodyPaddingBottom: string | undefined
 const mobileAction = computed(() => {
   if (props.currentStep === 2) return { label: t('actions.reviewSelection'), targetStep: 3 }
-  if (props.currentStep === 3) return { label: t('actions.editSelection'), targetStep: 2 }
+  if (props.currentStep === 3) {
+    const action = props.productCount === 0 ? 'actions.addSoftware' : 'actions.editSelection'
+    return { label: t(action), targetStep: 2 }
+  }
   return { label: t('actions.nextSoftware'), targetStep: 2 }
 })
 function formatCount(kind: 'products' | 'sources' | 'packages', count: number): string {
@@ -107,6 +110,7 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
       <span><v-icon icon="mdi-package-down" /> {{ packageCountText }}</span>
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
       <v-btn
+        :aria-label="mobileAction.label"
         append-icon="mdi-arrow-right"
         class="selection-summary__action studio-touch-target"
         color="primary"
