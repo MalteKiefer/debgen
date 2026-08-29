@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an improvement to the DebGen workbench, catalog workflow, or documentation.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the user problem before proposing a solution. Do not request an unsafe repository source or opaque installation workflow.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain who is affected and what is difficult today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the desired outcome and any alternatives you considered.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Repository or security considerations, if relevant
+      description: Include official vendor or upstream evidence for a catalog-related request.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched for existing issues and feature requests.
+          required: true
+        - label: This request does not ask for an unendorsed repository, insecure transport, or opaque remote setup script.
+          required: true

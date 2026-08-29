@@ -1,0 +1,62 @@
+name: Bug or repository defect
+description: Report an application problem or an inaccurate, unsafe, or broken repository catalog entry.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security vulnerabilities here. Use the private process in SECURITY.md.
+        For catalog reports, include only public information and official source links.
+  - type: dropdown
+    id: report-type
+    attributes:
+      label: Report type
+      options:
+        - Application behavior
+        - Generated artifact
+        - Repository catalog defect
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and the expected behavior.
+      placeholder: The generated source file contains ... but I expected ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Select ...
+        2. Choose ...
+        3. Open or generate ...
+    validations:
+      required: true
+  - type: input
+    id: catalog-id
+    attributes:
+      label: Product or source ID, if relevant
+      description: Include the exact catalog ID for a repository-related report.
+  - type: input
+    id: environment
+    attributes:
+      label: Debian release, architecture, browser, and version
+      description: Include the relevant release and architecture for generated artifacts.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Official evidence, logs, or screenshots
+      description: For catalog reports, link official documentation or public metadata. Remove secrets and personal data.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched for existing issues.
+          required: true
+        - label: This report does not disclose a security vulnerability or sensitive information.
+          required: true
