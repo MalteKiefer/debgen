@@ -7,6 +7,7 @@ import type { ReleaseCodename } from '../features/sources/model'
 import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
 import { getRepositorySource } from '../features/vendors/sources'
+import { categoryMessageKey } from '../features/vendors/presentation'
 import { formatPlural, matchesSearch } from '../i18n/format'
 import type { SupportedLocale } from '../i18n'
 import VendorCard from './VendorCard.vue'
@@ -30,20 +31,14 @@ const cleanupMessage = ref('')
 const pendingCleanupIds = ref<readonly string[] | null>(null)
 
 const categoryIcons: Readonly<Record<string, VendorMdiIcon>> = {
-  browser: 'mdi-web', communication: 'mdi-message-text-outline', privacy: 'mdi-shield-lock-outline',
-  containers: 'mdi-cube-outline', cloud: 'mdi-cloud-outline', development: 'mdi-code-tags',
-  database: 'mdi-database-outline', monitoring: 'mdi-chart-line', webserver: 'mdi-web',
+  'web-browsers': 'mdi-web', 'messaging-email': 'mdi-message-text-outline', 'vpn-secure-networking': 'mdi-shield-lock-outline',
+  'containers-kubernetes': 'mdi-cube-outline', 'cloud-edge': 'mdi-cloud-outline', 'developer-workstation': 'mdi-code-tags',
+  'data-platforms': 'mdi-database-outline', 'observability-logging': 'mdi-chart-line', 'web-servers': 'mdi-web',
   'remote-desktop': 'mdi-message-text-outline', games: 'mdi-chart-areaspline', 'gaming-tools': 'mdi-code-tags',
-  'desktop-environments': 'mdi-web', 'networking-vpn': 'mdi-vpn',
-  'monitoring-security': 'mdi-server-security',
-}
-const categoryMessageKeys: Readonly<Record<string, string>> = {
-  'remote-desktop': 'remoteDesktop', 'gaming-tools': 'gamingTools',
-  'desktop-environments': 'desktopEnvironments', 'networking-vpn': 'networkingVpn',
-  'monitoring-security': 'monitoringSecurity',
-}
-function categoryMessageKey(category: string): string {
-  return `categories.${categoryMessageKeys[category] ?? category}`
+  'desktop-productivity': 'mdi-web', 'infrastructure-automation': 'mdi-terraform',
+  'security-secrets': 'mdi-server-security', 'runtimes-sdks': 'mdi-code-tags',
+  'development-platforms-cicd': 'mdi-code-tags', 'file-synchronization': 'mdi-cloud-outline',
+  virtualization: 'mdi-cube-outline',
 }
 const categories = computed(() => [...new Set(VENDOR_PRODUCTS.map((product) => product.category))]
   .map((id) => ({ id, icon: categoryIcons[id] ?? 'mdi-code-tags' }))
@@ -85,13 +80,25 @@ const visibleProducts = computed(() => {
   }).sort((left, right) => left.name.localeCompare(right.name, activeLocale))
 })
 
-const selectedCountText = computed(() => {
-  const count = props.selectedIds.length
-  return formatPlural(locale.value as SupportedLocale, count, {
-    zero: t('counts.sources.zero', { count }), one: t('counts.sources.one', { count }), two: t('counts.sources.two', { count }),
-    few: t('counts.sources.few', { count }), many: t('counts.sources.many', { count }), other: t('counts.sources.other', { count }),
-  })
+const selectedProducts = computed(() => {
+  const selected = new Set(props.selectedIds)
+  return VENDOR_PRODUCTS.filter((product) => selected.has(product.id))
 })
+const selectedSourceCount = computed(() => new Set(selectedProducts.value
+  .flatMap((product) => product.sourceId === null ? [] : [product.sourceId])).size)
+const selectedPackageCount = computed(() => new Set(selectedProducts.value.flatMap((product) => product.packages)).size)
+
+function formatCount(kind: 'products' | 'sources' | 'packages', count: number): string {
+  return formatPlural(locale.value as SupportedLocale, count, {
+    zero: t(`counts.${kind}.zero`, { count }), one: t(`counts.${kind}.one`, { count }), two: t(`counts.${kind}.two`, { count }),
+    few: t(`counts.${kind}.few`, { count }), many: t(`counts.${kind}.many`, { count }), other: t(`counts.${kind}.other`, { count }),
+  })
+}
+const selectedCountText = computed(() => [
+  formatCount('products', selectedProducts.value.length),
+  formatCount('sources', selectedSourceCount.value),
+  formatCount('packages', selectedPackageCount.value),
+].join(' · '))
 
 function updateProductSelection(productId: string, selected: boolean): void {
   const product = VENDOR_PRODUCTS.find((candidate) => candidate.id === productId)

@@ -5,6 +5,7 @@ import vuetify from '../plugins/vuetify'
 
 const brave = getVendorProduct('brave-browser')!
 const chrome = getVendorProduct('google-chrome')!
+const mullvadBrowser = getVendorProduct('mullvad-browser')!
 
 function mountCard(options: Partial<{
   product: typeof brave
@@ -29,7 +30,7 @@ describe('VendorCard', () => {
 
     expect(wrapper.get('h3').text()).toBe('Brave Browser')
     expect(wrapper.get('[data-testid="kategorie-icon"]').classes()).toContain('mdi-shield-check')
-    expect(wrapper.text()).toContain('Offizielle Quelle')
+    expect(wrapper.text()).toContain('Hersteller')
     expect(wrapper.text()).toContain('amd64')
     expect(wrapper.text()).toContain('arm64')
     const documentation = wrapper.get('a')
@@ -80,5 +81,17 @@ describe('VendorCard', () => {
     expect(report.attributes('target')).toBe('_blank')
     expect(report.attributes('rel')).toContain('noopener')
     expect(report.attributes('aria-label')).toContain('Brave Browser')
+  })
+
+  it('shows package names, support level, provenance, and shared-source relationships', () => {
+    const wrapper = mountCard({ product: mullvadBrowser })
+
+    expect(wrapper.get('[data-testid="product-packages"]').text()).toContain('mullvad-browser')
+    expect(wrapper.get('[data-testid="support-level"]').text()).toBe('Explizit unterstützt')
+    expect(wrapper.get('[data-testid="provenance"]').text()).toBe('Hersteller')
+    const source = wrapper.get('[data-testid="source-relationship"]')
+    expect(source.text()).toContain('Gemeinsame Quelle: Mullvad')
+    expect(source.text()).toContain('Mullvad Browser')
+    expect(source.text()).toContain('Mullvad VPN')
   })
 })

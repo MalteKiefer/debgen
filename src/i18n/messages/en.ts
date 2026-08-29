@@ -37,6 +37,10 @@ export const en = {
       many: '{count} sources selected',
       other: '{count} sources selected',
     },
+    packages: {
+      zero: '{count} packages', one: '{count} package', two: '{count} packages',
+      few: '{count} packages', many: '{count} packages', other: '{count} packages',
+    },
     files: {
       zero: '{count} files',
       one: '{count} file',

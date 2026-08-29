@@ -26,15 +26,15 @@ const artifacts: readonly GeneratedArtifact[] = [
     mediaType: 'text/plain',
     description: 'Paketquelle für Brave Browser',
     content: 'Types: deb\nURIs: https://brave.example/\n',
-    category: 'browser',
+    category: 'web-browsers',
     productId: 'brave-browser',
     productName: 'Brave Browser',
   },
 ]
 
-function mountTabs() {
+function mountTabs(publicUrls: Readonly<Record<string, string>> = {}) {
   return mount(GeneratedFileTabs, {
-    props: { artifacts },
+    props: { artifacts, publicUrls },
     attachTo: document.body,
     global: { plugins: [vuetify] },
   })
@@ -130,5 +130,18 @@ describe('GeneratedFileTabs', () => {
 
     expect(wrapper.get('[role="tabpanel"]:not([hidden])').text()).toContain('Suites: trixie')
     expect(wrapper.get('[role="alert"]').text()).toContain('Bitte kopiere den Inhalt manuell')
+  })
+
+  it('shows a manifest-derived save, inspect, and apply workflow for a canonical artifact', () => {
+    const wrapper = mountTabs({
+      'debian.sources': 'https://example.invalid/forks/debgen/api/v1/trixie/debian.sources',
+    })
+    const commands = wrapper.get('[data-testid="public-artifact-commands"]')
+
+    expect(commands.text()).toContain("curl -fsSL 'https://example.invalid/forks/debgen/api/v1/trixie/debian.sources' -o 'debian.sources'")
+    expect(commands.text()).toContain("less -- 'debian.sources'")
+    expect(commands.text()).toContain("sudo install -m 0644 -- 'debian.sources' '/etc/apt/sources.list.d/debian.sources'")
+    expect(commands.text()).not.toMatch(/curl[^\n|]*\|\s*sudo/)
+    expect(commands.findAll('button').every((button) => button.classes().includes('studio-touch-target'))).toBe(true)
   })
 })

@@ -2,13 +2,15 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { copyText, downloadText } from '../features/sources/download'
+import { buildPublicArtifactCommands } from '../features/sources/public-url'
 import type { GeneratedArtifact } from '../features/vendors/model'
-import { presentArtifact } from '../features/vendors/presentation'
+import { categoryMessageKey, presentArtifact } from '../features/vendors/presentation'
 import { formatPlural } from '../i18n/format'
 import type { SupportedLocale } from '../i18n'
 
 const props = defineProps<{
   artifacts: readonly GeneratedArtifact[]
+  publicUrls?: Readonly<Record<string, string>>
 }>()
 const { locale, t } = useI18n()
 
@@ -26,9 +28,30 @@ function artifactDescription(artifact: GeneratedArtifact): string {
   const descriptor = presentArtifact(artifact)
   const values = { ...descriptor.values }
   if (descriptor.key === 'artifacts.descriptions.categorySources' && artifact.category) {
-    values.category = t(`categories.${artifact.category}`)
+    values.category = t(categoryMessageKey(artifact.category))
   }
   return t(descriptor.key, values)
+}
+
+function publicCommandSequence(artifact: GeneratedArtifact): string | null {
+  const publicUrl = props.publicUrls?.[artifact.filename]
+  if (!publicUrl) return null
+  return Object.values(buildPublicArtifactCommands(publicUrl, artifact.filename)).join('\n\n')
+}
+
+async function copyPublicCommands(artifact: GeneratedArtifact): Promise<void> {
+  const commands = publicCommandSequence(artifact)
+  if (!commands) return
+  const version = ++feedbackVersion
+  feedback.value = null
+  try {
+    await copyText(commands)
+    if (version !== feedbackVersion) return
+    feedback.value = { kind: 'success', message: t('files.copySuccess', { filename: artifact.filename }) }
+  } catch {
+    if (version !== feedbackVersion) return
+    feedback.value = { kind: 'error', message: t('files.copyError') }
+  }
 }
 
 watch(
@@ -168,6 +191,27 @@ function downloadArtifact(): void {
         class="generated-files__preview"
         tabindex="0"
       ><code>{{ artifact.content }}</code></pre>
+      <aside
+        v-if="publicCommandSequence(artifact)"
+        class="generated-files__public-commands"
+        data-testid="public-artifact-commands"
+      >
+        <div>
+          <v-icon aria-hidden="true" icon="mdi-console-line" />
+          <strong>{{ t('install.title') }}</strong>
+          <p>{{ t('install.warning') }}</p>
+        </div>
+        <v-btn
+          :aria-label="`${t('actions.copy')}: curl ${artifact.filename}`"
+          class="studio-touch-target"
+          prepend-icon="mdi-content-copy"
+          variant="tonal"
+          @click="copyPublicCommands(artifact)"
+        >
+          {{ t('actions.copy') }}
+        </v-btn>
+        <pre :aria-label="`curl ${artifact.filename}`" tabindex="0"><code>{{ publicCommandSequence(artifact) }}</code></pre>
+      </aside>
     </article>
 
     <div aria-live="polite" class="generated-files__feedback">

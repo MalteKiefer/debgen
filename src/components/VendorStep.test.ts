@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import VendorStep from './VendorStep.vue'
 import vuetify from '../plugins/vuetify'
+import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 
 function mountStep(options: Partial<{
   release: 'trixie' | 'bookworm'
@@ -18,11 +19,21 @@ function mountStep(options: Partial<{
 }
 
 describe('VendorStep', () => {
-  it('zeigt alle Katalogprodukte und die Anzahl der ausgewählten Paketquellen', () => {
+  it('zeigt alle Katalogprodukte und getrennte Produkt-, Quellen- und Paketanzahlen', () => {
     const wrapper = mountStep({ selectedIds: ['brave-browser', 'github-cli'] })
 
-    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(100)
+    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(VENDOR_PRODUCTS.length)
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Produkte')
     expect(wrapper.get('[role="status"]').text()).toContain('2 Paketquellen ausgewählt')
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Pakete')
+  })
+
+  it('counts products separately when they share one repository source', () => {
+    const wrapper = mountStep({ selectedIds: ['mullvad-browser', 'mullvad-vpn'] })
+
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Produkte')
+    expect(wrapper.get('[role="status"]').text()).toContain('1 Paketquelle ausgewählt')
+    expect(wrapper.get('[role="status"]').text()).toContain('2 Pakete')
   })
 
   it('normalisiert beim ersten Rendern inkompatible und unbekannte Auswahl-IDs', () => {
@@ -95,14 +106,14 @@ describe('VendorStep', () => {
     expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(1)
     expect(wrapper.text()).toContain('Docker Engine')
 
-    await wrapper.get('input[type="search"]').setValue('Privatsphäre')
+    await wrapper.get('input[type="search"]').setValue('sichere Netzwerke')
     expect(wrapper.text()).toContain('Proton VPN')
   })
 
   it('kombiniert Kategorie-, Herkunfts- und Kompatibilitätsfilter', async () => {
     const wrapper = mountStep({ architecture: 'arm64' })
 
-    await wrapper.get('[aria-label="Kategorie Browser"]').trigger('click')
+    await wrapper.get('[aria-label="Kategorie Webbrowser"]').trigger('click')
     await wrapper.get('[data-testid="origin-filter"]').setValue('manufacturer')
     await wrapper.get('[data-testid="compatibility-filter"]').setValue('incompatible')
 
@@ -116,9 +127,10 @@ describe('VendorStep', () => {
   it('filtert Produkte nach deutscher Kategorie', async () => {
     const wrapper = mountStep()
 
-    await wrapper.get('[aria-label="Kategorie Browser"]').trigger('click')
+    await wrapper.get('[aria-label="Kategorie Webbrowser"]').trigger('click')
 
-    expect(wrapper.findAll('[data-testid="produktkarte"]')).toHaveLength(8)
+    expect(wrapper.findAll('[data-testid="produktkarte"]'))
+      .toHaveLength(VENDOR_PRODUCTS.filter((product) => product.category === 'web-browsers').length)
     expect(wrapper.text()).toContain('Brave Browser')
     expect(wrapper.text()).not.toContain('Docker Engine')
   })

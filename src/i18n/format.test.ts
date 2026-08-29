@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PluralForms } from './format'
-import { formatPlural } from './format'
+import { formatPlural, matchesSearch } from './format'
 
 const forms: PluralForms = {
   zero: '{count}:zero',
@@ -31,5 +31,23 @@ describe('plural formatting', () => {
 
   it('formats every count placeholder in the selected form', () => {
     expect(formatPlural('en', 3, { ...forms, other: '{count} of {count}' })).toBe('3 of 3')
+  })
+})
+
+describe('locale-aware catalog search', () => {
+  it('matches decomposed accents and accent-free human input across fields', () => {
+    expect(matchesSearch(
+      'uberwachung grafana',
+      ['Überwachung', 'Grafana Enterprise'],
+      [],
+      'de',
+    )).toBe(true)
+    expect(matchesSearch('Cafe\u0301', ['Café'], [], 'fr')).toBe(true)
+  })
+
+  it('preserves case-sensitive technical tokens while normalizing human text', () => {
+    expect(matchesSearch('docker-ce', [], ['docker-ce'], 'de')).toBe(true)
+    expect(matchesSearch('DOCKER-CE', [], ['docker-ce'], 'de')).toBe(false)
+    expect(matchesSearch('MULLVAD', ['Mullvad Browser'], [], 'de')).toBe(true)
   })
 })

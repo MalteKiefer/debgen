@@ -6,7 +6,7 @@ import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import {
   generateInstallScript,
   generatePackageInstallCommand,
-  generateVendorArtifacts,
+  generateRepositoryArtifacts,
 } from '../features/vendors/generate'
 import { composeArtifacts, groupArtifacts } from '../features/vendors/group'
 import { presentWarning } from '../features/vendors/presentation'
@@ -20,6 +20,7 @@ const props = defineProps<{
   selectedIds: readonly string[]
   outputMode: OutputMode
   debianArtifact: GeneratedArtifact
+  publicUrls?: Readonly<Record<string, string>>
 }>()
 
 const emit = defineEmits<{
@@ -44,7 +45,7 @@ const selectedProducts = computed(() => {
   return VENDOR_PRODUCTS.filter((product) => ids.has(product.id))
 })
 
-const vendorArtifacts = computed(() => generateVendorArtifacts(generationConfig.value))
+const vendorArtifacts = computed(() => generateRepositoryArtifacts(generationConfig.value))
 const groupedVendorArtifacts = computed(() => groupArtifacts(vendorArtifacts.value, props.outputMode))
 const generatedFiles = computed(() => composeArtifacts(
   props.debianArtifact,
@@ -137,7 +138,7 @@ function updateMode(event: Event): void {
       </ul>
     </section>
 
-    <GeneratedFileTabs :artifacts="generatedFiles" />
+    <GeneratedFileTabs :artifacts="generatedFiles" :public-urls="publicUrls" />
 
     <InstallCommands
       v-if="setupArtifact"

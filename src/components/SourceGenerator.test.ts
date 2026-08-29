@@ -231,7 +231,7 @@ describe('SourceGenerator', () => {
     for (const [buttonLabel, headingId] of [
       ['Weiter zur Software', 'vendor-step-title'],
       ['Auswahl prüfen', 'review-step-title'],
-      ['Auswahl bearbeiten', 'vendor-step-title'],
+      ['Software hinzufügen', 'vendor-step-title'],
       ['Zurück zum Debian-System', 'system-step-title'],
     ] as const) {
       await clickButton(wrapper, buttonLabel)
@@ -278,6 +278,26 @@ describe('SourceGenerator', () => {
     )
     expect(wrapper.get('[aria-label="Aktuelle Auswahl"]').text()).toContain('0 Paketquellen')
     expect(wrapper.findAll('[role="status"]').some((status) => status.text().includes('Google Chrome'))).toBe(true)
+  })
+
+  it('skips software into Debian-only output, clears selection, moves focus, and returns to software', async () => {
+    const wrapper = mountGenerator()
+    await settle()
+
+    await clickButton(wrapper, 'Weiter zur Software')
+    await control(wrapper, 'Brave Browser auswählen').setValue(true)
+    await clickButton(wrapper, 'Zurück zum Debian-System')
+    await clickButton(wrapper, 'Software überspringen')
+
+    const heading = wrapper.get('#review-step-title')
+    expect(document.activeElement).toBe(heading.element)
+    expect(wrapper.get('[aria-label="Ausgewählte Software"] [role="status"]').text())
+      .toContain('Keine zusätzlichen Paketquellen ausgewählt')
+    expect(wrapper.findAll('[role="tab"]')).toHaveLength(1)
+    expect(wrapper.get('[aria-label="Aktuelle Auswahl"]').text()).toContain('0 Produkte')
+
+    await clickButton(wrapper, 'Software hinzufügen')
+    expect(document.activeElement).toBe(wrapper.get('#vendor-step-title').element)
   })
 
   it('reports copied only after the generated text is copied', async () => {

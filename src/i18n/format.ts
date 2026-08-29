@@ -14,7 +14,10 @@ export function formatPlural(
 }
 
 function normalizeHumanSearch(value: string, locale: SupportedLocale): string {
-  return value.normalize('NFC').toLocaleLowerCase(locale)
+  return value
+    .normalize('NFKD')
+    .replaceAll(/\p{Mark}/gu, '')
+    .toLocaleLowerCase(locale)
 }
 
 export function matchesSearch(
@@ -26,10 +29,12 @@ export function matchesSearch(
   const trimmedQuery = query.trim()
   if (trimmedQuery === '') return true
 
-  const normalizedQuery = normalizeHumanSearch(trimmedQuery, locale)
-  if (humanValues.some((value) => normalizeHumanSearch(value, locale).includes(normalizedQuery))) {
-    return true
-  }
+  const humanHaystack = humanValues.map((value) => normalizeHumanSearch(value, locale))
+  const queryTokens = trimmedQuery.split(/\s+/u)
+  const matchesHumanText = queryTokens.every((token) => {
+    const normalizedToken = normalizeHumanSearch(token, locale)
+    return humanHaystack.some((value) => value.includes(normalizedToken))
+  })
 
-  return technicalValues.some((value) => value.includes(trimmedQuery))
+  return matchesHumanText || technicalValues.some((value) => value.includes(trimmedQuery))
 }

@@ -13,6 +13,7 @@ export const pl = {
   counts: {
     products: { zero: '{count} produktów', one: '{count} produkt', two: '{count} produkty', few: '{count} produkty', many: '{count} produktów', other: '{count} produktu' },
     sources: { zero: 'Wybrano {count} źródeł', one: 'Wybrano {count} źródło', two: 'Wybrano {count} źródła', few: 'Wybrano {count} źródła', many: 'Wybrano {count} źródeł', other: 'Wybrano {count} źródła' },
+    packages: { zero: '{count} pakietów', one: '{count} pakiet', two: '{count} pakiety', few: '{count} pakiety', many: '{count} pakietów', other: '{count} pakietu' },
     files: { zero: '{count} plików', one: '{count} plik', two: '{count} pliki', few: '{count} pliki', many: '{count} plików', other: '{count} pliku' },
   },
   ...interfacePl,

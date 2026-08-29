@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { copyText, downloadText } from '../features/sources/download'
 import { generateSources, getOutputFilename } from '../features/sources/generate'
+import { loadCanonicalArtifactUrls } from '../features/sources/public-url'
 import type { ReleaseCodename, SourceFormat, SourceOptions } from '../features/sources/model'
 import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
@@ -32,7 +33,9 @@ const feedback = ref<{ kind: 'success' | 'error', message: string } | null>(null
 const activeStep = ref(1)
 const selectedIds = ref<string[]>([])
 const outputMode = ref<OutputMode>('perVendor')
+const publicUrls = ref<Readonly<Record<string, string>>>({})
 let feedbackVersion = 0
+let publicUrlVersion = 0
 
 const stepFocusTargets: Readonly<Record<number, string>> = {
   1: 'system-step-title',
@@ -62,6 +65,13 @@ const debianArtifact = computed<GeneratedArtifact>(() => ({
   description: 'debian-source',
   content: generateSources(sourceOptions.value),
 }))
+const selectedProducts = computed(() => {
+  const selected = new Set(selectedIds.value)
+  return VENDOR_PRODUCTS.filter((product) => selected.has(product.id))
+})
+const selectedSourceIds = computed(() => [...new Set(selectedProducts.value
+  .flatMap((product) => product.sourceId === null ? [] : [product.sourceId]))])
+const selectedPackageCount = computed(() => new Set(selectedProducts.value.flatMap((product) => product.packages)).size)
 
 watch(release, (codename) => {
   const selected = getRelease(codename)
@@ -130,7 +140,34 @@ watch([release, architecture], ([nextRelease, nextArchitecture], previousSystem)
 watch(activeStep, async (step) => {
   await nextTick()
   document.getElementById(stepFocusTargets[step] ?? '')?.focus()
+  if (step === 3) void refreshPublicUrls()
 }, { flush: 'post' })
+
+watch([release, architecture, format, selectedIds], () => {
+  if (activeStep.value === 3) void refreshPublicUrls()
+})
+
+async function refreshPublicUrls(): Promise<void> {
+  const version = ++publicUrlVersion
+  try {
+    const urls = await loadCanonicalArtifactUrls({
+      baseUrl: document.baseURI,
+      release: release.value,
+      architecture: architecture.value,
+      format: format.value,
+      sourceIds: selectedSourceIds.value,
+    })
+    if (version === publicUrlVersion) publicUrls.value = urls
+  } catch {
+    if (version === publicUrlVersion) publicUrls.value = {}
+  }
+}
+
+function skipSoftware(): void {
+  selectedIds.value = []
+  publicUrls.value = {}
+  activeStep.value = 3
+}
 
 function generate(): void {
   feedbackVersion += 1
@@ -185,11 +222,14 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
 
     <SelectionSummary
       :architecture="architecture"
-      :repository-count="selectedIds.length"
+      :package-count="selectedPackageCount"
+      :product-count="selectedProducts.length"
       :release="release"
+      :source-count="selectedSourceIds.length"
       :output-mode="outputMode"
       :current-step="activeStep"
       @navigate="activeStep = $event"
+      @skip-software="skipSoftware"
     />
 
     <template v-if="activeStep === 1">
@@ -223,6 +263,14 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           @click="activeStep = 2"
         >
           {{ t('actions.nextSoftware') }}
+        </v-btn>
+        <v-btn
+          class="studio-touch-target"
+          prepend-icon="mdi-skip-next-outline"
+          variant="outlined"
+          @click="skipSoftware"
+        >
+          {{ t('actions.skipSoftware') }}
         </v-btn>
       </div>
 
@@ -309,6 +357,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
         :debian-artifact="debianArtifact"
         :release="release"
         :selected-ids="selectedIds"
+        :public-urls="publicUrls"
       />
       <div class="source-generator__submit source-generator__submit--between">
         <v-btn
@@ -317,7 +366,7 @@ function downloadGeneratedText(outputFilename: 'debian.sources' | 'debian.list',
           variant="text"
           @click="activeStep = 2"
         >
-          {{ t('actions.editSelection') }}
+          {{ selectedIds.length === 0 ? t('actions.addSoftware') : t('actions.editSelection') }}
         </v-btn>
         <v-btn
           class="studio-touch-target"

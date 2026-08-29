@@ -13,6 +13,7 @@ export const ru = {
   counts: {
     products: { zero: '{count} продуктов', one: '{count} продукт', two: '{count} продукта', few: '{count} продукта', many: '{count} продуктов', other: '{count} продукта' },
     sources: { zero: 'Выбрано источников: {count}', one: 'Выбран {count} источник', two: 'Выбрано {count} источника', few: 'Выбрано {count} источника', many: 'Выбрано {count} источников', other: 'Выбрано {count} источника' },
+    packages: { zero: '{count} пакетов', one: '{count} пакет', two: '{count} пакета', few: '{count} пакета', many: '{count} пакетов', other: '{count} пакета' },
     files: { zero: '{count} файлов', one: '{count} файл', two: '{count} файла', few: '{count} файла', many: '{count} файлов', other: '{count} файла' },
   },
   ...interfaceRu,

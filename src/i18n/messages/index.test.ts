@@ -21,7 +21,7 @@ const canonicalMessageKeys = leafKeys(messages.en).sort()
 
 describe('locale message bundles', () => {
   it.each(Object.entries(messages))('%s has the complete exact application message schema', (_locale, bundle) => {
-    expect(canonicalMessageKeys).toHaveLength(225)
+    expect(canonicalMessageKeys).toHaveLength(241)
     expect(canonicalMessageKeys).toEqual(expect.arrayContaining([
       'compatibility.unsupportedRelease',
       'controls.availability.bookworm',

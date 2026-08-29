@@ -8,13 +8,16 @@ import type { SupportedLocale } from '../i18n'
 const props = defineProps<{
   release: string
   architecture: SystemArchitecture
-  repositoryCount: number
+  productCount: number
+  sourceCount: number
+  packageCount: number
   outputMode: 'perVendor' | 'combined' | 'byCategory'
   currentStep: number
 }>()
 
 const emit = defineEmits<{
   navigate: [step: number]
+  skipSoftware: []
 }>()
 const { locale, t } = useI18n()
 
@@ -33,10 +36,15 @@ const mobileAction = computed(() => {
   if (props.currentStep === 3) return { label: t('actions.editSelection'), targetStep: 2 }
   return { label: t('actions.nextSoftware'), targetStep: 2 }
 })
-const sourceCount = computed(() => formatPlural(locale.value as SupportedLocale, props.repositoryCount, {
-  zero: t('counts.sources.zero', { count: props.repositoryCount }), one: t('counts.sources.one', { count: props.repositoryCount }), two: t('counts.sources.two', { count: props.repositoryCount }),
-  few: t('counts.sources.few', { count: props.repositoryCount }), many: t('counts.sources.many', { count: props.repositoryCount }), other: t('counts.sources.other', { count: props.repositoryCount }),
-}))
+function formatCount(kind: 'products' | 'sources' | 'packages', count: number): string {
+  return formatPlural(locale.value as SupportedLocale, count, {
+    zero: t(`counts.${kind}.zero`, { count }), one: t(`counts.${kind}.one`, { count }), two: t(`counts.${kind}.two`, { count }),
+    few: t(`counts.${kind}.few`, { count }), many: t(`counts.${kind}.many`, { count }), other: t(`counts.${kind}.other`, { count }),
+  })
+}
+const productCountText = computed(() => formatCount('products', props.productCount))
+const sourceCountText = computed(() => formatCount('sources', props.sourceCount))
+const packageCountText = computed(() => formatCount('packages', props.packageCount))
 
 function updateViewport(event: MediaQueryListEvent): void {
   isMobile.value = event.matches
@@ -81,7 +89,9 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     >
       <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
       <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
-      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ sourceCount }}</span>
+      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ productCountText }}</span>
+      <span><v-icon icon="mdi-source-repository" /> {{ sourceCountText }}</span>
+      <span><v-icon icon="mdi-package-down" /> {{ packageCountText }}</span>
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
     </div>
     <div
@@ -92,7 +102,9 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
     >
       <span><v-icon icon="mdi-debian" /> {{ release.charAt(0).toUpperCase() + release.slice(1) }}</span>
       <span><v-icon icon="mdi-cpu-64-bit" /> {{ architecture }}</span>
-      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ sourceCount }}</span>
+      <span><v-icon icon="mdi-package-variant-closed-check" /> {{ productCountText }}</span>
+      <span><v-icon icon="mdi-source-repository" /> {{ sourceCountText }}</span>
+      <span><v-icon icon="mdi-package-down" /> {{ packageCountText }}</span>
       <span><v-icon icon="mdi-file-tree-outline" /> {{ outputModeLabel(outputMode) }}</span>
       <v-btn
         append-icon="mdi-arrow-right"
@@ -102,6 +114,15 @@ function outputModeLabel(mode: 'perVendor' | 'combined' | 'byCategory'): string 
         @click="emit('navigate', mobileAction.targetStep)"
       >
         {{ mobileAction.label }}
+      </v-btn>
+      <v-btn
+        v-if="currentStep === 1"
+        class="selection-summary__action studio-touch-target"
+        data-testid="mobile-skip-software"
+        variant="outlined"
+        @click="emit('skipSoftware')"
+      >
+        {{ t('actions.skipSoftware') }}
       </v-btn>
     </div>
   </aside>

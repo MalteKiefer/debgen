@@ -40,7 +40,7 @@ describe('ReviewStep', () => {
 
   it.each([
     ['combined', 'vendors.sources', 'brave-browser.sources'],
-    ['byCategory', 'browser.sources', 'brave-browser.sources'],
+    ['byCategory', 'web-browsers.sources', 'brave-browser.sources'],
   ] as const)('gruppiert die Vorschau im Modus %s', async (mode, visibleFile, hiddenFile) => {
     const wrapper = mountReview()
 
@@ -80,5 +80,13 @@ describe('ReviewStep', () => {
     expect(setup).toContain('curl --fail')
     expect(setup).not.toContain("apt-get install -y 'brave-browser' 'gh'")
     expect(packages).toContain("'brave-browser' 'gh'")
+  })
+
+  it('generates one repository artifact for products sharing the same source', () => {
+    const wrapper = mountReview({ selectedIds: ['mullvad-browser', 'mullvad-vpn'] })
+
+    const filenames = wrapper.findAll('[role="tab"]').map((tab) => tab.text())
+    expect(filenames).toEqual(['debian.sources', 'mullvad.sources'])
+    expect(wrapper.get('[aria-label="Paketinstallation"]').text()).toContain("'mullvad-browser' 'mullvad-vpn'")
   })
 })

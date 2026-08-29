@@ -1,7 +1,7 @@
 import type { InterfaceMessageSchema } from './interface'
 
 export const interfaceRu = {
-  header: { brand: 'DebGen', title: 'Debian Studio', trust: 'Только официальные источники пакетов - прозрачная настройка и проверка перед использованием.', projectLinks: 'Ссылки проекта', liberapay: 'Поддержать проект на Liberapay', github: 'Открыть проект на GitHub' },
+  header: { brand: 'DebGen', title: 'Debian Workbench', trust: 'Только официальные источники пакетов - прозрачная настройка и проверка перед использованием.', projectLinks: 'Ссылки проекта', liberapay: 'Поддержать проект на Liberapay', github: 'Открыть проект на GitHub' },
   progress: { ariaLabel: 'Шаги Studio', stepAria: 'Шаг {step}: {label}', steps: { system: 'Система Debian', software: 'Официальное ПО', review: 'Проверка и экспорт' } },
   system: { eyebrow: 'Шаг 1 из 3', heading: 'Система Debian', description: 'Выберите выпуск Debian, архитектуру и необходимые источники пакетов.', currentSystem: 'Текущая система' },
   controls: {
@@ -21,17 +21,18 @@ export const interfaceRu = {
     },
   },
   sourceOutput: { title: 'Созданная конфигурация', filename: 'Имя файла', preview: 'Предварительный просмотр созданных источников пакетов', actions: 'Действия с созданной конфигурацией' },
-  actions: { generateSources: 'Создать источники пакетов', nextSoftware: 'Перейти к ПО', copy: 'Копировать', download: 'Скачать', backSystem: 'Назад к системе Debian', reviewSelection: 'Проверить выбор', editSelection: 'Изменить выбор', editSystem: 'Изменить систему' },
+  actions: { generateSources: 'Создать источники пакетов', nextSoftware: 'Перейти к ПО', copy: 'Копировать', download: 'Скачать', backSystem: 'Назад к системе Debian', reviewSelection: 'Проверить выбор', editSelection: 'Изменить выбор', editSystem: 'Изменить систему', skipSoftware: 'Пропустить ПО и открыть результат', addSoftware: 'Добавить ПО' },
   workspace: { ariaLabel: 'Рабочая область Debian Studio' },
-  categories: { browser: 'Браузеры', communication: 'Связь', privacy: 'Конфиденциальность', containers: 'Контейнеры', cloud: 'Облако', development: 'Разработка', database: 'Базы данных', monitoring: 'Мониторинг', webserver: 'Веб-серверы', remoteDesktop: 'Удалённый рабочий стол', games: 'Игры', gamingTools: 'Игровые инструменты', desktopEnvironments: 'Среды рабочего стола', networkingVpn: 'Сеть / VPN', monitoringSecurity: 'Мониторинг / Безопасность' },
+  categories: { webBrowsers: 'Веб-браузеры', messagingEmail: 'Сообщения и почта', vpnSecureNetworking: 'VPN и защищённые сети', remoteDesktop: 'Удалённый рабочий стол', containersKubernetes: 'Контейнеры и Kubernetes', cloudEdge: 'Облако и edge', infrastructureAutomation: 'Автоматизация инфраструктуры', dataPlatforms: 'Платформы данных', observabilityLogging: 'Наблюдаемость и журналы', securitySecrets: 'Безопасность и секреты', developerWorkstation: 'Рабочая станция разработчика', runtimesSdks: 'Среды выполнения и SDK', developmentPlatformsCicd: 'Платформы разработки и CI/CD', webServers: 'Веб-серверы', fileSynchronization: 'Синхронизация файлов', virtualization: 'Виртуализация', games: 'Игры', desktopProductivity: 'Рабочий стол и продуктивность' },
   vendor: {
     eyebrow: 'Шаг 2 из 3', heading: 'Официальное ПО', description: 'Выберите проверенные источники пакетов, совместимые с вашей системой Debian.',
     searchLabel: 'Поиск ПО', searchPlaceholder: 'Например, Docker или Firefox', categoryGroup: 'Категории ПО', allCategories: 'Все категории', categoryAria: 'Категория {category}', catalog: 'Каталог продуктов', empty: 'Нет продуктов, соответствующих поиску и фильтрам.',
     filters: { originLabel: 'Происхождение источника', compatibilityLabel: 'Совместимость', allOrigins: 'Все происхождения', allCompatibility: 'Любая совместимость', compatible: 'Совместимо', incompatible: 'Несовместимо' },
     origins: { manufacturer: 'Производитель', upstream: 'Основной проект', communityEndorsed: 'Одобренное сообщество', debianNative: 'Из Debian' },
+    support: { explicit: 'Явная поддержка', genericDebian: 'Общая поддержка Debian', repositoryOnly: 'Только наличие репозитория' },
   },
   selection: { checked: 'Выбор проверен', releaseChanged: 'Выпуск {release}', architectureChanged: 'Архитектура {architecture}', updated: 'Выбор обновлён', incompatibleRemoved: '{products} удалён из выбора из-за несовместимости.', incompatibleRemovedMany: '{products} удалены из выбора из-за несовместимости.', unknownRemoved: 'Один неизвестный элемент удалён.', unknownRemovedMany: 'Удалено неизвестных элементов: {count}.' },
-  vendorCard: { officialSource: 'Официальный источник', select: 'Выбрать', selected: 'Выбрано', selectAria: 'Выбрать {product}', documentation: 'Инструкция', documentationAria: '{product}: официальная инструкция (откроется в новой вкладке)', reportIssue: 'Сообщить о проблеме', reportIssueAria: 'Сообщить о проблеме с {product} (откроется в новой вкладке)' },
+  vendorCard: { officialSource: 'Официальный источник', select: 'Выбрать', selected: 'Выбрано', selectAria: 'Выбрать {product}', documentation: 'Инструкция', documentationAria: '{product}: официальная инструкция (откроется в новой вкладке)', reportIssue: 'Сообщить о проблеме', reportIssueAria: 'Сообщить о проблеме с {product} (откроется в новой вкладке)', source: 'Источник: {source}', sharedSource: 'Общий источник: {source} ({products})' },
   compatibility: { unsupportedRelease: 'Выпуск "{release}" не поддерживается продуктом {product}. Поддерживаемые выпуски: {supported}.', unsupportedArchitecture: 'Архитектура "{architecture}" не поддерживается продуктом {product}. Поддерживаемые архитектуры: {supported}.' },
   warnings: {
     'docker-firewall': 'Docker может изменять правила межсетевого экрана и обходить его политику.',
@@ -70,7 +71,7 @@ export const interfaceRu = {
 } satisfies InterfaceMessageSchema
 
 export const interfacePl = {
-  header: { brand: 'DebGen', title: 'Debian Studio', trust: 'Tylko oficjalne źródła pakietów - przejrzyście skonfigurowane i możliwe do sprawdzenia przed użyciem.', projectLinks: 'Łącza projektu', liberapay: 'Wesprzyj projekt w Liberapay', github: 'Otwórz projekt w GitHub' },
+  header: { brand: 'DebGen', title: 'Debian Workbench', trust: 'Tylko oficjalne źródła pakietów - przejrzyście skonfigurowane i możliwe do sprawdzenia przed użyciem.', projectLinks: 'Łącza projektu', liberapay: 'Wesprzyj projekt w Liberapay', github: 'Otwórz projekt w GitHub' },
   progress: { ariaLabel: 'Kroki Studio', stepAria: 'Krok {step}: {label}', steps: { system: 'System Debian', software: 'Oficjalne oprogramowanie', review: 'Sprawdź i eksportuj' } },
   system: { eyebrow: 'Krok 1 z 3', heading: 'System Debian', description: 'Wybierz wydanie Debiana, architekturę i potrzebne źródła pakietów.', currentSystem: 'Bieżący system' },
   controls: {
@@ -90,17 +91,18 @@ export const interfacePl = {
     },
   },
   sourceOutput: { title: 'Wygenerowana konfiguracja', filename: 'Nazwa pliku', preview: 'Podgląd wygenerowanych źródeł pakietów', actions: 'Działania dla wygenerowanej konfiguracji' },
-  actions: { generateSources: 'Generuj źródła pakietów', nextSoftware: 'Przejdź do oprogramowania', copy: 'Kopiuj', download: 'Pobierz', backSystem: 'Wróć do systemu Debian', reviewSelection: 'Sprawdź wybór', editSelection: 'Edytuj wybór', editSystem: 'Edytuj system' },
+  actions: { generateSources: 'Generuj źródła pakietów', nextSoftware: 'Przejdź do oprogramowania', copy: 'Kopiuj', download: 'Pobierz', backSystem: 'Wróć do systemu Debian', reviewSelection: 'Sprawdź wybór', editSelection: 'Edytuj wybór', editSystem: 'Edytuj system', skipSoftware: 'Pomiń oprogramowanie i otwórz wynik', addSoftware: 'Dodaj oprogramowanie' },
   workspace: { ariaLabel: 'Obszar roboczy Debian Studio' },
-  categories: { browser: 'Przeglądarki', communication: 'Komunikacja', privacy: 'Prywatność', containers: 'Kontenery', cloud: 'Chmura', development: 'Programowanie', database: 'Bazy danych', monitoring: 'Monitorowanie', webserver: 'Serwery WWW', remoteDesktop: 'Pulpit zdalny', games: 'Gry', gamingTools: 'Narzędzia do gier', desktopEnvironments: 'Środowiska graficzne', networkingVpn: 'Sieć / VPN', monitoringSecurity: 'Monitorowanie / Bezpieczeństwo' },
+  categories: { webBrowsers: 'Przeglądarki internetowe', messagingEmail: 'Wiadomości i e-mail', vpnSecureNetworking: 'VPN i bezpieczne sieci', remoteDesktop: 'Pulpit zdalny', containersKubernetes: 'Kontenery i Kubernetes', cloudEdge: 'Chmura i edge', infrastructureAutomation: 'Automatyzacja infrastruktury', dataPlatforms: 'Platformy danych', observabilityLogging: 'Obserwowalność i logi', securitySecrets: 'Bezpieczeństwo i sekrety', developerWorkstation: 'Stacja deweloperska', runtimesSdks: 'Środowiska uruchomieniowe i SDK', developmentPlatformsCicd: 'Platformy programistyczne i CI/CD', webServers: 'Serwery WWW', fileSynchronization: 'Synchronizacja plików', virtualization: 'Wirtualizacja', games: 'Gry', desktopProductivity: 'Produktywność na pulpicie' },
   vendor: {
     eyebrow: 'Krok 2 z 3', heading: 'Oficjalne oprogramowanie', description: 'Wybierz zweryfikowane źródła pakietów zgodne z systemem Debian.',
     searchLabel: 'Szukaj oprogramowania', searchPlaceholder: 'Na przykład Docker lub Firefox', categoryGroup: 'Kategorie oprogramowania', allCategories: 'Wszystkie kategorie', categoryAria: 'Kategoria {category}', catalog: 'Katalog produktów', empty: 'Żaden produkt nie pasuje do wyszukiwania i filtrów.',
     filters: { originLabel: 'Pochodzenie źródła', compatibilityLabel: 'Zgodność', allOrigins: 'Wszystkie pochodzenia', allCompatibility: 'Dowolna zgodność', compatible: 'Zgodne', incompatible: 'Niezgodne' },
     origins: { manufacturer: 'Producent', upstream: 'Projekt źródłowy', communityEndorsed: 'Zatwierdzona społeczność', debianNative: 'Natywne dla Debiana' },
+    support: { explicit: 'Wyraźne wsparcie', genericDebian: 'Ogólne wsparcie Debiana', repositoryOnly: 'Tylko dostępność repozytorium' },
   },
   selection: { checked: 'Wybór został sprawdzony', releaseChanged: 'Wydanie {release}', architectureChanged: 'Architektura {architecture}', updated: 'Wybór zaktualizowany', incompatibleRemoved: '{products} usunięto z wyboru z powodu niezgodności.', incompatibleRemovedMany: '{products} usunięto z wyboru z powodu niezgodności.', unknownRemoved: 'Usunięto jeden nieznany wybór.', unknownRemovedMany: 'Usunięto nieznane wybory: {count}.' },
-  vendorCard: { officialSource: 'Oficjalne źródło', select: 'Wybierz', selected: 'Wybrano', selectAria: 'Wybierz {product}', documentation: 'Instrukcja', documentationAria: '{product}: oficjalna instrukcja (otwiera się w nowej karcie)', reportIssue: 'Zgłoś problem', reportIssueAria: 'Zgłoś problem z {product} (otwiera się w nowej karcie)' },
+  vendorCard: { officialSource: 'Oficjalne źródło', select: 'Wybierz', selected: 'Wybrano', selectAria: 'Wybierz {product}', documentation: 'Instrukcja', documentationAria: '{product}: oficjalna instrukcja (otwiera się w nowej karcie)', reportIssue: 'Zgłoś problem', reportIssueAria: 'Zgłoś problem z {product} (otwiera się w nowej karcie)', source: 'Źródło: {source}', sharedSource: 'Wspólne źródło: {source} ({products})' },
   compatibility: { unsupportedRelease: 'Wydanie "{release}" nie jest obsługiwane przez {product}. Obsługiwane wydania: {supported}.', unsupportedArchitecture: 'Architektura "{architecture}" nie jest obsługiwana przez {product}. Obsługiwane architektury: {supported}.' },
   warnings: {
     'docker-firewall': 'Docker może zmieniać reguły zapory i omijać jej zasady.',
@@ -139,7 +141,7 @@ export const interfacePl = {
 } satisfies InterfaceMessageSchema
 
 export const interfaceZhCN = {
-  header: { brand: 'DebGen', title: 'Debian Studio', trust: '仅使用官方软件包源 - 配置透明，使用前可检查。', projectLinks: '项目链接', liberapay: '在 Liberapay 上支持项目', github: '在 GitHub 上打开项目' },
+  header: { brand: 'DebGen', title: 'Debian Workbench', trust: '仅使用官方软件包源 - 配置透明，使用前可检查。', projectLinks: '项目链接', liberapay: '在 Liberapay 上支持项目', github: '在 GitHub 上打开项目' },
   progress: { ariaLabel: 'Studio 步骤', stepAria: '第 {step} 步：{label}', steps: { system: 'Debian 系统', software: '官方软件', review: '检查并导出' } },
   system: { eyebrow: '第 1 步，共 3 步', heading: 'Debian 系统', description: '选择 Debian 版本、架构和所需的软件包源。', currentSystem: '当前系统' },
   controls: {
@@ -159,17 +161,18 @@ export const interfaceZhCN = {
     },
   },
   sourceOutput: { title: '已生成的配置', filename: '文件名', preview: '预览已生成的软件包源', actions: '已生成配置的操作' },
-  actions: { generateSources: '生成软件包源', nextSoftware: '继续选择软件', copy: '复制', download: '下载', backSystem: '返回 Debian 系统', reviewSelection: '检查选择', editSelection: '编辑选择', editSystem: '编辑系统' },
+  actions: { generateSources: '生成软件包源', nextSoftware: '继续选择软件', copy: '复制', download: '下载', backSystem: '返回 Debian 系统', reviewSelection: '检查选择', editSelection: '编辑选择', editSystem: '编辑系统', skipSoftware: '跳过软件并打开输出', addSoftware: '添加软件' },
   workspace: { ariaLabel: 'Debian Studio 工作区' },
-  categories: { browser: '浏览器', communication: '通信', privacy: '隐私', containers: '容器', cloud: '云', development: '开发', database: '数据库', monitoring: '监控', webserver: 'Web 服务器', remoteDesktop: '远程桌面', games: '游戏', gamingTools: '游戏工具', desktopEnvironments: '桌面环境', networkingVpn: '网络 / VPN', monitoringSecurity: '监控 / 安全' },
+  categories: { webBrowsers: '网页浏览器', messagingEmail: '消息和电子邮件', vpnSecureNetworking: 'VPN 和安全网络', remoteDesktop: '远程桌面', containersKubernetes: '容器和 Kubernetes', cloudEdge: '云和边缘', infrastructureAutomation: '基础设施自动化', dataPlatforms: '数据平台', observabilityLogging: '可观测性和日志', securitySecrets: '安全和密钥', developerWorkstation: '开发者工作站', runtimesSdks: '运行时和 SDK', developmentPlatformsCicd: '开发平台和 CI/CD', webServers: 'Web 服务器', fileSynchronization: '文件同步', virtualization: '虚拟化', games: '游戏', desktopProductivity: '桌面生产力' },
   vendor: {
     eyebrow: '第 2 步，共 3 步', heading: '官方软件', description: '选择与 Debian 系统兼容且经过验证的软件包源。',
     searchLabel: '搜索软件', searchPlaceholder: '例如 Docker 或 Firefox', categoryGroup: '软件类别', allCategories: '所有类别', categoryAria: '类别 {category}', catalog: '产品目录', empty: '没有产品符合搜索和筛选条件。',
     filters: { originLabel: '来源归属', compatibilityLabel: '兼容性', allOrigins: '所有来源', allCompatibility: '所有兼容性', compatible: '兼容', incompatible: '不兼容' },
     origins: { manufacturer: '制造商', upstream: '上游项目', communityEndorsed: '官方认可的社区', debianNative: 'Debian 原生' },
+    support: { explicit: '明确支持', genericDebian: '通用 Debian 支持', repositoryOnly: '仅仓库可用' },
   },
   selection: { checked: '已检查选择', releaseChanged: '版本 {release}', architectureChanged: '架构 {architecture}', updated: '选择已更新', incompatibleRemoved: '由于不兼容，已从选择中移除 {products}。', incompatibleRemovedMany: '由于不兼容，已从选择中移除 {products}。', unknownRemoved: '已移除一个未知选择。', unknownRemovedMany: '已移除 {count} 个未知选择。' },
-  vendorCard: { officialSource: '官方来源', select: '选择', selected: '已选择', selectAria: '选择 {product}', documentation: '指南', documentationAria: '{product}：官方指南（在新标签页中打开）', reportIssue: '报告问题', reportIssueAria: '报告 {product} 的问题（在新标签页中打开）' },
+  vendorCard: { officialSource: '官方来源', select: '选择', selected: '已选择', selectAria: '选择 {product}', documentation: '指南', documentationAria: '{product}：官方指南（在新标签页中打开）', reportIssue: '报告问题', reportIssueAria: '报告 {product} 的问题（在新标签页中打开）', source: '来源：{source}', sharedSource: '共享来源：{source}（{products}）' },
   compatibility: { unsupportedRelease: '{product} 不支持版本“{release}”。支持的版本：{supported}。', unsupportedArchitecture: '{product} 不支持架构“{architecture}”。支持的架构：{supported}。' },
   warnings: {
     'docker-firewall': 'Docker 可以修改防火墙规则，并可能绕过防火墙策略。',
@@ -208,7 +211,7 @@ export const interfaceZhCN = {
 } satisfies InterfaceMessageSchema
 
 export const interfaceJa = {
-  header: { brand: 'DebGen', title: 'Debian Studio', trust: '公式パッケージソースのみを使用し、透明な設定を使用前に確認できます。', projectLinks: 'プロジェクトリンク', liberapay: 'Liberapay でプロジェクトを支援', github: 'GitHub でプロジェクトを開く' },
+  header: { brand: 'DebGen', title: 'Debian Workbench', trust: '公式パッケージソースのみを使用し、透明な設定を使用前に確認できます。', projectLinks: 'プロジェクトリンク', liberapay: 'Liberapay でプロジェクトを支援', github: 'GitHub でプロジェクトを開く' },
   progress: { ariaLabel: 'Studio の手順', stepAria: '手順 {step}: {label}', steps: { system: 'Debian システム', software: '公式ソフトウェア', review: '確認とエクスポート' } },
   system: { eyebrow: '3 手順中 1', heading: 'Debian システム', description: 'Debian リリース、アーキテクチャ、必要なパッケージソースを選択します。', currentSystem: '現在のシステム' },
   controls: {
@@ -228,17 +231,18 @@ export const interfaceJa = {
     },
   },
   sourceOutput: { title: '生成された設定', filename: 'ファイル名', preview: '生成されたパッケージソースのプレビュー', actions: '生成された設定の操作' },
-  actions: { generateSources: 'パッケージソースを生成', nextSoftware: 'ソフトウェアへ進む', copy: 'コピー', download: 'ダウンロード', backSystem: 'Debian システムへ戻る', reviewSelection: '選択を確認', editSelection: '選択を編集', editSystem: 'システムを編集' },
+  actions: { generateSources: 'パッケージソースを生成', nextSoftware: 'ソフトウェアへ進む', copy: 'コピー', download: 'ダウンロード', backSystem: 'Debian システムへ戻る', reviewSelection: '選択を確認', editSelection: '選択を編集', editSystem: 'システムを編集', skipSoftware: 'ソフトウェアをスキップして出力を開く', addSoftware: 'ソフトウェアを追加' },
   workspace: { ariaLabel: 'Debian Studio ワークスペース' },
-  categories: { browser: 'ブラウザー', communication: 'コミュニケーション', privacy: 'プライバシー', containers: 'コンテナー', cloud: 'クラウド', development: '開発', database: 'データベース', monitoring: '監視', webserver: 'Web サーバー', remoteDesktop: 'リモートデスクトップ', games: 'ゲーム', gamingTools: 'ゲームツール', desktopEnvironments: 'デスクトップ環境', networkingVpn: 'ネットワーク / VPN', monitoringSecurity: '監視 / セキュリティ' },
+  categories: { webBrowsers: 'ウェブブラウザー', messagingEmail: 'メッセージとメール', vpnSecureNetworking: 'VPN と安全なネットワーク', remoteDesktop: 'リモートデスクトップ', containersKubernetes: 'コンテナーと Kubernetes', cloudEdge: 'クラウドとエッジ', infrastructureAutomation: 'インフラ自動化', dataPlatforms: 'データプラットフォーム', observabilityLogging: '可観測性とログ', securitySecrets: 'セキュリティとシークレット', developerWorkstation: '開発者ワークステーション', runtimesSdks: 'ランタイムと SDK', developmentPlatformsCicd: '開発プラットフォームと CI/CD', webServers: 'Web サーバー', fileSynchronization: 'ファイル同期', virtualization: '仮想化', games: 'ゲーム', desktopProductivity: 'デスクトップ生産性' },
   vendor: {
     eyebrow: '3 手順中 2', heading: '公式ソフトウェア', description: 'Debian システムと互換性のある検証済みパッケージソースを選択します。',
     searchLabel: 'ソフトウェアを検索', searchPlaceholder: '例: Docker または Firefox', categoryGroup: 'ソフトウェアカテゴリー', allCategories: 'すべてのカテゴリー', categoryAria: 'カテゴリー {category}', catalog: '製品カタログ', empty: '検索条件とフィルターに一致する製品はありません。',
     filters: { originLabel: 'ソースの提供元', compatibilityLabel: '互換性', allOrigins: 'すべての提供元', allCompatibility: 'すべての互換性', compatible: '互換', incompatible: '非互換' },
     origins: { manufacturer: 'メーカー', upstream: 'アップストリームプロジェクト', communityEndorsed: '承認済みコミュニティ', debianNative: 'Debian 標準' },
+    support: { explicit: '明示的なサポート', genericDebian: '一般的な Debian サポート', repositoryOnly: 'リポジトリ提供のみ' },
   },
   selection: { checked: '選択を確認しました', releaseChanged: 'リリース {release}', architectureChanged: 'アーキテクチャ {architecture}', updated: '選択を更新しました', incompatibleRemoved: '互換性がないため {products} を選択から削除しました。', incompatibleRemovedMany: '互換性がないため {products} を選択から削除しました。', unknownRemoved: '不明な選択項目を 1 件削除しました。', unknownRemovedMany: '不明な選択項目を {count} 件削除しました。' },
-  vendorCard: { officialSource: '公式ソース', select: '選択', selected: '選択済み', selectAria: '{product} を選択', documentation: 'ガイド', documentationAria: '{product}: 公式ガイド（新しいタブで開きます）', reportIssue: '問題を報告', reportIssueAria: '{product} の問題を報告（新しいタブで開きます）' },
+  vendorCard: { officialSource: '公式ソース', select: '選択', selected: '選択済み', selectAria: '{product} を選択', documentation: 'ガイド', documentationAria: '{product}: 公式ガイド（新しいタブで開きます）', reportIssue: '問題を報告', reportIssueAria: '{product} の問題を報告（新しいタブで開きます）', source: 'ソース: {source}', sharedSource: '共有ソース: {source}（{products}）' },
   compatibility: { unsupportedRelease: '{product} はリリース「{release}」をサポートしていません。対応リリース: {supported}。', unsupportedArchitecture: '{product} はアーキテクチャ「{architecture}」をサポートしていません。対応アーキテクチャ: {supported}。' },
   warnings: {
     'docker-firewall': 'Docker はファイアウォール規則を変更し、ポリシーを回避する可能性があります。',

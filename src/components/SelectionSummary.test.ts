@@ -23,7 +23,9 @@ function mountSummary(currentStep: 1 | 2 | 3 = 1) {
     props: {
       release: 'trixie',
       architecture: 'arm64',
-      repositoryCount: 3,
+      productCount: 3,
+      sourceCount: 2,
+      packageCount: 4,
       outputMode: 'perVendor',
       currentStep,
     },
@@ -56,7 +58,9 @@ describe('SelectionSummary', () => {
 
     expect(mobileSummary.text()).toContain('Trixie')
     expect(mobileSummary.text()).toContain('arm64')
-    expect(mobileSummary.text()).toContain('3 Paketquellen ausgewählt')
+    expect(mobileSummary.text()).toContain('3 Produkte')
+    expect(mobileSummary.text()).toContain('2 Paketquellen ausgewählt')
+    expect(mobileSummary.text()).toContain('4 Pakete')
     expect(mobileSummary.text()).toContain('Je Quelle')
   })
 
@@ -82,5 +86,16 @@ describe('SelectionSummary', () => {
     expect(action.text()).toContain(label)
     await action.trigger('click')
     expect(wrapper.emitted('navigate')).toEqual([[targetStep]])
+  })
+
+  it('offers the Debian-only output path in the mobile system action bar', async () => {
+    setMobileViewport(true)
+    const wrapper = mountSummary(1)
+    const skip = wrapper.get('[data-testid="mobile-skip-software"]')
+
+    expect(skip.text()).toContain('Software überspringen')
+    expect(skip.classes()).toContain('studio-touch-target')
+    await skip.trigger('click')
+    expect(wrapper.emitted('skipSoftware')).toEqual([[]])
   })
 })

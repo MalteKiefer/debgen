@@ -56,7 +56,7 @@ describe('vendor presentation descriptors', () => {
       mediaType: 'text/plain',
       description: 'domain text must not be rendered',
       content: 'Types: deb\n',
-      category: 'browser',
+      category: 'web-browsers',
       productId: 'brave-browser',
       productName: 'Brave Browser',
     })).toEqual({

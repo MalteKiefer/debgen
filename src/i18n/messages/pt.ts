@@ -13,6 +13,7 @@ export const pt = {
   counts: {
     products: { zero: '{count} produtos', one: '{count} produto', two: '{count} produtos', few: '{count} produtos', many: '{count} produtos', other: '{count} produtos' },
     sources: { zero: '{count} fontes selecionadas', one: '{count} fonte selecionada', two: '{count} fontes selecionadas', few: '{count} fontes selecionadas', many: '{count} fontes selecionadas', other: '{count} fontes selecionadas' },
+    packages: { zero: '{count} pacotes', one: '{count} pacote', two: '{count} pacotes', few: '{count} pacotes', many: '{count} pacotes', other: '{count} pacotes' },
     files: { zero: '{count} ficheiros', one: '{count} ficheiro', two: '{count} ficheiros', few: '{count} ficheiros', many: '{count} ficheiros', other: '{count} ficheiros' },
   },
   ...interfacePt,

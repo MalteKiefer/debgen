@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { VENDOR_PRODUCTS } from '../features/vendors/catalog'
 import { getVendorCompatibility } from '../features/vendors/compatibility'
 import type { ReleaseCodename } from '../features/sources/model'
-import type { SystemArchitecture, VendorCategory, VendorProduct } from '../features/vendors/model'
+import type { SystemArchitecture, VendorProduct } from '../features/vendors/model'
 import type { VendorMdiIcon } from '../features/vendors/icons'
 import { getRepositorySource } from '../features/vendors/sources'
 import { presentCompatibility, presentWarning } from '../features/vendors/presentation'
+import { categoryMessageKey } from '../features/vendors/presentation'
 
 const props = defineProps<{
   product: VendorProduct
@@ -21,29 +23,21 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const categoryIcons: Record<string, VendorMdiIcon> = {
-  browser: 'mdi-web',
-  communication: 'mdi-message-text-outline',
-  privacy: 'mdi-shield-lock-outline',
-  containers: 'mdi-cube-outline',
-  cloud: 'mdi-cloud-outline',
-  development: 'mdi-code-tags',
-  database: 'mdi-database-outline',
-  monitoring: 'mdi-chart-line',
-  webserver: 'mdi-web',
+  'web-browsers': 'mdi-web',
+  'messaging-email': 'mdi-message-text-outline',
+  'vpn-secure-networking': 'mdi-shield-lock-outline',
+  'containers-kubernetes': 'mdi-cube-outline',
+  'cloud-edge': 'mdi-cloud-outline',
+  'developer-workstation': 'mdi-code-tags',
+  'data-platforms': 'mdi-database-outline',
+  'observability-logging': 'mdi-chart-line',
+  'web-servers': 'mdi-web',
   'remote-desktop': 'mdi-message-text-outline',
   games: 'mdi-chart-areaspline',
   'gaming-tools': 'mdi-code-tags',
   'desktop-environments': 'mdi-web',
   'networking-vpn': 'mdi-vpn',
   'monitoring-security': 'mdi-server-security',
-}
-const categoryMessageKeys: Readonly<Record<string, string>> = {
-  'remote-desktop': 'remoteDesktop', 'gaming-tools': 'gamingTools',
-  'desktop-environments': 'desktopEnvironments', 'networking-vpn': 'networkingVpn',
-  'monitoring-security': 'monitoringSecurity',
-}
-function categoryMessageKey(category: VendorCategory): string {
-  return `categories.${categoryMessageKeys[category] ?? category}`
 }
 
 const compatibility = computed(() => getVendorCompatibility(
@@ -59,6 +53,26 @@ const compatibilityMessage = computed(() => {
   return t(descriptor.key, descriptor.values)
 })
 const documentationUrl = computed(() => props.product.sourceId ? getRepositorySource(props.product.sourceId)?.documentationUrl : undefined)
+const repositorySource = computed(() => props.product.sourceId ? getRepositorySource(props.product.sourceId) : undefined)
+const productsUsingSource = computed(() => props.product.sourceId === null ? [] : VENDOR_PRODUCTS
+  .filter((product) => product.sourceId === props.product.sourceId)
+  .sort((left, right) => left.name.localeCompare(right.name)))
+const sourceRelationship = computed(() => {
+  const source = repositorySource.value
+  if (!source) return ''
+  return productsUsingSource.value.length > 1
+    ? t('vendorCard.sharedSource', {
+        source: source.name,
+        products: productsUsingSource.value.map((product) => product.name).join(', '),
+      })
+    : t('vendorCard.source', { source: source.name })
+})
+const supportLevel = computed(() => t(`vendor.support.${props.product.supportLevel === 'generic-debian'
+  ? 'genericDebian'
+  : props.product.supportLevel === 'repository-only' ? 'repositoryOnly' : 'explicit'}`))
+const provenanceLabel = computed(() => t(`vendor.origins.${props.product.sourceId === null
+  ? 'debianNative'
+  : props.product.provenance === 'community-endorsed' ? 'communityEndorsed' : props.product.provenance}`))
 const productIcon = computed(() => props.product.icon ?? categoryIcons[props.product.category] ?? 'mdi-code-tags')
 const compatibilityId = computed(() => `${props.product.id}-kompatibilitaet`)
 const warningMessages = computed(() => props.product.warningKeys.map((warningKey) => {
@@ -107,16 +121,37 @@ const reportIssueUrl = computed(() => {
 
     <div class="vendor-card__badges">
       <v-chip
+        data-testid="provenance"
         prepend-icon="mdi-check-decagram-outline"
         size="small"
         variant="tonal"
       >
-        {{ t('vendorCard.officialSource') }}
+        {{ provenanceLabel }}
+      </v-chip>
+      <v-chip data-testid="support-level" size="small" variant="outlined">
+        {{ supportLevel }}
       </v-chip>
       <span class="vendor-card__architectures">
         <v-icon aria-hidden="true" icon="mdi-cpu-64-bit" size="18" />
         {{ product.supportedArchitectures.join(', ') }}
       </span>
+    </div>
+
+    <p
+      v-if="sourceRelationship"
+      class="vendor-card__source"
+      data-testid="source-relationship"
+    >
+      <v-icon aria-hidden="true" icon="mdi-source-repository" size="18" />
+      {{ sourceRelationship }}
+    </p>
+    <div
+      :aria-label="`${product.name}: ${t('install.packagesAria')}`"
+      class="vendor-card__packages"
+      data-testid="product-packages"
+    >
+      <v-icon aria-hidden="true" icon="mdi-package-variant-closed" size="18" />
+      <code v-for="packageName in product.packages" :key="packageName">{{ packageName }}</code>
     </div>
 
     <p

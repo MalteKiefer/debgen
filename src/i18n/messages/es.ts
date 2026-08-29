@@ -13,6 +13,7 @@ export const es = {
   counts: {
     products: { zero: '{count} productos', one: '{count} producto', two: '{count} productos', few: '{count} productos', many: '{count} productos', other: '{count} productos' },
     sources: { zero: '{count} fuentes seleccionadas', one: '{count} fuente seleccionada', two: '{count} fuentes seleccionadas', few: '{count} fuentes seleccionadas', many: '{count} fuentes seleccionadas', other: '{count} fuentes seleccionadas' },
+    packages: { zero: '{count} paquetes', one: '{count} paquete', two: '{count} paquetes', few: '{count} paquetes', many: '{count} paquetes', other: '{count} paquetes' },
     files: { zero: '{count} archivos', one: '{count} archivo', two: '{count} archivos', few: '{count} archivos', many: '{count} archivos', other: '{count} archivos' },
   },
   ...interfaceEs,

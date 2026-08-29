@@ -4,7 +4,7 @@ type RecursiveStringSchema<T> = {
 
 export const interfaceEn = {
   header: {
-    brand: 'DebGen', title: 'Debian Studio',
+    brand: 'DebGen', title: 'Debian Workbench',
     trust: 'Official package sources only - configured transparently and reviewable before use.',
     projectLinks: 'Project links', liberapay: 'Support the project on Liberapay', github: 'Open the project on GitHub',
   },
@@ -37,9 +37,10 @@ export const interfaceEn = {
   actions: {
     generateSources: 'Generate package sources', nextSoftware: 'Continue to software', copy: 'Copy', download: 'Download',
     backSystem: 'Back to Debian system', reviewSelection: 'Review selection', editSelection: 'Edit selection', editSystem: 'Edit system',
+    skipSoftware: 'Skip software and open output', addSoftware: 'Add software',
   },
   workspace: { ariaLabel: 'Debian Studio workspace' },
-  categories: { browser: 'Browsers', communication: 'Communication', privacy: 'Privacy', containers: 'Containers', cloud: 'Cloud', development: 'Development', database: 'Databases', monitoring: 'Monitoring', webserver: 'Web servers', remoteDesktop: 'Remote desktop', games: 'Games', gamingTools: 'Gaming tools', desktopEnvironments: 'Desktop environments', networkingVpn: 'Networking / VPN', monitoringSecurity: 'Monitoring / Security' },
+  categories: { webBrowsers: 'Web browsers', messagingEmail: 'Messaging and email', vpnSecureNetworking: 'VPN and secure networking', remoteDesktop: 'Remote desktop', containersKubernetes: 'Containers and Kubernetes', cloudEdge: 'Cloud and edge', infrastructureAutomation: 'Infrastructure automation', dataPlatforms: 'Data platforms', observabilityLogging: 'Observability and logging', securitySecrets: 'Security and secrets', developerWorkstation: 'Developer workstation', runtimesSdks: 'Runtimes and SDKs', developmentPlatformsCicd: 'Development platforms and CI/CD', webServers: 'Web servers', fileSynchronization: 'File synchronization', virtualization: 'Virtualization', games: 'Games', desktopProductivity: 'Desktop productivity' },
   vendor: {
     eyebrow: 'Step 2 of 3', heading: 'Official software',
     description: 'Choose verified package sources that are compatible with your Debian system.',
@@ -51,6 +52,7 @@ export const interfaceEn = {
       compatible: 'Compatible', incompatible: 'Incompatible',
     },
     origins: { manufacturer: 'Manufacturer', upstream: 'Upstream project', communityEndorsed: 'Endorsed community', debianNative: 'Debian native' },
+    support: { explicit: 'Explicitly supported', genericDebian: 'Generic Debian support', repositoryOnly: 'Repository availability only' },
   },
   selection: {
     checked: 'The selection was checked', releaseChanged: 'Release {release}', architectureChanged: 'Architecture {architecture}', updated: 'Selection updated',
@@ -62,6 +64,7 @@ export const interfaceEn = {
     officialSource: 'Official source', select: 'Select', selected: 'Selected', selectAria: 'Select {product}',
     documentation: 'Guide', documentationAria: '{product}: official guide (opens in a new tab)',
     reportIssue: 'Report issue', reportIssueAria: 'Report a problem with {product} (opens in a new tab)',
+    source: 'Source: {source}', sharedSource: 'Shared source: {source} ({products})',
   },
   compatibility: {
     unsupportedRelease: 'Release "{release}" is not supported by {product}. Supported releases: {supported}.',
@@ -136,7 +139,7 @@ export const interfaceEn = {
 export type InterfaceMessageSchema = RecursiveStringSchema<typeof interfaceEn>
 
 export const interfaceDe = {
-  header: { brand: 'DebGen', title: 'Debian Studio', trust: 'Nur offizielle Paketquellen - transparent konfiguriert und vor dem Einsatz prüfbar.', projectLinks: 'Projektlinks', liberapay: 'Projekt auf Liberapay unterstützen', github: 'Projekt auf GitHub öffnen' },
+  header: { brand: 'DebGen', title: 'Debian Workbench', trust: 'Nur offizielle Paketquellen - transparent konfiguriert und vor dem Einsatz prüfbar.', projectLinks: 'Projektlinks', liberapay: 'Projekt auf Liberapay unterstützen', github: 'Projekt auf GitHub öffnen' },
   progress: { ariaLabel: 'Studio-Schritte', stepAria: 'Schritt {step}: {label}', steps: { system: 'Debian-System', software: 'Offizielle Software', review: 'Prüfen und exportieren' } },
   system: { eyebrow: 'Schritt 1 von 3', heading: 'Debian-System', description: 'Lege Debian-Version, Architektur und die gewünschten Paketquellen fest.', currentSystem: 'Aktuelles System' },
   controls: {
@@ -156,12 +159,12 @@ export const interfaceDe = {
     },
   },
   sourceOutput: { title: 'Erzeugte Konfiguration', filename: 'Dateiname', preview: 'Vorschau der erzeugten Paketquellen', actions: 'Aktionen für die erzeugte Konfiguration' },
-  actions: { generateSources: 'Paketquellen erzeugen', nextSoftware: 'Weiter zur Software', copy: 'Kopieren', download: 'Herunterladen', backSystem: 'Zurück zum Debian-System', reviewSelection: 'Auswahl prüfen', editSelection: 'Auswahl bearbeiten', editSystem: 'System bearbeiten' },
+  actions: { generateSources: 'Paketquellen erzeugen', nextSoftware: 'Weiter zur Software', copy: 'Kopieren', download: 'Herunterladen', backSystem: 'Zurück zum Debian-System', reviewSelection: 'Auswahl prüfen', editSelection: 'Auswahl bearbeiten', editSystem: 'System bearbeiten', skipSoftware: 'Software überspringen und Ausgabe öffnen', addSoftware: 'Software hinzufügen' },
   workspace: { ariaLabel: 'Debian Studio Arbeitsbereich' },
-  categories: { browser: 'Browser', communication: 'Kommunikation', privacy: 'Privatsphäre', containers: 'Container', cloud: 'Cloud', development: 'Entwicklung', database: 'Datenbanken', monitoring: 'Überwachung', webserver: 'Webserver', remoteDesktop: 'Remote Desktop', games: 'Spiele', gamingTools: 'Gaming-Werkzeuge', desktopEnvironments: 'Desktop-Umgebungen', networkingVpn: 'Netzwerk / VPN', monitoringSecurity: 'Monitoring / Sicherheit' },
-  vendor: { eyebrow: 'Schritt 2 von 3', heading: 'Offizielle Software', description: 'Wähle geprüfte Paketquellen, die mit deinem Debian-System kompatibel sind.', searchLabel: 'Software suchen', searchPlaceholder: 'Zum Beispiel Docker oder Firefox', categoryGroup: 'Software-Kategorien', allCategories: 'Alle Kategorien', categoryAria: 'Kategorie {category}', catalog: 'Produktkatalog', empty: 'Keine Produkte entsprechen deiner Suche und deinen Filtern.', filters: { originLabel: 'Quellenherkunft', compatibilityLabel: 'Kompatibilität', allOrigins: 'Alle Herkünfte', allCompatibility: 'Alle Kompatibilitäten', compatible: 'Kompatibel', incompatible: 'Inkompatibel' }, origins: { manufacturer: 'Hersteller', upstream: 'Upstream-Projekt', communityEndorsed: 'Empfohlene Community', debianNative: 'Debian-nativ' } },
+  categories: { webBrowsers: 'Webbrowser', messagingEmail: 'Nachrichten und E-Mail', vpnSecureNetworking: 'VPN und sichere Netzwerke', remoteDesktop: 'Remote Desktop', containersKubernetes: 'Container und Kubernetes', cloudEdge: 'Cloud und Edge', infrastructureAutomation: 'Infrastrukturautomatisierung', dataPlatforms: 'Datenplattformen', observabilityLogging: 'Observability und Protokollierung', securitySecrets: 'Sicherheit und Geheimnisse', developerWorkstation: 'Entwicklungsarbeitsplatz', runtimesSdks: 'Laufzeiten und SDKs', developmentPlatformsCicd: 'Entwicklungsplattformen und CI/CD', webServers: 'Webserver', fileSynchronization: 'Dateisynchronisierung', virtualization: 'Virtualisierung', games: 'Spiele', desktopProductivity: 'Desktop-Produktivität' },
+  vendor: { eyebrow: 'Schritt 2 von 3', heading: 'Offizielle Software', description: 'Wähle geprüfte Paketquellen, die mit deinem Debian-System kompatibel sind.', searchLabel: 'Software suchen', searchPlaceholder: 'Zum Beispiel Docker oder Firefox', categoryGroup: 'Software-Kategorien', allCategories: 'Alle Kategorien', categoryAria: 'Kategorie {category}', catalog: 'Produktkatalog', empty: 'Keine Produkte entsprechen deiner Suche und deinen Filtern.', filters: { originLabel: 'Quellenherkunft', compatibilityLabel: 'Kompatibilität', allOrigins: 'Alle Herkünfte', allCompatibility: 'Alle Kompatibilitäten', compatible: 'Kompatibel', incompatible: 'Inkompatibel' }, origins: { manufacturer: 'Hersteller', upstream: 'Upstream-Projekt', communityEndorsed: 'Empfohlene Community', debianNative: 'Debian-nativ' }, support: { explicit: 'Explizit unterstützt', genericDebian: 'Generische Debian-Unterstützung', repositoryOnly: 'Nur Repository-Verfügbarkeit' } },
   selection: { checked: 'Die Auswahl wurde geprüft', releaseChanged: 'Release {release}', architectureChanged: 'Architektur {architecture}', updated: 'Auswahl aktualisiert', incompatibleRemoved: '{products} wurde aus der Auswahl entfernt, weil das Produkt nicht kompatibel ist.', incompatibleRemovedMany: '{products} wurden aus der Auswahl entfernt, weil die Produkte nicht kompatibel sind.', unknownRemoved: 'Eine unbekannte Auswahl wurde entfernt.', unknownRemovedMany: '{count} unbekannte Auswahlen wurden entfernt.' },
-  vendorCard: { officialSource: 'Offizielle Quelle', select: 'Auswählen', selected: 'Ausgewählt', selectAria: '{product} auswählen', documentation: 'Anleitung', documentationAria: '{product}: offizielle Anleitung (öffnet in neuem Tab)', reportIssue: 'Defekt melden', reportIssueAria: 'Problem mit {product} melden (öffnet in neuem Tab)' },
+  vendorCard: { officialSource: 'Offizielle Quelle', select: 'Auswählen', selected: 'Ausgewählt', selectAria: '{product} auswählen', documentation: 'Anleitung', documentationAria: '{product}: offizielle Anleitung (öffnet in neuem Tab)', reportIssue: 'Defekt melden', reportIssueAria: 'Problem mit {product} melden (öffnet in neuem Tab)', source: 'Quelle: {source}', sharedSource: 'Gemeinsame Quelle: {source} ({products})' },
   compatibility: { unsupportedRelease: 'Das Release „{release}“ wird von {product} nicht unterstützt. Unterstützte Releases: {supported}.', unsupportedArchitecture: 'Die Architektur „{architecture}“ wird von {product} nicht unterstützt. Unterstützte Architekturen: {supported}.' },
   warnings: {
     'docker-firewall': 'Docker kann Firewall-Regeln verändern und dadurch Firewall-Regeln umgehen.',
