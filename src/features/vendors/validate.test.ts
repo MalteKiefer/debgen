@@ -135,6 +135,83 @@ describe('validateRepositoryCatalog', () => {
   })
 
   it.each([
+    ['a leading short option', '-o'],
+    ['a leading long option', '--reinstall'],
+    ['a shell delimiter', 'example;touch'],
+    ['a command substitution', 'example$(id)'],
+    ['a shell quote', "example's"],
+    ['a line feed', 'example\nInjected: yes'],
+    ['a carriage return', 'example\rInjected: yes'],
+  ])('rejects a Debian package name containing %s', (_description, packageName) => {
+    expect(() => validateRepositoryCatalog([source()], [product({ packages: [packageName] })]))
+      .toThrow(/example.*package.*safe/i)
+  })
+
+  it('accepts the closed Debian package-name grammar', () => {
+    expect(() => validateRepositoryCatalog([source()], [product({
+      packages: ['libc6', 'g++', 'python3.13', 'linux-image-amd64'],
+    })])).not.toThrow()
+  })
+
+  it.each([
+    ['field injection', 'bookworm\nComponents: main'],
+    ['a carriage return', 'bookworm\rSigned-By: /tmp/attacker.gpg'],
+    ['whitespace', 'bookworm main'],
+    ['a shell delimiter', 'bookworm;touch'],
+    ['path traversal', '../bookworm'],
+    ['an empty path segment', 'bookworm//updates'],
+  ])('rejects an unsafe repository suite containing %s', (_description, suite) => {
+    const location = { ...source().locations[0], suite }
+
+    expect(() => validateRepositoryCatalog([source({ locations: [location] })], [product()]))
+      .toThrow(/source.*suite.*safe/i)
+  })
+
+  it.each([
+    ['field injection', 'main\nSigned-By: /tmp/attacker.gpg'],
+    ['a carriage return', 'main\rEnabled: no'],
+    ['whitespace', 'main contrib'],
+    ['a shell delimiter', 'main;touch'],
+    ['path traversal', '../main'],
+    ['an empty path segment', 'stable//v18'],
+  ])('rejects an unsafe repository component containing %s', (_description, component) => {
+    const location = { ...source().locations[0], components: [component] }
+
+    expect(() => validateRepositoryCatalog([source({ locations: [location] })], [product()]))
+      .toThrow(/source.*component.*safe/i)
+  })
+
+  it.each([
+    '../',
+    'apt//stable/',
+    'apt/stable;touch/',
+    'apt/stable\nTrusted: yes/',
+  ])('rejects an unsafe exact-path repository suite: %s', (suite) => {
+    const location = { ...source().locations[0], suite, components: [] }
+
+    expect(() => validateRepositoryCatalog([source({ locations: [location] })], [product()]))
+      .toThrow(/source.*suite.*safe/i)
+  })
+
+  it.each(['/', './', 'apt/stable/', 'binary/'])('accepts the safe exact-path suite %s', (suite) => {
+    const location = { ...source().locations[0], suite, components: [] }
+
+    expect(() => validateRepositoryCatalog([source({ locations: [location] })], [product()]))
+      .not.toThrow()
+  })
+
+  it.each([
+    ['bookworm', 'main'],
+    ['./generic', 'main'],
+    ['bookworm/mongodb-org/8.0', 'stable/v18'],
+  ])('accepts safe suite %s and component %s tokens', (suite, component) => {
+    const location = { ...source().locations[0], suite, components: [component] }
+
+    expect(() => validateRepositoryCatalog([source({ locations: [location] })], [product()]))
+      .not.toThrow()
+  })
+
+  it.each([
     ['a short fingerprint', ['A1B2C3D4']],
     ['a non-hexadecimal fingerprint', ['G'.repeat(40)]],
     ['duplicate normalized fingerprints', [

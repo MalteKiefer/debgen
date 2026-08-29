@@ -247,11 +247,11 @@ export function generateRepositoryArtifacts(config: VendorGenerationConfig): Gen
 
 function packageCommand(products: readonly VendorProduct[]): string {
   const packages = [...new Set(products.flatMap((product) => product.packages))].sort(compare)
-  return packages.length ? `apt-get install -y ${packages.map(quote).join(' ')}\n` : ''
+  return packages.length ? `apt-get install -y -- ${packages.map(quote).join(' ')}\n` : ''
 }
 function legacyPackageCommand(products: readonly VendorProduct[]): string {
   const packages = products.flatMap((product) => product.packages)
-  return packages.length ? `apt-get install -y ${packages.map(quote).join(' ')}\n` : ''
+  return packages.length ? `apt-get install -y -- ${packages.map(quote).join(' ')}\n` : ''
 }
 export function generatePackageInstallCommand(config: VendorGenerationConfig): string { const catalog = generationCatalog(config); return packageCommand(selectedProducts(config, catalog.products)) }
 function keyCommands(key: RepositoryKey, productName: string, index: number): string[] {
@@ -349,7 +349,7 @@ export function generateInstallScript(config: VendorGenerationConfig, artifacts:
   const installPackages = usesLegacyAliasArtifact ? legacyPackageCommand(products) : packageCommand(products)
   const repositorySetup = hasRepositorySetup
     ? [
-        'apt-get install -y ca-certificates curl gpg',
+        'apt-get install -y -- ca-certificates curl gpg',
         'install -d -m 0755 /etc/apt/keyrings',
         'umask 077',
         'temporary_directory="$(mktemp -d)"',

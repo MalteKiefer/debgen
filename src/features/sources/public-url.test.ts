@@ -89,4 +89,22 @@ describe('safe public artifact commands', () => {
     expect(() => buildPublicArtifactCommands('https://example.invalid/file', '../file.sources'))
       .toThrow(/filename/i)
   })
+
+  it('shell-quotes apostrophes and semicolons in public artifact URLs', () => {
+    const commands = buildPublicArtifactCommands(
+      "https://example.invalid/releases/vendor's;artifact.sources",
+      'vendor.sources',
+    )
+
+    expect(commands.download).toBe(
+      "curl -fsSL 'https://example.invalid/releases/vendor'\"'\"'s;artifact.sources' -o 'vendor.sources'",
+    )
+  })
+
+  it('rejects raw newlines before URL parsing can normalize them away', () => {
+    expect(() => buildPublicArtifactCommands(
+      'https://example.invalid/releases/vendor.sources\nprintf injected',
+      'vendor.sources',
+    )).toThrow(/url/i)
+  })
 })

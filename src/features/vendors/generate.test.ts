@@ -91,26 +91,38 @@ function config(overrides: Partial<VendorGenerationConfig> = {}): VendorGenerati
 }
 
 describe('vendor artifact generation', () => {
+  it('terminates apt-get option parsing before package names', () => {
+    expect(generatePackageInstallCommand(config()))
+      .toBe("apt-get install -y -- 'example-tool'\n")
+  })
+
+  it('terminates apt-get option parsing before every install-script package list', () => {
+    const script = generateInstallScript(config(), generateVendorArtifacts(config()))
+
+    expect(script.content).toContain('apt-get install -y -- ca-certificates curl gpg')
+    expect(script.content).not.toMatch(/^apt-get install -y (?!-- )/m)
+  })
+
   it.each([
     {
       productIds: ['mullvad-vpn', 'mullvad-browser'],
       sourceFilename: 'mullvad.sources',
-      packageCommand: "apt-get install -y 'mullvad-browser' 'mullvad-vpn'\n",
+      packageCommand: "apt-get install -y -- 'mullvad-browser' 'mullvad-vpn'\n",
     },
     {
       productIds: ['hashicorp-terraform', 'hashicorp-vault', 'hashicorp-packer'],
       sourceFilename: 'hashicorp.sources',
-      packageCommand: "apt-get install -y 'packer' 'terraform' 'vault'\n",
+      packageCommand: "apt-get install -y -- 'packer' 'terraform' 'vault'\n",
     },
     {
       productIds: ['grafana', 'grafana-alloy', 'grafana-enterprise'],
       sourceFilename: 'grafana.sources',
-      packageCommand: "apt-get install -y 'alloy' 'grafana' 'grafana-enterprise'\n",
+      packageCommand: "apt-get install -y -- 'alloy' 'grafana' 'grafana-enterprise'\n",
     },
     {
       productIds: ['elastic-stack-9', 'elastic-agent-9'],
       sourceFilename: 'elastic-9.sources',
-      packageCommand: "apt-get install -y 'elastic-agent' 'elasticsearch' 'filebeat' 'kibana' 'logstash'\n",
+      packageCommand: "apt-get install -y -- 'elastic-agent' 'elasticsearch' 'filebeat' 'kibana' 'logstash'\n",
     },
   ])('emits one $sourceFilename artifact and sorted packages for a shared source', ({
     productIds,
@@ -217,8 +229,8 @@ describe('vendor artifact generation', () => {
 
     expect(artifacts.filter(({ filename }) => filename.endsWith('.sources')).map(({ filename }) => filename))
       .toEqual(['netbird.sources', 'zerotier-one.sources'])
-    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'netbird' 'zerotier-one'\n")
-    expect(script.content).toContain("apt-get install -y 'netbird' 'zerotier-one'")
+    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y -- 'netbird' 'zerotier-one'\n")
+    expect(script.content).toContain("apt-get install -y -- 'netbird' 'zerotier-one'")
     expect(script.content).toContain('https://pkgs.netbird.io/debian/public.key')
     expect(script.content).toContain('https://download.zerotier.com/contact%40zerotier.com.gpg')
     expect(script.content).toContain('/usr/share/keyrings/netbird-archive-keyring.gpg')
@@ -241,7 +253,7 @@ describe('vendor artifact generation', () => {
     const artifacts = generateRepositoryArtifacts(selectedConfig)
     const script = generateInstallScript(selectedConfig, artifacts)
 
-    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y 'alpha' 'beta' 'shared'\n")
+    expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y -- 'alpha' 'beta' 'shared'\n")
     expect(script.content.match(/https:\/\/vendor\.example\/key\.asc/g)).toHaveLength(1)
     expect(script.content.match(/# Signaturschlüssel für/g)).toHaveLength(1)
   })
@@ -418,7 +430,7 @@ describe('vendor artifact generation', () => {
     expect(script.content).toContain("expected_fingerprints='A1B2C3D4E5F60123456789ABCDEF0123456789AB'")
     expect(script.content).toContain('gpg --show-keys --with-colons "$temporary_key"')
     expect(script.content).toContain('if grep -q -- \'-----BEGIN PGP PUBLIC KEY BLOCK-----\' "$temporary_key"; then')
-    expect(script.content).toContain("apt-get install -y 'vendor-tool' 'vendor-tools-extra'")
+    expect(script.content).toContain("apt-get install -y -- 'vendor-tool' 'vendor-tools-extra'")
     expect(script.content).toContain('# WARNUNG: Dienst aktiviert Netzwerkzugriff.')
     expect(script.content).not.toMatch(/curl[^\n]*\|\s*(ba)?sh/i)
     expect(script.content).not.toContain('apt-key')
@@ -433,10 +445,10 @@ describe('vendor artifact generation', () => {
     expect(generateInstallScript(emptyConfig, []).content).not.toContain('apt-get install -y \n')
   })
 
-  it('generates the package command in deterministic product order with shell quoting', () => {
+  it('generates the package command in deterministic product order', () => {
     const alpha = product({
       id: 'alpha-tool',
-      packages: ["alpha's-tool"],
+      packages: ['alpha-tool-extra'],
     })
     const selectedConfig = config({
       productIds: ['example-tool', 'alpha-tool'],
@@ -444,7 +456,7 @@ describe('vendor artifact generation', () => {
     })
 
     expect(generatePackageInstallCommand(selectedConfig)).toBe(
-      "apt-get install -y 'alpha'\"'\"'s-tool' 'example-tool'\n",
+      "apt-get install -y -- 'alpha-tool-extra' 'example-tool'\n",
     )
     expect(generatePackageInstallCommand({ ...selectedConfig, productIds: [] })).toBe('')
   })
@@ -585,7 +597,7 @@ describe('vendor artifact generation', () => {
     const payload = entries.sort().join('\n====\n')
     expect(entries).toHaveLength(170)
     expect(createHash('sha256').update(payload).digest('hex'))
-      .toBe('3833ca8092b58bb3fa5cc971ab059369cb06071a56951672b41a67516a748c83')
+      .toBe('d54e57305b0d24a9b14585dac3520ac32b80583ee500473086657575a532598e')
   })
 
   it.each([

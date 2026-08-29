@@ -31,6 +31,10 @@ const CATEGORIES = new Set([
   'desktop-productivity',
 ])
 const SAFE_VENDOR_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const SAFE_DEBIAN_PACKAGE = /^[a-z0-9][a-z0-9+.-]+$/
+const SAFE_REPOSITORY_COMPONENT = /^[a-z0-9][a-z0-9+.-]*(?:\/[a-z0-9][a-z0-9+.-]*)*$/
+const SAFE_REPOSITORY_SUITE = /^(?:\.\/)?[a-z0-9][a-z0-9+.-]*(?:\/[a-z0-9][a-z0-9+.-]*)*$/
+const SAFE_EXACT_PATH_SUITE = /^(?:\/|\.\/|(?:\.\/)?[a-z0-9][a-z0-9+.-]*(?:\/[a-z0-9][a-z0-9+.-]*)*\/)$/
 const FULL_OPENPGP_FINGERPRINT = /^(?:[A-F0-9]{40}|[A-F0-9]{64})$/
 const SAFE_KEYRING_PATH = /^\/(?:etc\/apt\/keyrings|usr\/share\/keyrings)\/[A-Za-z0-9][A-Za-z0-9._+-]*\.(?:asc|gpg|pgp)$/
 
@@ -155,11 +159,24 @@ const validateLocation = (sourceId: string, location: RepositoryLocation): void 
   const suite = requireRepositoryText(sourceId, 'location suite', location.suite)
   if (!Array.isArray(location.components)) throw repositoryError(sourceId, 'location components must be an array')
   if (isExactPathSuite(suite)) {
+    if (!SAFE_EXACT_PATH_SUITE.test(suite)) {
+      throw repositoryError(sourceId, 'location suite must use a safe exact-path token grammar')
+    }
     if (location.components.length !== 0) {
       throw repositoryError(sourceId, 'exact-path locations must not define components')
     }
-  } else if (location.components.length === 0 || location.components.some((component) => typeof component !== 'string' || component.trim() === '')) {
-    throw repositoryError(sourceId, 'normal locations must define at least one component')
+  } else {
+    if (!SAFE_REPOSITORY_SUITE.test(suite)) {
+      throw repositoryError(sourceId, 'location suite must use a safe repository token grammar')
+    }
+    if (location.components.length === 0) {
+      throw repositoryError(sourceId, 'normal locations must define at least one component')
+    }
+    if (location.components.some((component) => (
+      typeof component !== 'string' || !SAFE_REPOSITORY_COMPONENT.test(component)
+    ))) {
+      throw repositoryError(sourceId, 'location components must use a safe repository token grammar')
+    }
   }
   if (typeof location.supportLevel !== 'string' || !SUPPORT_LEVELS.has(location.supportLevel)) {
     throw repositoryError(sourceId, 'has an unknown location support level')
@@ -258,8 +275,11 @@ const validateProduct = (product: VendorProduct, sourceIds: ReadonlySet<string>,
   requireProductText(productId, 'name', product.name)
   if (typeof product.category !== 'string' || !CATEGORIES.has(product.category)) throw productError(productId, 'has an unknown category')
   if (typeof product.icon !== 'string' || !isVendorMdiIcon(product.icon)) throw productError(productId, 'has an unknown Material Design icon')
-  if (!Array.isArray(product.packages) || product.packages.length === 0 || product.packages.some((packageName) => typeof packageName !== 'string' || packageName.trim() === '')) {
+  if (!Array.isArray(product.packages) || product.packages.length === 0) {
     throw productError(productId, 'must define at least one package')
+  }
+  if (product.packages.some((packageName) => typeof packageName !== 'string' || !SAFE_DEBIAN_PACKAGE.test(packageName))) {
+    throw productError(productId, 'package names must use safe Debian syntax')
   }
   if (new Set(product.packages).size !== product.packages.length) throw productError(productId, 'has a duplicate package')
   const releases = requireClosedValuesForProduct(productId, 'release', product.supportedReleases, RELEASES)

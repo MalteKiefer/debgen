@@ -3,6 +3,12 @@ import type { SystemArchitecture } from '../vendors/model'
 
 const SAFE_MANIFEST_RELATIVE_URL = /^[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9]+(?:[a-z0-9.-]*[a-z0-9])?)*$/
 const SAFE_ARTIFACT_FILENAME = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.(?:list|pref|sh|sources)$/
+const hasRawControlCharacter = (value: string): boolean =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0)
+    return code <= 0x1f || code === 0x7f
+  })
+const quoteShellArgument = (value: string): string => `'${value.replace(/'/g, `'"'"'`)}'`
 
 interface JsonResponse {
   readonly ok: boolean
@@ -131,7 +137,11 @@ export function buildPublicArtifactCommands(
   if (!SAFE_ARTIFACT_FILENAME.test(filename)) {
     throw new Error(`Public artifact filename is unsafe: ${filename}.`)
   }
-  const url = new URL(publicUrl)
+  const publicUrlValue = String(publicUrl)
+  if (hasRawControlCharacter(publicUrlValue)) {
+    throw new Error('Public artifact URL must not contain control characters.')
+  }
+  const url = new URL(publicUrlValue)
   if (!['http:', 'https:'].includes(url.protocol)
     || url.username !== ''
     || url.password !== ''
@@ -140,8 +150,8 @@ export function buildPublicArtifactCommands(
     throw new Error('Public artifact URL must be an uncredentialed HTTP(S) URL without query or fragment.')
   }
 
-  const quotedFilename = `'${filename}'`
-  const download = `curl -fsSL '${url.href}' -o ${quotedFilename}`
+  const quotedFilename = quoteShellArgument(filename)
+  const download = `curl -fsSL ${quoteShellArgument(url.href)} -o ${quotedFilename}`
   if (filename.endsWith('.sh')) {
     return {
       download,
@@ -156,6 +166,6 @@ export function buildPublicArtifactCommands(
   return {
     download,
     inspect: `less -- ${quotedFilename}`,
-    apply: `sudo install -m 0644 -- ${quotedFilename} '${destination}'`,
+    apply: `sudo install -m 0644 -- ${quotedFilename} ${quoteShellArgument(destination)}`,
   }
 }
