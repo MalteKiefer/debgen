@@ -32,6 +32,7 @@ const renderPage = async ({
   const payload = {
     locale,
     path: sitePath(locale),
+    basePath: '/',
     copy,
     state,
     manifest: {

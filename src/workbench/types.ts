@@ -20,6 +20,7 @@ export const toWorkbenchHydrationProduct = (product: VendorProduct): WorkbenchHy
 export interface WorkbenchHydrationPayload {
   readonly locale: SupportedLocale
   readonly path: string
+  readonly basePath: string
   readonly copy: SiteCopy
   readonly state: WorkbenchState
   readonly manifest: WorkbenchHydrationManifest

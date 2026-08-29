@@ -6,6 +6,7 @@ import { toWorkbenchHydrationProduct, type WorkbenchHydrationPayload } from '../
 export const testPayload: WorkbenchHydrationPayload = {
   locale: 'en',
   path: '/en/',
+  basePath: '/',
   copy: en,
   state: {
     activeStep: 'review',

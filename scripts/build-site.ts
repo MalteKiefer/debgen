@@ -157,6 +157,7 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
     const payload: WorkbenchHydrationPayload = {
       locale,
       path: deploymentPath(path, basePath),
+      basePath,
       copy: getSiteCopyForBuild(locale),
       state: createDefaultState(),
       manifest: {

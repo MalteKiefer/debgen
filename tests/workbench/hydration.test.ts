@@ -13,7 +13,7 @@ const semanticFingerprint = (root: Element) => ({
     checked: control instanceof HTMLInputElement ? control.checked : undefined,
   })),
   repositories: [...root.querySelectorAll('[data-repository-id]')].map(row => row.textContent?.replace(/\s+/gu, ' ').trim()),
-  exportLabel: root.querySelector('[aria-label="Source file preview"]')?.textContent?.trim(),
+  exportLabel: root.querySelector('#export-debian-heading')?.textContent?.trim(),
 })
 
 const settleHydration = async (): Promise<void> => {
