@@ -4,6 +4,7 @@ import { trackEvent } from '../analytics'
 import { copyText, downloadText } from '../../features/sources/download'
 import { renderIcon } from '../../site/icons'
 import { generateSources, getOutputFilename } from '../../features/sources/generate'
+import { getRelease } from '../../features/sources/releases'
 import {
   generateInstallScript,
   generatePackageInstallCommand,
@@ -56,6 +57,21 @@ const debianContent = computed<{ content: string } | { error: string }>(() => {
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) }
   }
+})
+
+// The published API file only carries the release defaults; offer its curl only when it equals the shown content.
+const debianMatchesApi = computed(() => {
+  if (!('content' in debianContent.value)) return false
+  const release = getRelease(props.state.release)
+  return debianContent.value.content === generateSources({
+    release: release.codename,
+    format: props.state.format,
+    includeSource: false,
+    includeSecurity: release.capabilities.security,
+    includeUpdates: release.capabilities.updates,
+    includeBackports: false,
+    components: release.recommendedComponents,
+  })
 })
 
 const debianCurl = computed(() => (
@@ -118,18 +134,19 @@ const sourceInstallCurl = (sourceId: string): string => (
 const installScript = computed<{ content: string } | { error: string } | null>(() => {
   if (props.state.repositories.length === 0 || !('artifacts' in repositoryArtifacts.value)) return null
   try {
-    return { content: generateInstallScript(vendorConfig.value, repositoryArtifacts.value.artifacts).content }
+    // Packages are installed by the separate apt-get step after the new sources were reviewed.
+    return { content: generateInstallScript(vendorConfig.value, repositoryArtifacts.value.artifacts, { includePackageInstallation: false }).content }
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) }
   }
 })
 
-const packageCommand = computed<string>(() => {
-  if (props.state.repositories.length === 0) return ''
+const packageCommand = computed<{ content: string } | { error: string } | null>(() => {
+  if (props.state.repositories.length === 0) return null
   try {
-    return generatePackageInstallCommand(vendorConfig.value)
-  } catch {
-    return ''
+    return { content: generatePackageInstallCommand(vendorConfig.value) }
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) }
   }
 })
 
@@ -137,7 +154,7 @@ const view = ref<'structured' | 'raw'>('structured')
 
 const fileCount = computed(() => (
   1
-  + repositoryPlans.value.filter(plan => plan.sourceArtifact).length
+  + repositoryPlans.value.reduce((count, plan) => count + (plan.sourceArtifact ? 1 : 0) + plan.preferenceArtifacts.length, 0)
   + (installScript.value && 'content' in installScript.value ? 1 : 0)
 ))
 
@@ -147,15 +164,22 @@ const rawDump = computed(() => {
 
   sections.push(divider(debianFilename.value))
   if ('content' in debianContent.value) sections.push(debianContent.value.content.trimEnd())
-  sections.push('')
-  sections.push(divider('curl'))
-  sections.push(debianCurl.value)
+  if (debianMatchesApi.value) {
+    sections.push('')
+    sections.push(divider('curl'))
+    sections.push(debianCurl.value)
+  }
 
   for (const plan of repositoryPlans.value) {
     if (!plan.sourceArtifact) continue
     sections.push('')
     sections.push(divider(plan.sourceArtifact.filename))
     sections.push(plan.sourceArtifact.content.trimEnd())
+    for (const preference of plan.preferenceArtifacts) {
+      sections.push('')
+      sections.push(divider(preference.filename))
+      sections.push(preference.content.trimEnd())
+    }
     sections.push('')
     sections.push(divider('curl'))
     sections.push(sourceCurl(plan.sourceId))
@@ -168,10 +192,10 @@ const rawDump = computed(() => {
     sections.push(installScript.value.content.trimEnd())
   }
 
-  if (packageCommand.value) {
+  if (packageCommand.value && 'content' in packageCommand.value) {
     sections.push('')
     sections.push(divider('apt-get'))
-    sections.push(packageCommand.value.trimEnd())
+    sections.push(packageCommand.value.content.trimEnd())
   }
 
   return sections.join('\n')
@@ -180,7 +204,7 @@ const rawDump = computed(() => {
 async function copyContent(key: string, content: string): Promise<void> {
   try {
     await copyText(content)
-    feedback[key] = { kind: 'success', message: props.copy.actions.copy }
+    feedback[key] = { kind: 'success', message: props.copy.actions.copied }
     if (key.endsWith('-curl')) trackEvent('Curl Copied', { target: key })
   } catch {
     feedback[key] = { kind: 'error', message: props.copy.errors.copyFailed }
@@ -191,7 +215,7 @@ function download(key: string, filename: string, content: string, mediaType = 't
   try {
     downloadText(filename, content, undefined, mediaType)
     trackEvent('File Downloaded', { file: filename })
-    feedback[key] = { kind: 'success', message: props.copy.actions.download }
+    feedback[key] = { kind: 'success', message: props.copy.actions.downloaded }
   } catch {
     feedback[key] = { kind: 'error', message: props.copy.errors.downloadFailed }
   }
@@ -268,6 +292,10 @@ function download(key: string, filename: string, content: string, mediaType = 't
         <p v-if="feedback.debian" class="feedback-note" :role="feedback.debian.kind === 'error' ? 'alert' : 'status'">
           {{ feedback.debian.message }}
         </p>
+        <p v-if="!debianMatchesApi" class="audit-note">
+          The published API file uses the release defaults and differs from this configuration. Download or copy the file above instead.
+        </p>
+        <template v-else>
         <p class="curl-label">Safe retrieval &mdash; save, inspect, then apply:</p>
         <div class="code-panel">
           <div class="code-panel__bar">
@@ -281,6 +309,7 @@ function download(key: string, filename: string, content: string, mediaType = 't
         <p v-if="feedback['debian-curl']" class="feedback-note" :role="feedback['debian-curl']?.kind === 'error' ? 'alert' : 'status'">
           {{ feedback['debian-curl']?.message }}
         </p>
+        </template>
       </template>
       <p v-else class="audit-note" role="alert">{{ debianContent.error }}</p>
     </section>
@@ -311,6 +340,21 @@ function download(key: string, filename: string, content: string, mediaType = 't
         <p v-if="plan.sourceArtifact.riskNotes?.length" class="audit-note" role="alert">
           {{ plan.sourceArtifact.riskNotes.join(' ') }}
         </p>
+        <template v-for="preference in plan.preferenceArtifacts" :key="preference.filename">
+          <div class="code-panel">
+            <div class="code-panel__bar">
+              <span class="code-panel__filename">{{ preference.filename }}</span>
+              <div class="code-panel__actions" role="group" :aria-label="`${preference.filename} actions`">
+                <button class="btn" type="button" @click="copyContent(preference.filename, preference.content)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
+                <button class="btn" type="button" @click="download(preference.filename, preference.filename, preference.content)"><span v-html="renderIcon('download')" />{{ copy.actions.download }}</button>
+              </div>
+            </div>
+            <pre tabindex="0"><code>{{ preference.content }}</code></pre>
+          </div>
+          <p v-if="feedback[preference.filename]" class="feedback-note" :role="feedback[preference.filename]?.kind === 'error' ? 'alert' : 'status'">
+            {{ feedback[preference.filename]?.message }}
+          </p>
+        </template>
         <p class="curl-label">Safe retrieval &mdash; save, inspect, then apply:</p>
         <div class="code-panel">
           <div class="code-panel__bar">
@@ -360,20 +404,25 @@ function download(key: string, filename: string, content: string, mediaType = 't
       <p v-else class="audit-note" role="alert">{{ installScript.error }}</p>
     </section>
 
+    <p v-if="'error' in repositoryArtifacts" class="audit-note" role="alert">{{ repositoryArtifacts.error }}</p>
+
     <section v-if="packageCommand" class="export-block" aria-labelledby="export-packages-heading">
       <h3 id="export-packages-heading">Package installation</h3>
+      <p v-if="'error' in packageCommand" class="audit-note" role="alert">{{ packageCommand.error }}</p>
+      <template v-else>
       <div class="code-panel">
         <div class="code-panel__bar">
           <span class="code-panel__filename">apt-get</span>
           <div class="code-panel__actions" role="group" aria-label="Package command actions">
-            <button class="btn" type="button" @click="copyContent('packages', packageCommand)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
+            <button class="btn" type="button" @click="copyContent('packages', packageCommand.content)"><span v-html="renderIcon('copy')" />{{ copy.actions.copy }}</button>
           </div>
         </div>
-        <CodeBlock :code="packageCommand" lang="bash" aria-label="Package installation command" />
+        <CodeBlock :code="packageCommand.content" lang="bash" aria-label="Package installation command" />
       </div>
       <p v-if="feedback.packages" class="feedback-note" :role="feedback.packages.kind === 'error' ? 'alert' : 'status'">
         {{ feedback.packages.message }}
       </p>
+      </template>
     </section>
     </template>
   </div>

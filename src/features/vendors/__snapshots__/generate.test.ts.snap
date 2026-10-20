@@ -11,7 +11,7 @@ Architectures: amd64
 Components: main
 Signed-By: /etc/apt/keyrings/example-tool.gpg
 ",
-    "description": "Paketquelle für Example Tool",
+    "description": "Package source for Example Tool",
     "filename": "example-tool.sources",
     "mediaType": "text/plain",
     "productId": "example-tool",
@@ -26,7 +26,7 @@ Signed-By: /etc/apt/keyrings/example-tool.gpg
 Pin: origin vendor.example
 Pin-Priority: 1000
 ",
-    "description": "Paketpriorität für Example Tool",
+    "description": "Package priority for Example Tool",
     "filename": "example-tool.pref",
     "mediaType": "text/plain",
     "productId": "example-tool",

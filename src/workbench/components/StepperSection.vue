@@ -23,7 +23,7 @@ const totalSteps = WORKBENCH_STEPS.length
       <p class="eyebrow">
         {{ String(number).padStart(2, '0') }} / {{ String(totalSteps).padStart(2, '0') }}
       </p>
-      <h2 :id="`${step}-title`">
+      <h2 :id="`${step}-title`" tabindex="-1">
         {{ title }}
       </h2>
     </header>

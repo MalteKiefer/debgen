@@ -2,7 +2,7 @@ import type { SiteCopy } from './en'
 
 export const ru = {
   steps: { system: 'Система и источники', repositories: 'Репозитории', review: 'Проверка', export: 'Экспорт' },
-  actions: { continue: 'Продолжить', back: 'Назад', copy: 'Копировать', download: 'Скачать', export: 'Экспортировать план' },
+  actions: { continue: 'Продолжить', back: 'Назад', copy: 'Копировать', download: 'Скачать', copied: 'Скопировано.', downloaded: 'Скачано.', export: 'Экспортировать план' },
   errors: { invalidSelection: 'Выбранная конфигурация недействительна.', copyFailed: 'Не удалось скопировать. Скопируйте содержимое вручную.', downloadFailed: 'Не удалось скачать. Сохраните файл вручную.' },
   audit: { source: 'Источник', operator: 'Оператор', repository: 'Репозиторий', signingKey: 'Ключ подписи', fingerprint: 'Отпечаток', compatibility: 'Совместимость', lastVerified: 'Последняя проверка' },
   search: { label: 'Поиск репозиториев', placeholder: 'Поиск программ, пакетов или хостов репозиториев', empty: 'Нет репозиториев, соответствующих поиску.' },

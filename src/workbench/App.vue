@@ -2,6 +2,7 @@
 import {
   defineAsyncComponent,
   computed,
+  nextTick,
   ref,
 } from 'vue'
 import type { SourceFormat } from '../features/sources/model'
@@ -43,60 +44,73 @@ const updateState = (nextState: WorkbenchState): void => {
   }
 }
 
-const dispatch = async (action: WorkbenchAction): Promise<void> => {
+const removedRepositories = ref<string[]>([])
+
+// Actions are built after the lazy import so two quick changes never start from the same stale state.
+const dispatch = async (buildAction: (current: WorkbenchState) => WorkbenchAction): Promise<void> => {
   const { reduceWorkbenchState } = await import('./state')
-  const result = reduceWorkbenchState(state.value, action)
+  const result = reduceWorkbenchState(state.value, buildAction(state.value))
+  const removed = result.removed.map(removal => removal.id)
+  if (removed.length > 0) removedRepositories.value = removed
   updateState(result.state)
 }
 
 const navigate = async (step: WorkbenchStep): Promise<void> => {
-  await dispatch({ type: 'set-active-step', activeStep: step })
+  await dispatch(() => ({ type: 'set-active-step', activeStep: step }))
   const browser = globalThis as typeof globalThis & {
     history?: { replaceState: (data: unknown, unused: string, url?: string) => void }
+    document?: { getElementById: (id: string) => { focus: () => void } | null }
   }
   browser.history?.replaceState(null, '', `#${step}`)
+  await nextTick()
+  browser.document?.getElementById(`${step}-title`)?.focus()
 }
 
-const setSystem = async (field: 'release' | 'architecture' | 'format', value: string): Promise<void> => {
-  await dispatch({
-    type: 'set-system',
-    release: field === 'release' ? value as typeof state.value.release : state.value.release,
-    architecture: field === 'architecture' ? value as SystemArchitecture : state.value.architecture,
-    format: field === 'format' ? value as SourceFormat : state.value.format,
-  })
-}
+const setSystem = (field: 'release' | 'architecture' | 'format', value: string): Promise<void> => dispatch(current => ({
+  type: 'set-system',
+  release: field === 'release' ? value as typeof current.release : current.release,
+  architecture: field === 'architecture' ? value as SystemArchitecture : current.architecture,
+  format: field === 'format' ? value as SourceFormat : current.format,
+}))
 
 const setOfficialBoolean = (
   field: 'includeSource' | 'includeSecurity' | 'includeUpdates' | 'includeBackports',
   event: Event,
 ): Promise<void> => {
   const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  return dispatch({
+  return dispatch(current => ({
     type: 'set-official-sources',
-    includeSource: field === 'includeSource' ? checked : state.value.includeSource,
-    includeSecurity: field === 'includeSecurity' ? checked : state.value.includeSecurity,
-    includeUpdates: field === 'includeUpdates' ? checked : state.value.includeUpdates,
-    includeBackports: field === 'includeBackports' ? checked : state.value.includeBackports,
-    components: state.value.components,
-  })
+    includeSource: field === 'includeSource' ? checked : current.includeSource,
+    includeSecurity: field === 'includeSecurity' ? checked : current.includeSecurity,
+    includeUpdates: field === 'includeUpdates' ? checked : current.includeUpdates,
+    includeBackports: field === 'includeBackports' ? checked : current.includeBackports,
+    components: current.components,
+  }))
 }
 
 const setComponent = (component: string, event: Event): Promise<void> => {
   const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  const components = checked
-    ? [...state.value.components, component]
-    : state.value.components.filter(value => value !== component)
-  return dispatch({
+  return dispatch(current => ({
     type: 'set-official-sources',
-    includeSource: state.value.includeSource,
-    includeSecurity: state.value.includeSecurity,
-    includeUpdates: state.value.includeUpdates,
-    includeBackports: state.value.includeBackports,
-    components,
-  })
+    includeSource: current.includeSource,
+    includeSecurity: current.includeSecurity,
+    includeUpdates: current.includeUpdates,
+    includeBackports: current.includeBackports,
+    components: checked
+      ? [...current.components, component]
+      : current.components.filter(value => value !== component),
+  }))
 }
 
-const setRepositories = (repositories: readonly string[]): Promise<void> => dispatch({ type: 'set-repositories', repositories })
+const toggleRepository = (id: string, checked: boolean): Promise<void> => {
+  removedRepositories.value = []
+  return dispatch(current => ({
+  type: 'set-repositories',
+  repositories: checked
+    ? [...current.repositories, id]
+    : current.repositories.filter(repository => repository !== id),
+  }))
+}
 </script>
 
 <template>
@@ -114,6 +128,7 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
         class="workbench-form"
         :action="initialState.path"
         method="get"
+        @submit.prevent
       >
         <StepperSection
           step="system"
@@ -176,9 +191,9 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             <fieldset>
               <legend>Suites</legend>
               <label><input type="checkbox" name="suite" value="base" checked disabled> Base release</label>
-              <label><input type="checkbox" name="suite" value="security" :checked="state.includeSecurity" @change="setOfficialBoolean('includeSecurity', $event)"> Security updates</label>
-              <label><input type="checkbox" name="suite" value="updates" :checked="state.includeUpdates" @change="setOfficialBoolean('includeUpdates', $event)"> Stable updates</label>
-              <label><input type="checkbox" name="suite" value="backports" :checked="state.includeBackports" @change="setOfficialBoolean('includeBackports', $event)"> Backports</label>
+              <label><input type="checkbox" name="suite" value="security" :checked="state.includeSecurity" :disabled="!currentRelease.capabilities.security" @change="setOfficialBoolean('includeSecurity', $event)"> Security updates</label>
+              <label><input type="checkbox" name="suite" value="updates" :checked="state.includeUpdates" :disabled="!currentRelease.capabilities.updates" @change="setOfficialBoolean('includeUpdates', $event)"> Stable updates</label>
+              <label><input type="checkbox" name="suite" value="backports" :checked="state.includeBackports" :disabled="!currentRelease.capabilities.backports" @change="setOfficialBoolean('includeBackports', $event)"> Backports</label>
               <label><input type="checkbox" name="source" value="1" :checked="state.includeSource" @change="setOfficialBoolean('includeSource', $event)"> Source packages</label>
             </fieldset>
             <fieldset>
@@ -212,8 +227,11 @@ const setRepositories = (repositories: readonly string[]): Promise<void> => disp
             :copy="initialState.copy"
             :products="initialState.manifest.products"
             :state="state"
-            @change="setRepositories"
+            @toggle="toggleRepository"
           />
+          <p v-if="removedRepositories.length > 0" class="audit-note" role="status">
+            Removed because they are not compatible with {{ state.release }}/{{ state.architecture }}: {{ removedRepositories.join(', ') }}
+          </p>
           <div class="step-actions"><a href="#system" @click.prevent="navigate('system')">{{ initialState.copy.actions.back }}</a><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.continue }}</a></div>
         </StepperSection>
 
