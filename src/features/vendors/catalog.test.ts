@@ -110,11 +110,22 @@ const expectedProducts = [
   { id: 'openvpn-community', sourceId: 'openvpn-community', name: 'OpenVPN Community', category: 'vpn-secure-networking', icon: 'mdi-vpn', packages: ['openvpn'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [] },
   { id: 'librewolf', sourceId: 'librewolf', name: 'LibreWolf', category: 'web-browsers', icon: 'mdi-web', packages: ['librewolf'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'upstream', securityCritical: true, warningKeys: [] },
   { id: 'lutris', sourceId: 'lutris', name: 'Lutris', category: 'games', icon: 'mdi-code-tags', packages: ['lutris'], supportedReleases: ['trixie'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'community-endorsed', securityCritical: false, warningKeys: [] },
+  { id: 'pritunl-client', sourceId: 'pritunl-client', name: 'Pritunl Client', category: 'vpn-secure-networking', icon: 'mdi-vpn', packages: ['pritunl-client'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'azure-functions-core-tools-4', sourceId: 'microsoft-prod', name: 'Azure Functions Core Tools 4', category: 'cloud-edge', icon: 'mdi-microsoft-azure', packages: ['azure-functions-core-tools-4'], supportedReleases: ['bookworm'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'mysql-shell-8-4', sourceId: 'mysql-8-4', name: 'MySQL Shell 8.4', category: 'data-platforms', icon: 'mdi-database-outline', packages: ['mysql-shell'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: ['mysql-interactive-configuration'] },
+  { id: 'telegraf', sourceId: 'influxdb-3-core', name: 'Telegraf', category: 'observability-logging', icon: 'mdi-chart-line', packages: ['telegraf'], supportedReleases: ['trixie', 'bookworm', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'grafana-loki', sourceId: 'grafana', name: 'Grafana Loki', category: 'observability-logging', icon: 'mdi-chart-timeline-variant', packages: ['loki'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'elastic-metricbeat-9', sourceId: 'elastic-9', name: 'Elastic Metricbeat 9', category: 'observability-logging', icon: 'mdi-chart-areaspline', packages: ['metricbeat'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'osquery', sourceId: 'osquery', name: 'osquery', category: 'security-secrets', icon: 'mdi-server-security', packages: ['osquery'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'generic-debian', provenance: 'upstream', securityCritical: true, warningKeys: [] },
+  { id: 'dart-sdk', sourceId: 'dart', name: 'Dart SDK', category: 'runtimes-sdks', icon: 'mdi-code-tags', packages: ['dart'], supportedReleases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], supportedArchitectures: ['amd64', 'arm64', 'armhf'], supportLevel: 'generic-debian', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'r-cran', sourceId: 'r-cran', name: 'R (CRAN)', category: 'runtimes-sdks', icon: 'mdi-chart-line', packages: ['r-base'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'upstream', securityCritical: true, warningKeys: [] },
+  { id: 'angie', sourceId: 'angie', name: 'Angie', category: 'web-servers', icon: 'mdi-web', packages: ['angie'], supportedReleases: ['trixie', 'bookworm', 'bullseye'], supportedArchitectures: ['amd64', 'arm64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
+  { id: 'hashicorp-vagrant', sourceId: 'hashicorp', name: 'HashiCorp Vagrant', category: 'virtualization', icon: 'mdi-terraform', packages: ['vagrant'], supportedReleases: ['trixie', 'bookworm'], supportedArchitectures: ['amd64'], supportLevel: 'explicit', provenance: 'manufacturer', securityCritical: true, warningKeys: [] },
 ] as const satisfies readonly VendorProduct[]
 
-describe('103-product vendor catalog', () => {
+describe('114-product vendor catalog', () => {
   it('matches the exact authoritative metadata table in approved order', () => {
-    expect(VENDOR_PRODUCTS).toHaveLength(103)
+    expect(VENDOR_PRODUCTS).toHaveLength(114)
     expect(VENDOR_PRODUCTS).toEqual(expectedProducts)
   })
 
@@ -162,19 +173,19 @@ describe('103-product vendor catalog', () => {
     ]))).toEqual({
       'web-browsers': 9,
       'messaging-email': 3,
-      'vpn-secure-networking': 11,
+      'vpn-secure-networking': 12,
       'containers-kubernetes': 4,
-      'cloud-edge': 3,
+      'cloud-edge': 4,
       'developer-workstation': 7,
       'infrastructure-automation': 6,
-      'data-platforms': 10,
-      'observability-logging': 10,
-      'security-secrets': 7,
-      'runtimes-sdks': 15,
+      'data-platforms': 11,
+      'observability-logging': 13,
+      'security-secrets': 8,
+      'runtimes-sdks': 17,
       'remote-desktop': 2,
-      'virtualization': 1,
+      'virtualization': 2,
       'development-platforms-cicd': 7,
-      'web-servers': 3,
+      'web-servers': 4,
       'file-synchronization': 1,
       games: 2,
       'desktop-productivity': 2,
