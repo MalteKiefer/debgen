@@ -38,7 +38,7 @@ Auxiliary trust files use a closed destination kind, never an arbitrary filesyst
 6. Verify whether the product shares a source before creating a new one. Add source-wide data once and product-specific packages or warnings to the product.
 7. Run focused catalog, compatibility, source, generator, and API tests, then `npm run check`.
 
-## Current 103-product matrix
+## Current 114-product matrix
 
 Columns are product ID, source, package set, supported releases, architectures, support level, provenance, and security-critical status. This is the authoritative maintenance snapshot; changes belong in `src/features/vendors/catalog.ts` and `src/features/vendors/sources.ts` together.
 
@@ -149,6 +149,17 @@ The latest additions are OpenVPN Community in `vpn-secure-networking` with expli
 | openvpn-community | openvpn-community | openvpn | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |
 | librewolf | librewolf | librewolf | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | upstream | yes |
 | lutris | lutris | lutris | trixie | amd64 | explicit | community-endorsed | no |
+| pritunl-client | pritunl-client | pritunl-client | trixie, bookworm | amd64 | explicit | manufacturer | yes |
+| azure-functions-core-tools-4 | microsoft-prod | azure-functions-core-tools-4 | bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| mysql-shell-8-4 | mysql-8-4 | mysql-shell | trixie, bookworm | amd64 | explicit | manufacturer | yes |
+| telegraf | influxdb-3-core | telegraf | trixie, bookworm, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
+| grafana-loki | grafana | loki | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
+| elastic-metricbeat-9 | elastic-9 | metricbeat | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| osquery | osquery | osquery | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | upstream | yes |
+| dart-sdk | dart | dart | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf | generic-debian | manufacturer | yes |
+| r-cran | r-cran | r-base | trixie, bookworm | amd64, arm64 | explicit | upstream | yes |
+| angie | angie | angie | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-vagrant | hashicorp | vagrant | trixie, bookworm | amd64 | explicit | manufacturer | yes |
 
 ## Explicit exclusions
 

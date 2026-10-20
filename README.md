@@ -10,7 +10,7 @@ A Debian sources list generator. Pick a release, pick your repos, get reviewed D
 ## What's in the box
 
 - Trixie, Bookworm, Bullseye, Forky, Sid, DEB822 everywhere
-- 103 verified vendor repos: manufacturer-operated or explicitly upstream-endorsed only, no PPAs, no unsigned mirrors, no `apt-key`
+- 114 verified vendor repos: manufacturer-operated or explicitly upstream-endorsed only, no PPAs, no unsigned mirrors, no `apt-key`
 - Every signing key in its own `Signed-By` keyring, checked against the vendor's published fingerprints where they exist; the script flags keys without one
 - A versioned static API at `/api/v1/`, same deterministic data the UI runs on
 - Ten languages, dark terminal UI, keyboard and vim navigation, works without JavaScript

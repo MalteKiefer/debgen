@@ -244,6 +244,25 @@ const sources = [
   source({ id: 'openvpn-community', name: 'OpenVPN Community', documentationUrl: 'https://community.openvpn.net/Pages/OpenVPN%20software%20repos', uri: 'https://build.openvpn.net/debian/openvpn/stable', keyUrl: 'https://swupdate.openvpn.net/repos/repo-public.gpg', keyringPath: '/etc/apt/keyrings/openvpn-repo-public.asc', keyFormat: 'ascii-armored', releases: ['trixie', 'bookworm', 'bullseye'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie', bookworm: 'bookworm', bullseye: 'bullseye' }, components: ['main'] }),
   source({ id: 'librewolf', name: 'LibreWolf', documentationUrl: 'https://librewolf.net/installation/debian/', uri: 'https://repo.librewolf.net', keyUrl: 'https://repo.librewolf.net/pubkey.gpg', keyringPath: '/etc/apt/keyrings/librewolf.asc', keyFormat: 'ascii-armored', fingerprints: ['662E3CDD6FE329002D0CA5BB40339DD82B12EF16'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'librewolf', components: ['main'], supportLevel: 'generic-debian' }),
   source({ id: 'lutris', name: 'Lutris', documentationUrl: 'https://lutris.net/downloads', uri: 'https://download.opensuse.org/repositories/home:/strycore:/lutris/Debian_13/', keyUrl: 'https://download.opensuse.org/repositories/home:/strycore:/lutris/Debian_13/Release.key', keyringPath: '/etc/apt/keyrings/lutris.gpg', keyFormat: 'ascii-armored', releases: ['trixie'], architectures: ['amd64'], suite: './', components: [] }),
+  source({ id: 'pritunl-client', name: 'Pritunl Client', documentationUrl: 'https://client.pritunl.com/', uri: 'https://repo.pritunl.com/stable/apt', keyUrl: 'https://raw.githubusercontent.com/pritunl/pgp/master/pritunl_repo_pub.asc', keyringPath: '/etc/apt/keyrings/pritunl.gpg', keyFormat: 'ascii-armored', fingerprints: ['7568D9BB55FF9E5287D586017AE645C0CF8E292A'], releases: ['trixie', 'bookworm'], architectures: ['amd64'], suite: { trixie: 'trixie', bookworm: 'bookworm' }, components: ['main'] }),
+  source({ id: 'osquery', name: 'osquery', documentationUrl: 'https://osquery.io/downloads/official', uri: 'https://pkg.osquery.io/deb', keyUrl: 'https://pkg.osquery.io/deb/pubkey.gpg', keyringPath: '/etc/apt/keyrings/osquery.gpg', keyFormat: 'ascii-armored', fingerprints: ['1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64'], suite: 'deb', components: ['main'], supportLevel: 'generic-debian' }),
+  source({ id: 'dart', name: 'Dart SDK', documentationUrl: 'https://dart.dev/get-dart', uri: 'https://storage.googleapis.com/download.dartlang.org/linux/debian', keyUrl: 'https://dl-ssl.google.com/linux/linux_signing_key.pub', keyringPath: '/usr/share/keyrings/dart.gpg', keyFormat: 'ascii-armored', fingerprints: ['EB4C1BFD4F042F6DDDCCEC917721F63BD38B4796'], releases: ['trixie', 'bookworm', 'bullseye', 'forky', 'sid'], architectures: ['amd64', 'arm64', 'armhf'], suite: 'stable', components: ['main'], supportLevel: 'generic-debian' }),
+  source({ id: 'r-cran', name: 'R (CRAN)', documentationUrl: 'https://cloud.r-project.org/bin/linux/debian/', uri: 'https://cloud.r-project.org/bin/linux/debian', keyUrl: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x95c0faf38db3ccad0c080a7bdc78b2ddeabc47b7', keyringPath: '/etc/apt/keyrings/r-cran.gpg', keyFormat: 'ascii-armored', fingerprints: ['95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'], releases: ['trixie', 'bookworm'], architectures: ['amd64', 'arm64'], suite: { trixie: 'trixie-cran46/', bookworm: 'bookworm-cran46/' }, components: [] }),
+  {
+    id: 'angie',
+    name: 'Angie',
+    documentationUrl: 'https://en.angie.software/angie/docs/installation/oss_packages/',
+    verifiedAt: '2026-08-29',
+    locations: [
+      { uri: 'https://download.en.angie.software/angie/debian/13', releases: ['trixie'], architectures: ['amd64', 'arm64'], suite: 'trixie', components: ['main'], supportLevel: 'explicit' },
+      { uri: 'https://download.en.angie.software/angie/debian/12', releases: ['bookworm'], architectures: ['amd64', 'arm64'], suite: 'bookworm', components: ['main'], supportLevel: 'explicit' },
+      { uri: 'https://download.en.angie.software/angie/debian/11', releases: ['bullseye'], architectures: ['amd64', 'arm64'], suite: 'bullseye', components: ['main'], supportLevel: 'explicit' },
+    ],
+    keys: [{ id: 'angie-signing-key', url: 'https://angie.software/keys/angie-signing.gpg', keyringPath: '/etc/apt/keyrings/angie-signing.gpg', format: 'binary', fingerprints: ['EB8EAF3D4EF1B1ECF34865A2617AB978CB849A76'], releases: ['trixie', 'bookworm', 'bullseye'] }],
+    auxiliaryTrustFiles: [],
+    preferenceFiles: [],
+    warnings: [],
+  },
 ] as const
 
 export const REPOSITORY_SOURCES: readonly RepositorySource[] = deepFreeze(sources)
