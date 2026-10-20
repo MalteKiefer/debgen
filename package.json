@@ -21,13 +21,15 @@
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
-    "highlight.js": "^11.12.0",
     "vue": "3.5.44",
     "vue-i18n": "11.4.14",
     "vuetify": "4.2.5"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@fontsource-variable/fraunces": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/nunito-sans": "5.3.0",
     "@types/node": "26.6.5",
     "@vitejs/plugin-vue": "6.0.10",
     "@vue/compiler-dom": "3.5.44",

@@ -41,11 +41,6 @@ ${alternates}
 <body>
 ${page.body}
 ${scripts}
-<script async src="https://stats.kiefer-networks.de/js/pa-XSP3nTW7zW-qUonZXX9dg.js"></script>
-<script>
-window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-plausible.init()
-</script>
 </body>
 </html>`
 }

@@ -1,24 +1,29 @@
 <script setup lang="ts">
-import {
-  defineAsyncComponent,
-  computed,
-  nextTick,
-  ref,
-} from 'vue'
-import type { SourceFormat } from '../features/sources/model'
+import { computed, ref } from 'vue'
+import type { ReleaseCodename, SourceFormat } from '../features/sources/model'
 import type { SystemArchitecture } from '../features/vendors/model'
-import { trackEvent } from './analytics'
-import StepperNavigation from './components/StepperNavigation.vue'
-import StepperSection from './components/StepperSection.vue'
-import { reduceWorkbenchState, type WorkbenchAction, type WorkbenchState, type WorkbenchStep } from './state'
+import FilesPanel from './components/FilesPanel.vue'
+import SoftwarePicker from './components/SoftwarePicker.vue'
+import { reduceWorkbenchState, type WorkbenchAction, type WorkbenchState } from './state'
+import { camelKey, fill } from './text'
 import type { WorkbenchHydrationPayload } from './types'
 
 const props = defineProps<{
   initialState: WorkbenchHydrationPayload
 }>()
 
-const RepositoryInterior = defineAsyncComponent(() => import('./components/RepositoryInterior.vue'))
-const ExportInterior = defineAsyncComponent(() => import('./components/ExportInterior.vue'))
+const copy = computed(() => props.initialState.copy)
+const ui = computed(() => props.initialState.copy.ui)
+
+const ARCHITECTURES: readonly SystemArchitecture[] = ['amd64', 'arm64', 'armhf', 'i386']
+
+const RELEASE_STATUS_KEYS: Readonly<Record<string, keyof WorkbenchHydrationPayload['copy']['ui']['controls']['releaseStatus']>> = {
+  'stable': 'stable',
+  'oldstable / LTS': 'oldstableLts',
+  'oldoldstable / LTS': 'oldoldstableLts',
+  'testing': 'testing',
+  'unstable': 'unstable',
+}
 
 const state = ref<WorkbenchState>({
   ...props.initialState.state,
@@ -30,95 +35,68 @@ const currentRelease = computed(() => props.initialState.manifest.releases.find(
   release => release.codename === state.value.release,
 ) ?? props.initialState.manifest.releases[0]!)
 
-const compareCodePoints = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
+const heroParts = computed(() => copy.value.hero.title.split('{release}'))
 
-const selectedProducts = computed(() => props.initialState.manifest.products
-  .filter(product => state.value.repositories.includes(product.id))
-  .sort((left, right) => compareCodePoints(left.name, right.name)))
-
-const updateState = (nextState: WorkbenchState): void => {
-  state.value = {
-    ...nextState,
-    components: [...nextState.components],
-    repositories: [...nextState.repositories],
-  }
+const statusLabel = (status: string): string => {
+  const key = RELEASE_STATUS_KEYS[status]
+  return key ? ui.value.controls.releaseStatus[key] : status
 }
 
-interface RemovalNotice {
-  readonly names: readonly string[]
-  readonly release: string
-  readonly architecture: string
+const availabilityNote = computed(() => {
+  const { availability } = ui.value.controls
+  const release = currentRelease.value
+  if (release.codename === 'bullseye') return availability.bullseye
+  if (release.codename === 'bookworm') return availability.bookworm
+  if (!release.capabilities.security) return fill(availability.baseOnly, { release: release.codename })
+  return null
+})
+
+const componentLabel = (component: string): string => {
+  const options = ui.value.controls.options as Readonly<Record<string, string>>
+  return options[camelKey(component)] ?? component
 }
 
-const removalNotice = ref<RemovalNotice | null>(null)
-const exportInterior = ref<{ downloadPlan: () => void } | null>(null)
+const removalNotice = ref<string | null>(null)
 
 const dispatch = (action: WorkbenchAction): void => {
   const result = reduceWorkbenchState(state.value, action)
-  updateState(result.state)
+  state.value = {
+    ...result.state,
+    components: [...result.state.components],
+    repositories: [...result.state.repositories],
+  }
   // Each system change replaces the notice so it never describes an older release or architecture.
   if (action.type !== 'set-system') return
   const removed = new Set(result.removed.map(removal => removal.id))
-  removalNotice.value = removed.size === 0
+  const names = props.initialState.manifest.products.filter(product => removed.has(product.id)).map(product => product.name)
+  removalNotice.value = names.length === 0
     ? null
-    : {
-        names: props.initialState.manifest.products.filter(product => removed.has(product.id)).map(product => product.name),
-        release: result.state.release,
-        architecture: result.state.architecture,
-      }
+    : fill(names.length === 1 ? ui.value.selection.incompatibleRemoved : ui.value.selection.incompatibleRemovedMany, { products: names.join(', ') })
 }
 
-const exportPlan = (): void => {
-  exportInterior.value?.downloadPlan()
-  trackEvent('Config Exported', { release: state.value.release, repositories: state.value.repositories.length })
-}
+const checkedOf = (event: Event): boolean => (event.currentTarget as unknown as { checked: boolean }).checked
 
-const navigate = async (step: WorkbenchStep): Promise<void> => {
-  dispatch({ type: 'set-active-step', activeStep: step })
-  const browser = globalThis as typeof globalThis & {
-    history?: { replaceState: (data: unknown, unused: string, url?: string) => void }
-    document?: { getElementById: (id: string) => { focus: () => void } | null }
-  }
-  browser.history?.replaceState(null, '', `#${step}`)
-  await nextTick()
-  browser.document?.getElementById(`${step}-title`)?.focus()
-}
-
-const setSystem = (field: 'release' | 'architecture' | 'format', value: string): void => dispatch({
+const setSystem = (changes: { release?: ReleaseCodename, architecture?: SystemArchitecture, format?: SourceFormat }): void => dispatch({
   type: 'set-system',
-  release: field === 'release' ? value as typeof state.value.release : state.value.release,
-  architecture: field === 'architecture' ? value as SystemArchitecture : state.value.architecture,
-  format: field === 'format' ? value as SourceFormat : state.value.format,
+  release: changes.release ?? state.value.release,
+  architecture: changes.architecture ?? state.value.architecture,
+  format: changes.format ?? state.value.format,
 })
 
-const setOfficialBoolean = (
-  field: 'includeSource' | 'includeSecurity' | 'includeUpdates' | 'includeBackports',
-  event: Event,
-): void => {
-  const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  dispatch({
-    type: 'set-official-sources',
-    includeSource: field === 'includeSource' ? checked : state.value.includeSource,
-    includeSecurity: field === 'includeSecurity' ? checked : state.value.includeSecurity,
-    includeUpdates: field === 'includeUpdates' ? checked : state.value.includeUpdates,
-    includeBackports: field === 'includeBackports' ? checked : state.value.includeBackports,
-    components: state.value.components,
-  })
-}
+const setOfficialSources = (changes: Partial<Pick<WorkbenchState, 'includeSource' | 'includeSecurity' | 'includeUpdates' | 'includeBackports' | 'components'>>): void => dispatch({
+  type: 'set-official-sources',
+  includeSource: changes.includeSource ?? state.value.includeSource,
+  includeSecurity: changes.includeSecurity ?? state.value.includeSecurity,
+  includeUpdates: changes.includeUpdates ?? state.value.includeUpdates,
+  includeBackports: changes.includeBackports ?? state.value.includeBackports,
+  components: changes.components ?? state.value.components,
+})
 
-const setComponent = (component: string, event: Event): void => {
-  const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  dispatch({
-    type: 'set-official-sources',
-    includeSource: state.value.includeSource,
-    includeSecurity: state.value.includeSecurity,
-    includeUpdates: state.value.includeUpdates,
-    includeBackports: state.value.includeBackports,
-    components: checked
-      ? [...state.value.components, component]
-      : state.value.components.filter(value => value !== component),
-  })
-}
+const setComponent = (component: string, event: Event): void => setOfficialSources({
+  components: checkedOf(event)
+    ? [...state.value.components, component]
+    : state.value.components.filter(value => value !== component),
+})
 
 const toggleRepository = (id: string, checked: boolean): void => {
   removalNotice.value = null
@@ -132,177 +110,123 @@ const toggleRepository = (id: string, checked: boolean): void => {
 </script>
 
 <template>
-  <div class="workbench-layout">
-    <StepperNavigation
-      :active-step="state.activeStep"
-      :copy="initialState.copy"
-      @navigate="navigate"
-    />
-    <main tabindex="-1">
-      <h1>{{ initialState.copy.seo.workbenchTitle }}</h1>
-      <p class="lede">{{ initialState.copy.seo.workbenchDescription }}</p>
-      <form
-        id="workbench-form"
-        class="workbench-form"
-        :action="initialState.path"
-        method="get"
-        @submit.prevent
-      >
-        <StepperSection
-          step="system"
-          :title="initialState.copy.steps.system"
-          :number="1"
-          :active="state.activeStep === 'system'"
-        >
-          <div class="control-grid">
-            <label for="release">
-              Debian release
-              <select
-                id="release"
+  <main class="workbench" tabindex="-1">
+    <section class="hero">
+      <h1>{{ heroParts[0] }}<span class="hero__release">{{ state.release }}</span>{{ heroParts.slice(1).join(state.release) }}</h1>
+      <p class="hero__lead">{{ copy.hero.lead }}</p>
+    </section>
+
+    <form
+      id="setup"
+      class="setup"
+      :action="initialState.path"
+      method="get"
+      @submit.prevent
+    >
+      <section class="card system" aria-labelledby="system-title">
+        <div class="system__choices">
+          <h2 id="system-title">{{ copy.sections.system }}</h2>
+          <fieldset class="chips">
+            <legend>{{ ui.controls.fields.release }}</legend>
+            <label v-for="release in initialState.manifest.releases" :key="release.codename" class="chip">
+              <input
+                type="radio"
                 name="release"
-                :value="state.release"
-                @change="setSystem('release', ($event.currentTarget as unknown as { value: string }).value)"
+                :value="release.codename"
+                :checked="state.release === release.codename"
+                @change="setSystem({ release: release.codename })"
               >
-                <option
-                  v-for="release in initialState.manifest.releases"
-                  :key="release.codename"
-                  :value="release.codename"
-                >
-                  {{ release.codename }} — {{ release.status }}
-                </option>
-              </select>
+              <span>{{ release.codename }} <small>{{ statusLabel(release.status) }}</small></span>
             </label>
-            <label for="architecture">
-              Architecture
-              <select
-                id="architecture"
+          </fieldset>
+          <fieldset class="chips">
+            <legend>{{ ui.controls.fields.architecture }}</legend>
+            <label v-for="architecture in ARCHITECTURES" :key="architecture" class="chip">
+              <input
+                type="radio"
                 name="architecture"
-                :value="state.architecture"
-                @change="setSystem('architecture', ($event.currentTarget as unknown as { value: string }).value)"
+                :value="architecture"
+                :checked="state.architecture === architecture"
+                @change="setSystem({ architecture })"
               >
-                <option value="amd64">amd64</option>
-                <option value="arm64">arm64</option>
-                <option value="armhf">armhf</option>
-                <option value="i386">i386</option>
-              </select>
+              <span>{{ ui.controls.architectures[architecture] }}</span>
             </label>
-            <label for="format">
-              Source format
-              <select
-                id="format"
+          </fieldset>
+          <fieldset v-if="currentRelease.formats.length > 1" class="chips">
+            <legend>{{ ui.controls.fields.format }}</legend>
+            <label v-for="format in currentRelease.formats" :key="format" class="chip">
+              <input
+                type="radio"
                 name="format"
-                :value="state.format"
-                @change="setSystem('format', ($event.currentTarget as unknown as { value: string }).value)"
+                :value="format"
+                :checked="state.format === format"
+                @change="setSystem({ format })"
               >
-                <option
-                  v-for="format in currentRelease.formats"
-                  :key="format"
-                  :value="format"
-                >
-                  {{ format === 'deb822' ? 'deb822 (.sources)' : 'legacy (.list)' }}
-                </option>
-              </select>
+              <span>{{ ui.controls.formats[format] }}</span>
             </label>
-          </div>
-          <p class="support-note">Compatibility is checked before repository selection.</p>
-          <div role="status" aria-live="polite">
-            <p v-if="removalNotice" class="audit-note">
-              Removed because they are not compatible with {{ removalNotice.release }}/{{ removalNotice.architecture }}: {{ removalNotice.names.join(', ') }}
-            </p>
-          </div>
-          <div class="choice-grid">
-            <fieldset>
-              <legend>Suites</legend>
-              <label><input type="checkbox" name="suite" value="base" checked disabled> Base release</label>
-              <label><input type="checkbox" name="suite" value="security" :checked="state.includeSecurity" :disabled="!currentRelease.capabilities.security" @change="setOfficialBoolean('includeSecurity', $event)"> Security updates</label>
-              <label><input type="checkbox" name="suite" value="updates" :checked="state.includeUpdates" :disabled="!currentRelease.capabilities.updates" @change="setOfficialBoolean('includeUpdates', $event)"> Stable updates</label>
-              <label><input type="checkbox" name="suite" value="backports" :checked="state.includeBackports" :disabled="!currentRelease.capabilities.backports" @change="setOfficialBoolean('includeBackports', $event)"> Backports</label>
-              <label><input type="checkbox" name="source" value="1" :checked="state.includeSource" @change="setOfficialBoolean('includeSource', $event)"> Source packages</label>
-            </fieldset>
-            <fieldset>
-              <legend>Components</legend>
-              <label
-                v-for="component in currentRelease.components"
-                :key="component"
+          </fieldset>
+        </div>
+
+        <div class="system__debian">
+          <fieldset class="switches">
+            <legend>{{ ui.controls.groups.additionalSuites }}</legend>
+            <label class="switch">
+              <input type="checkbox" role="switch" name="suite" value="security" :checked="state.includeSecurity" :disabled="!currentRelease.capabilities.security" @change="setOfficialSources({ includeSecurity: checkedOf($event) })">
+              {{ ui.controls.options.security }}
+            </label>
+            <label class="switch">
+              <input type="checkbox" role="switch" name="suite" value="updates" :checked="state.includeUpdates" :disabled="!currentRelease.capabilities.updates" @change="setOfficialSources({ includeUpdates: checkedOf($event) })">
+              {{ ui.controls.options.updates }}
+            </label>
+            <label class="switch">
+              <input type="checkbox" role="switch" name="suite" value="backports" :checked="state.includeBackports" :disabled="!currentRelease.capabilities.backports" @change="setOfficialSources({ includeBackports: checkedOf($event) })">
+              {{ ui.controls.options.backports }}
+            </label>
+          </fieldset>
+          <p v-if="availabilityNote" class="hint">{{ availabilityNote }}</p>
+          <fieldset class="switches">
+            <legend>{{ ui.controls.groups.repositoryComponents }}</legend>
+            <label v-for="component in currentRelease.components" :key="component" class="switch">
+              <input
+                type="checkbox"
+                role="switch"
+                name="component"
+                :value="component"
+                :checked="state.components.includes(component)"
+                :disabled="component === 'main'"
+                @change="setComponent(component, $event)"
               >
-                <input
-                  type="checkbox"
-                  name="component"
-                  :value="component"
-                  :checked="state.components.includes(component)"
-                  :disabled="component === 'main'"
-                  @change="setComponent(component, $event)"
-                >
-                {{ component }}
-              </label>
-            </fieldset>
-          </div>
-          <div class="step-actions"><a href="#repositories" @click.prevent="navigate('repositories')">{{ initialState.copy.actions.continue }}</a></div>
-        </StepperSection>
+              {{ componentLabel(component) }}
+            </label>
+          </fieldset>
+          <fieldset class="switches">
+            <legend>{{ ui.controls.groups.packageIndexes }}</legend>
+            <label class="switch">
+              <input type="checkbox" role="switch" name="source" value="1" :checked="state.includeSource" @change="setOfficialSources({ includeSource: checkedOf($event) })">
+              {{ ui.controls.options.sourcePackages }}
+            </label>
+          </fieldset>
+        </div>
+      </section>
 
-        <StepperSection
-          step="repositories"
-          :title="initialState.copy.steps.repositories"
-          :number="2"
-          :active="state.activeStep === 'repositories'"
-        >
-          <RepositoryInterior
-            :copy="initialState.copy"
-            :products="initialState.manifest.products"
-            :state="state"
-            @toggle="toggleRepository"
-          />
-          <div class="step-actions"><a href="#system" @click.prevent="navigate('system')">{{ initialState.copy.actions.back }}</a><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.continue }}</a></div>
-        </StepperSection>
+      <div class="notice-region" role="status" aria-live="polite">
+        <p v-if="removalNotice" class="notice">{{ removalNotice }}</p>
+      </div>
 
-        <StepperSection
-          step="review"
-          :title="initialState.copy.steps.review"
-          :number="3"
-          :active="state.activeStep === 'review'"
-        >
-          <h3 class="review-subheading">Debian base</h3>
-          <dl class="change-plan">
-            <div><dt>{{ initialState.copy.audit.source }}</dt><dd>deb.debian.org/debian</dd></div>
-            <div><dt>{{ initialState.copy.audit.operator }}</dt><dd>Debian Project</dd></div>
-            <div><dt>{{ initialState.copy.audit.signingKey }}</dt><dd><code>{{ currentRelease.keyring }}</code></dd></div>
-            <div><dt>{{ initialState.copy.audit.compatibility }}</dt><dd>Checked against {{ state.release }} and {{ state.architecture }}</dd></div>
-          </dl>
-
-          <h3 class="review-subheading">Third-party repositories ({{ selectedProducts.length }})</h3>
-          <p v-if="selectedProducts.length === 0" class="audit-note">
-            No third-party repositories selected. Add software in the Repositories step to include it here.
-          </p>
-          <dl v-else class="change-plan">
-            <div v-for="product in selectedProducts" :key="product.id">
-              <dt>{{ product.name }}</dt>
-              <dd>
-                <code>{{ product.packages.join(' ') }}</code>
-                <span class="cell-sub">{{ product.provenance }} &middot; {{ product.supportLevel }}</span>
-              </dd>
-            </div>
-          </dl>
-          <div class="step-actions"><a href="#repositories" @click.prevent="navigate('repositories')">{{ initialState.copy.actions.back }}</a><a href="#export" @click.prevent="navigate('export')">{{ initialState.copy.actions.continue }}</a></div>
-        </StepperSection>
-
-        <StepperSection
-          step="export"
-          :title="initialState.copy.steps.export"
-          :number="4"
-          :active="state.activeStep === 'export'"
-        >
-          <p>{{ initialState.copy.trust.review }}</p>
-          <ExportInterior
-            ref="exportInterior"
-            :base-path="initialState.basePath"
-            :copy="initialState.copy"
-            :products="initialState.manifest.products"
-            :site-origin="initialState.siteOrigin"
-            :state="state"
-          />
-          <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="button" class="primary-action" @click="exportPlan">{{ initialState.copy.actions.export }}</button></div>
-        </StepperSection>
-      </form>
-    </main>
-  </div>
+      <div class="workspace">
+        <SoftwarePicker
+          :copy="copy"
+          :locale="initialState.locale"
+          :products="initialState.manifest.products"
+          :state="state"
+          @toggle="toggleRepository"
+        />
+        <FilesPanel
+          :copy="copy"
+          :locale="initialState.locale"
+          :state="state"
+        />
+      </div>
+    </form>
+  </main>
 </template>
