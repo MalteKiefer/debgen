@@ -55,14 +55,14 @@ The latest additions are OpenVPN Community in `vpn-secure-networking` with expli
 | signal-desktop | signal | signal-desktop | trixie, bookworm, bullseye, forky, sid | amd64 | explicit | manufacturer | yes |
 | proton-vpn | proton-vpn | proton-vpn-gnome-desktop | trixie | amd64, arm64 | explicit | manufacturer | yes |
 | mullvad-vpn | mullvad | mullvad-vpn | trixie, bookworm, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
-| tor | tor | tor | trixie, bookworm, bullseye | amd64, arm64 | explicit | upstream | yes |
+| tor | tor | tor | trixie, bookworm | amd64, arm64 | explicit | upstream | yes |
 | docker-engine | docker | docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin | trixie, bookworm, bullseye | amd64, arm64, armhf | explicit | manufacturer | yes |
 | kubernetes-tools-v1-36 | kubernetes-v1-36 | kubectl | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | upstream | yes |
 | google-cloud-cli | google-cloud | google-cloud-cli | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
 | azure-cli | microsoft-azure-cli | azure-cli | bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
 | github-cli | github-cli | gh | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-terraform | hashicorp | terraform | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
-| postgresql-pgdg | postgresql-pgdg | postgresql | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | upstream | yes |
+| hashicorp-terraform | hashicorp | terraform | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| postgresql-pgdg | postgresql-pgdg | postgresql | trixie, bookworm, forky, sid | amd64, arm64 | explicit | upstream | yes |
 | mongodb-community-8-0 | mongodb-community-8-0 | mongodb-org | bookworm | amd64 | explicit | manufacturer | yes |
 | grafana | grafana | grafana | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
 | nvidia-container-toolkit | nvidia-container-toolkit | nvidia-container-toolkit | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
@@ -70,7 +70,7 @@ The latest additions are OpenVPN Community in `vpn-secure-networking` with expli
 | redis-open-source | redis-open-source | redis | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | clickhouse | clickhouse | clickhouse-server, clickhouse-client | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | manufacturer | yes |
 | influxdb-3-core | influxdb-3-core | influxdb3-core | trixie, bookworm, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
-| zabbix-7-4 | zabbix-7-4 | zabbix-agent2 | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
+| zabbix-7-4 | zabbix-7-4 | zabbix-agent2 | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | mullvad-browser | mullvad | mullvad-browser | trixie, bookworm | amd64 | explicit | manufacturer | yes |
 | onepassword | onepassword | 1password | trixie, bookworm, bullseye | amd64 | explicit | manufacturer | yes |
 | visual-studio-code | visual-studio-code | code | trixie, bookworm, bullseye | amd64, arm64, armhf | explicit | manufacturer | yes |
@@ -88,8 +88,8 @@ The latest additions are OpenVPN Community in `vpn-secure-networking` with expli
 | gitlab-runner | gitlab-runner | gitlab-runner | trixie, bookworm, bullseye, forky | amd64, arm64 | explicit | manufacturer | yes |
 | jenkins-lts | jenkins-lts | jenkins | trixie | amd64, arm64 | explicit | upstream | yes |
 | nginx-stable | nginx-stable | nginx | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-vault | hashicorp | vault | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-packer | hashicorp | packer | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-vault | hashicorp | vault | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-packer | hashicorp | packer | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | elastic-stack-9 | elastic-9 | elasticsearch, kibana, logstash, filebeat | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | syncthing-stable-v2 | syncthing | syncthing | trixie, bookworm, bullseye, forky, sid | amd64, arm64, armhf | generic-debian | upstream | yes |
 | amazon-corretto-21 | corretto | java-21-amazon-corretto-jdk | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | generic-debian | manufacturer | yes |
@@ -106,9 +106,9 @@ The latest additions are OpenVPN Community in `vpn-secure-networking` with expli
 | jenkins-weekly | jenkins-weekly | jenkins | trixie | amd64, arm64 | explicit | upstream | yes |
 | nginx-mainline | nginx-mainline | nginx | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
 | grafana-enterprise | grafana | grafana-enterprise | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-consul | hashicorp | consul | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-nomad | hashicorp | nomad | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
-| hashicorp-boundary | hashicorp | boundary | trixie, bookworm, bullseye | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-consul | hashicorp | consul | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-nomad | hashicorp | nomad | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
+| hashicorp-boundary | hashicorp | boundary | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | elastic-agent-9 | elastic-9 | elastic-agent | trixie, bookworm | amd64, arm64 | explicit | manufacturer | yes |
 | kubernetes-node-tools-v1-36 | kubernetes-v1-36 | kubelet, kubeadm | trixie, bookworm, bullseye, forky, sid | amd64, arm64 | explicit | upstream | yes |
 | microsoft-openjdk-21 | microsoft-prod | msopenjdk-21 | bookworm | amd64, arm64 | explicit | manufacturer | yes |

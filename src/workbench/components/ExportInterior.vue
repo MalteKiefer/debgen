@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { trackEvent } from '../analytics'
 import { copyText, downloadText } from '../../features/sources/download'
 import { renderIcon } from '../../site/icons'
@@ -201,6 +201,11 @@ const rawDump = computed(() => {
   return sections.join('\n')
 })
 
+// Feedback describes content that was copied or downloaded; once any content changes it is no longer true.
+watch(rawDump, () => {
+  for (const key of Object.keys(feedback)) delete feedback[key]
+})
+
 async function copyContent(key: string, content: string): Promise<void> {
   try {
     await copyText(content)
@@ -220,6 +225,8 @@ function download(key: string, filename: string, content: string, mediaType = 't
     feedback[key] = { kind: 'error', message: props.copy.errors.downloadFailed }
   }
 }
+
+defineExpose({ downloadPlan: () => download('raw', 'debgen-export.txt', rawDump.value) })
 </script>
 
 <template>

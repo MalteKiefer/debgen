@@ -249,7 +249,7 @@ function legacyPackageCommand(products: readonly VendorProduct[]): string {
 }
 export function generatePackageInstallCommand(config: VendorGenerationConfig): string { const catalog = generationCatalog(config); return packageCommand(selectedProducts(config, catalog.products)) }
 function keyCommands(key: RepositoryKey, productName: string, index: number): string[] {
-  const lines = [`# Signing key for ${comment(productName)}`, `temporary_key="$temporary_directory/key-${index}"`, `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_key" ${quote(key.url)}`]
+  const lines = [`# Signing key for ${comment(productName)}`, ...(key.fingerprints.length ? [] : ['# WARNING: no published fingerprint; this key is trusted on first use over HTTPS.']), `temporary_key="$temporary_directory/key-${index}"`, `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_key" ${quote(key.url)}`]
   if (key.fingerprints.length) { const expected = key.fingerprints.map(normalizeOpenPgpFingerprint).sort(compare).join('\n'); lines.push(`expected_fingerprints=${quote(expected)}`, 'key_metadata="$(gpg --show-keys --with-colons "$temporary_key")"', 'actual_fingerprints="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"', 'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then', '  echo "The signing key fingerprints do not match the expected values." >&2', '  exit 1', 'fi') }
   if (key.keyringPath.endsWith('.gpg')) lines.push('if grep -q -- \'-----BEGIN PGP PUBLIC KEY BLOCK-----\' "$temporary_key"; then', `  dearmored_key="$temporary_directory/key-${index}.gpg"`, '  gpg --dearmor --yes --output "$dearmored_key" "$temporary_key"', `  install -m 0644 "$dearmored_key" ${quote(key.keyringPath)}`, 'else', `  install -m 0644 "$temporary_key" ${quote(key.keyringPath)}`, 'fi')
   else lines.push(`install -m 0644 "$temporary_key" ${quote(key.keyringPath)}`)
@@ -343,13 +343,14 @@ export function generateInstallScript(config: VendorGenerationConfig, artifacts:
   const installPackages = usesLegacyAliasArtifact ? legacyPackageCommand(products) : packageCommand(products)
   const repositorySetup = hasRepositorySetup
     ? [
-        'apt-get update',
-        'apt-get install -y -- ca-certificates curl gpg',
+        // Refreshing lists only when prerequisites are missing keeps an unrelated broken source from aborting a repair run.
+        'if ! command -v curl >/dev/null || ! command -v gpg >/dev/null || [ ! -s /etc/ssl/certs/ca-certificates.crt ]; then',
+        '  apt-get update',
+        '  apt-get install -y -- ca-certificates curl gpg',
+        'fi',
         'install -d -m 0755 /etc/apt/keyrings',
-        'umask 077',
         'temporary_directory="$(mktemp -d)"',
         'trap \'rm -rf "$temporary_directory"\' EXIT',
-        'umask 022',
         '',
         ...selectedKeys(selections, config.release)
           .flatMap(({ key, productName }, index) => keyCommands(key, productName, index)),

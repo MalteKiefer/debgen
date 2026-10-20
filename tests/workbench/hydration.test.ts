@@ -151,4 +151,51 @@ describe('Workbench export stays consistent with state', () => {
     expect(root.querySelector('pre[aria-label="Install script content"]')?.textContent).not.toContain("apt-get install -y -- 'firefox'")
     expect(root.querySelector('pre[aria-label="Package installation command"]')?.textContent).toContain("'firefox'")
   })
+
+  it('describes removed repositories with the release and architecture that removed them', async () => {
+    const root = await mount({ activeStep: 'system', repositories: ['google-chrome'] })
+    const notice = () => root.querySelector('[data-step="system"] [role="status"]')?.textContent?.trim() ?? ''
+
+    await change(root.querySelector<HTMLSelectElement>('#architecture')!, 'arm64')
+    expect(notice()).toBe('Removed because they are not compatible with trixie/arm64: Google Chrome')
+
+    await change(root.querySelector<HTMLSelectElement>('#architecture')!, 'amd64')
+    expect(notice()).toBe('')
+  })
+
+  it('clears copy feedback once the copied content changes', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    try {
+      const root = await mount({ activeStep: 'export' })
+      const copyButton = root.querySelector<HTMLButtonElement>('[aria-label="Debian source actions"] button')!
+      copyButton.click()
+      await settle()
+      expect(root.querySelector('[data-step="export"]')?.textContent).toContain('Copied.')
+
+      await change(root.querySelector<HTMLInputElement>('input[name="source"]')!)
+
+      expect(root.querySelector('[data-step="export"]')?.textContent).not.toContain('Copied.')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('downloads the combined plan from the Export plan button', async () => {
+    const createObjectURL = vi.fn(() => 'blob:plan')
+    const revokeObjectURL = vi.fn()
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    Object.assign(URL, { createObjectURL, revokeObjectURL })
+    try {
+      const root = await mount({ activeStep: 'export' })
+      root.querySelector<HTMLButtonElement>('button.primary-action')!.click()
+
+      expect(click).toHaveBeenCalledOnce()
+      expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('debgen-export.txt')
+      expect(createObjectURL).toHaveBeenCalledOnce()
+    } finally {
+      click.mockRestore()
+    }
+  })
 })
+
