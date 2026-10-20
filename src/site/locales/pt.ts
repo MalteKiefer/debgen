@@ -2,7 +2,7 @@ import type { SiteCopy } from './en'
 
 export const pt = {
   steps: { system: 'Sistema e fontes', repositories: 'Repositórios', review: 'Rever', export: 'Exportar' },
-  actions: { continue: 'Continuar', back: 'Voltar', copy: 'Copiar', download: 'Transferir', export: 'Exportar plano' },
+  actions: { continue: 'Continuar', back: 'Voltar', copy: 'Copiar', download: 'Transferir', copied: 'Copiado.', downloaded: 'Transferido.', export: 'Exportar plano' },
   errors: { invalidSelection: 'A configuração selecionada não é válida.', copyFailed: 'Falha ao copiar. Copie o conteúdo manualmente.', downloadFailed: 'Falha na transferência. Guarde o ficheiro manualmente.' },
   audit: { source: 'Fonte', operator: 'Operador', repository: 'Repositório', signingKey: 'Chave de assinatura', fingerprint: 'Impressão digital', compatibility: 'Compatibilidade', lastVerified: 'Última verificação' },
   search: { label: 'Pesquisar repositórios', placeholder: 'Pesquisar software, pacotes ou anfitriões de repositórios', empty: 'Nenhum repositório corresponde à pesquisa.' },

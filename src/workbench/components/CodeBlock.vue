@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
+import type { HLJSApi } from 'highlight.js'
 
 const props = defineProps<{
   code: string
@@ -7,7 +8,10 @@ const props = defineProps<{
   ariaLabel?: string
 }>()
 
-const highlighted = ref<string | null>(null)
+const highlighter = shallowRef<HLJSApi | null>(null)
+
+// Derived from props.code so the shown command always matches what Copy/Download use.
+const highlighted = computed(() => highlighter.value?.highlight(props.code, { language: 'bash' }).value ?? null)
 
 onMounted(async () => {
   if (props.lang !== 'bash') return
@@ -16,7 +20,7 @@ onMounted(async () => {
     import('highlight.js/lib/languages/bash'),
   ])
   if (!hljs.getLanguage('bash')) hljs.registerLanguage('bash', bash)
-  highlighted.value = hljs.highlight(props.code, { language: 'bash' }).value
+  highlighter.value = hljs
 })
 </script>
 

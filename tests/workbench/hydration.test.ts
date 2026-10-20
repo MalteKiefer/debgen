@@ -77,3 +77,78 @@ describe('Workbench hydration boundary', () => {
     expect(root.querySelector('a[href="#export"]')?.getAttribute('aria-current')).toBe('step')
   })
 })
+
+describe('Workbench export stays consistent with state', () => {
+  const settle = async (): Promise<void> => {
+    for (let index = 0; index < 5; index += 1) {
+      await vi.dynamicImportSettled()
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 0))
+    }
+  }
+
+  const mount = async (state: Partial<typeof testPayload.state> = {}): Promise<Element> => {
+    const payload = { ...testPayload, state: { ...testPayload.state, includeSource: false, ...state } }
+    const { html } = await renderWorkbenchApp(payload)
+    document.body.innerHTML = `<div id="workbench">${html}</div>`
+    const root = document.querySelector('#workbench')!
+    hydrateWorkbench(root, payload)
+    await settle()
+    return root
+  }
+
+  const change = async (element: HTMLInputElement | HTMLSelectElement, value?: string): Promise<void> => {
+    if (value !== undefined) element.value = value
+    else if (element instanceof HTMLInputElement) element.checked = !element.checked
+    element.dispatchEvent(new Event('change'))
+    await settle()
+  }
+
+  it('re-highlights code blocks when their content changes', async () => {
+    const root = await mount()
+    const curl = () => root.querySelector('pre[aria-label="Debian curl command"]')?.textContent ?? ''
+    expect(root.querySelector('pre[aria-label="Debian curl command"] code.hljs')).not.toBeNull()
+
+    await change(root.querySelector<HTMLSelectElement>('#release')!, 'bookworm')
+
+    expect(curl()).toContain('/bookworm/debian.sources')
+  })
+
+  it('does not submit the form and keeps the configuration', async () => {
+    const root = await mount()
+    const form = root.querySelector('form')!
+    const submit = new Event('submit', { cancelable: true })
+
+    form.dispatchEvent(submit)
+
+    expect(submit.defaultPrevented).toBe(true)
+  })
+
+  it('disables suites the selected release does not provide', async () => {
+    const root = await mount()
+    await change(root.querySelector<HTMLSelectElement>('#release')!, 'bookworm')
+
+    expect(root.querySelector<HTMLInputElement>('input[name="suite"][value="backports"]')!.disabled).toBe(true)
+    expect(root.querySelector<HTMLInputElement>('input[name="suite"][value="security"]')!.disabled).toBe(false)
+  })
+
+  it('offers the published Debian file only when it matches the shown configuration', async () => {
+    const root = await mount()
+    expect(root.querySelector('pre[aria-label="Debian curl command"]')).not.toBeNull()
+
+    await change(root.querySelector<HTMLInputElement>('input[name="suite"][value="backports"]')!)
+
+    expect(root.querySelector('pre[aria-label="debian.sources content"]')?.textContent).toContain('trixie-backports')
+    expect(root.querySelector('pre[aria-label="Debian curl command"]')).toBeNull()
+  })
+
+  it('shows preference files and keeps package installation out of the repository script', async () => {
+    const root = await mount({ repositories: ['mozilla-firefox'] })
+    const text = root.querySelector('[data-step="export"]')?.textContent ?? ''
+
+    expect(text).toContain('mozilla-firefox.pref')
+    expect(text).toContain('Pin: origin packages.mozilla.org')
+    expect(root.querySelector('pre[aria-label="Install script content"]')?.textContent).not.toContain("apt-get install -y -- 'firefox'")
+    expect(root.querySelector('pre[aria-label="Package installation command"]')?.textContent).toContain("'firefox'")
+  })
+})

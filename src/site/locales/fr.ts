@@ -2,7 +2,7 @@ import type { SiteCopy } from './en'
 
 export const fr = {
   steps: { system: 'Système et sources', repositories: 'Dépôts', review: 'Vérifier', export: 'Exporter' },
-  actions: { continue: 'Continuer', back: 'Retour', copy: 'Copier', download: 'Télécharger', export: 'Exporter le plan' },
+  actions: { continue: 'Continuer', back: 'Retour', copy: 'Copier', download: 'Télécharger', copied: 'Copié.', downloaded: 'Téléchargé.', export: 'Exporter le plan' },
   errors: { invalidSelection: 'La configuration sélectionnée n’est pas valide.', copyFailed: 'La copie a échoué. Copiez le contenu manuellement.', downloadFailed: 'Le téléchargement a échoué. Enregistrez le fichier manuellement.' },
   audit: { source: 'Source', operator: 'Opérateur', repository: 'Dépôt', signingKey: 'Clé de signature', fingerprint: 'Empreinte', compatibility: 'Compatibilité', lastVerified: 'Dernière vérification' },
   search: { label: 'Rechercher des dépôts', placeholder: 'Rechercher des logiciels, paquets ou hôtes de dépôts', empty: 'Aucun dépôt ne correspond à votre recherche.' },
