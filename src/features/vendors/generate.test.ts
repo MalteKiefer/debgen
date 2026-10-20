@@ -508,7 +508,7 @@ describe('vendor artifact generation', () => {
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
     for (const fingerprint of [
-      '798AEC654E5C15428C8E42EEAA16FCBCA621E701',
+      'D55C0D1AC78A8D8126CB631CFC9CA96ACA026560',
       '177F4010FE56CA3336300305F1656F24C74CD1D8',
       '4E40DDF6D76E284A4A6780E48C8C34C524098CB6',
       '0E22EB88E39E12277A7760AE9E439B102CF3C0C6',
@@ -595,9 +595,9 @@ describe('vendor artifact generation', () => {
     }
 
     const payload = entries.sort().join('\n====\n')
-    expect(entries).toHaveLength(170)
+    expect(entries).toHaveLength(162)
     expect(createHash('sha256').update(payload).digest('hex'))
-      .toBe('1e22486d8526d58a9bf4121ac0de57e45c3bd5885e997fee78103094b5a90fd8')
+      .toBe('793963293cc19e31d519514b6b78f4f97db1f62c0509f866df68ff42fcf44ac0')
   })
 
   it.each([
@@ -623,6 +623,17 @@ describe('vendor artifact generation', () => {
     expect(script.content).not.toContain("cat > '/etc/apt/sources.list.d/example-tool.pref'")
   })
 
+  it('flags signing keys without a published fingerprint and checks pinned ones', () => {
+    const unpinned = generateInstallScript(config(), generateVendorArtifacts(config())).content
+    const pinnedConfig = config({ catalog: catalog([product()], [source({ keys: [key({ fingerprints: ['A1B2C3D4E5F60123456789ABCDEF0123456789AB'] })] })]) })
+    const pinned = generateInstallScript(pinnedConfig, generateVendorArtifacts(pinnedConfig)).content
+
+    expect(unpinned).toContain('# WARNING: no published fingerprint; this key is trusted on first use over HTTPS.')
+    expect(unpinned).not.toContain('expected_fingerprints=')
+    expect(pinned).not.toContain('no published fingerprint')
+    expect(pinned).toContain("expected_fingerprints='A1B2C3D4E5F60123456789ABCDEF0123456789AB'")
+  })
+
   it('uses one restrictive temporary directory and a cleanup trap', () => {
     const script = generateInstallScript(config(), generateVendorArtifacts(config()))
 
@@ -634,8 +645,9 @@ describe('vendor artifact generation', () => {
   it('refreshes apt package indexes before installing prerequisites and after installing repository files', () => {
     const script = generateInstallScript(config(), generateVendorArtifacts(config()))
 
-    expect(script.content.match(/^apt-get update$/gm)).toHaveLength(2)
-    expect(script.content.indexOf('apt-get update')).toBeLessThan(script.content.indexOf('apt-get install -y -- ca-certificates curl gpg'))
+    expect(script.content.match(/^ *apt-get update$/gm)).toHaveLength(2)
+    expect(script.content).toContain('if ! command -v curl >/dev/null || ! command -v gpg >/dev/null || [ ! -s /etc/ssl/certs/ca-certificates.crt ]; then\n  apt-get update\n  apt-get install -y -- ca-certificates curl gpg\nfi')
+    expect(script.content).not.toContain('umask')
     expect(script.content.lastIndexOf('apt-get update')).toBeGreaterThan(
       script.content.indexOf("cat > '/etc/apt/sources.list.d/example-tool.sources'"),
     )

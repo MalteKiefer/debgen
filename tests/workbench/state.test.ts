@@ -78,4 +78,27 @@ describe('Workbench state', () => {
       expect.objectContaining({ id: 'unknown-product', code: 'unknown-repository' }),
     ])
   })
+
+  it('restores release defaults for choices an intermediate release could not offer', () => {
+    const viaSid = reduceWorkbenchState(reduceWorkbenchState(createDefaultState(), {
+      type: 'set-system', release: 'sid', architecture: 'amd64', format: 'deb822',
+    }).state, { type: 'set-system', release: 'trixie', architecture: 'amd64', format: 'deb822' }).state
+    const viaBullseye = reduceWorkbenchState(reduceWorkbenchState(createDefaultState(), {
+      type: 'set-system', release: 'bullseye', architecture: 'amd64', format: 'deb822',
+    }).state, { type: 'set-system', release: 'trixie', architecture: 'amd64', format: 'deb822' }).state
+
+    expect(viaSid).toEqual(expect.objectContaining({ includeSecurity: true, includeUpdates: true }))
+    expect(viaBullseye.components).toEqual(['main', 'non-free-firmware'])
+  })
+
+  it('keeps an explicit choice the intermediate release also offered', () => {
+    const disabled = reduceWorkbenchState(createDefaultState(), {
+      type: 'set-official-sources', includeSource: false, includeSecurity: false, includeUpdates: true, includeBackports: false, components: ['main'],
+    }).state
+    const roundTrip = reduceWorkbenchState(reduceWorkbenchState(disabled, {
+      type: 'set-system', release: 'bookworm', architecture: 'amd64', format: 'deb822',
+    }).state, { type: 'set-system', release: 'trixie', architecture: 'amd64', format: 'deb822' }).state
+
+    expect(roundTrip).toEqual(expect.objectContaining({ includeSecurity: false, components: ['main'] }))
+  })
 })

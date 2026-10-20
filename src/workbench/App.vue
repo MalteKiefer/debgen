@@ -10,7 +10,7 @@ import type { SystemArchitecture } from '../features/vendors/model'
 import { trackEvent } from './analytics'
 import StepperNavigation from './components/StepperNavigation.vue'
 import StepperSection from './components/StepperSection.vue'
-import type { WorkbenchAction, WorkbenchState, WorkbenchStep } from './state'
+import { reduceWorkbenchState, type WorkbenchAction, type WorkbenchState, type WorkbenchStep } from './state'
 import type { WorkbenchHydrationPayload } from './types'
 
 const props = defineProps<{
@@ -44,19 +44,37 @@ const updateState = (nextState: WorkbenchState): void => {
   }
 }
 
-const removedRepositories = ref<string[]>([])
+interface RemovalNotice {
+  readonly names: readonly string[]
+  readonly release: string
+  readonly architecture: string
+}
 
-// Actions are built after the lazy import so two quick changes never start from the same stale state.
-const dispatch = async (buildAction: (current: WorkbenchState) => WorkbenchAction): Promise<void> => {
-  const { reduceWorkbenchState } = await import('./state')
-  const result = reduceWorkbenchState(state.value, buildAction(state.value))
-  const removed = result.removed.map(removal => removal.id)
-  if (removed.length > 0) removedRepositories.value = removed
+const removalNotice = ref<RemovalNotice | null>(null)
+const exportInterior = ref<{ downloadPlan: () => void } | null>(null)
+
+const dispatch = (action: WorkbenchAction): void => {
+  const result = reduceWorkbenchState(state.value, action)
   updateState(result.state)
+  // Each system change replaces the notice so it never describes an older release or architecture.
+  if (action.type !== 'set-system') return
+  const removed = new Set(result.removed.map(removal => removal.id))
+  removalNotice.value = removed.size === 0
+    ? null
+    : {
+        names: props.initialState.manifest.products.filter(product => removed.has(product.id)).map(product => product.name),
+        release: result.state.release,
+        architecture: result.state.architecture,
+      }
+}
+
+const exportPlan = (): void => {
+  exportInterior.value?.downloadPlan()
+  trackEvent('Config Exported', { release: state.value.release, repositories: state.value.repositories.length })
 }
 
 const navigate = async (step: WorkbenchStep): Promise<void> => {
-  await dispatch(() => ({ type: 'set-active-step', activeStep: step }))
+  dispatch({ type: 'set-active-step', activeStep: step })
   const browser = globalThis as typeof globalThis & {
     history?: { replaceState: (data: unknown, unused: string, url?: string) => void }
     document?: { getElementById: (id: string) => { focus: () => void } | null }
@@ -66,50 +84,50 @@ const navigate = async (step: WorkbenchStep): Promise<void> => {
   browser.document?.getElementById(`${step}-title`)?.focus()
 }
 
-const setSystem = (field: 'release' | 'architecture' | 'format', value: string): Promise<void> => dispatch(current => ({
+const setSystem = (field: 'release' | 'architecture' | 'format', value: string): void => dispatch({
   type: 'set-system',
-  release: field === 'release' ? value as typeof current.release : current.release,
-  architecture: field === 'architecture' ? value as SystemArchitecture : current.architecture,
-  format: field === 'format' ? value as SourceFormat : current.format,
-}))
+  release: field === 'release' ? value as typeof state.value.release : state.value.release,
+  architecture: field === 'architecture' ? value as SystemArchitecture : state.value.architecture,
+  format: field === 'format' ? value as SourceFormat : state.value.format,
+})
 
 const setOfficialBoolean = (
   field: 'includeSource' | 'includeSecurity' | 'includeUpdates' | 'includeBackports',
   event: Event,
-): Promise<void> => {
+): void => {
   const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  return dispatch(current => ({
+  dispatch({
     type: 'set-official-sources',
-    includeSource: field === 'includeSource' ? checked : current.includeSource,
-    includeSecurity: field === 'includeSecurity' ? checked : current.includeSecurity,
-    includeUpdates: field === 'includeUpdates' ? checked : current.includeUpdates,
-    includeBackports: field === 'includeBackports' ? checked : current.includeBackports,
-    components: current.components,
-  }))
+    includeSource: field === 'includeSource' ? checked : state.value.includeSource,
+    includeSecurity: field === 'includeSecurity' ? checked : state.value.includeSecurity,
+    includeUpdates: field === 'includeUpdates' ? checked : state.value.includeUpdates,
+    includeBackports: field === 'includeBackports' ? checked : state.value.includeBackports,
+    components: state.value.components,
+  })
 }
 
-const setComponent = (component: string, event: Event): Promise<void> => {
+const setComponent = (component: string, event: Event): void => {
   const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  return dispatch(current => ({
+  dispatch({
     type: 'set-official-sources',
-    includeSource: current.includeSource,
-    includeSecurity: current.includeSecurity,
-    includeUpdates: current.includeUpdates,
-    includeBackports: current.includeBackports,
+    includeSource: state.value.includeSource,
+    includeSecurity: state.value.includeSecurity,
+    includeUpdates: state.value.includeUpdates,
+    includeBackports: state.value.includeBackports,
     components: checked
-      ? [...current.components, component]
-      : current.components.filter(value => value !== component),
-  }))
+      ? [...state.value.components, component]
+      : state.value.components.filter(value => value !== component),
+  })
 }
 
-const toggleRepository = (id: string, checked: boolean): Promise<void> => {
-  removedRepositories.value = []
-  return dispatch(current => ({
-  type: 'set-repositories',
-  repositories: checked
-    ? [...current.repositories, id]
-    : current.repositories.filter(repository => repository !== id),
-  }))
+const toggleRepository = (id: string, checked: boolean): void => {
+  removalNotice.value = null
+  dispatch({
+    type: 'set-repositories',
+    repositories: checked
+      ? [...state.value.repositories, id]
+      : state.value.repositories.filter(repository => repository !== id),
+  })
 }
 </script>
 
@@ -187,6 +205,11 @@ const toggleRepository = (id: string, checked: boolean): Promise<void> => {
             </label>
           </div>
           <p class="support-note">Compatibility is checked before repository selection.</p>
+          <div role="status" aria-live="polite">
+            <p v-if="removalNotice" class="audit-note">
+              Removed because they are not compatible with {{ removalNotice.release }}/{{ removalNotice.architecture }}: {{ removalNotice.names.join(', ') }}
+            </p>
+          </div>
           <div class="choice-grid">
             <fieldset>
               <legend>Suites</legend>
@@ -229,9 +252,6 @@ const toggleRepository = (id: string, checked: boolean): Promise<void> => {
             :state="state"
             @toggle="toggleRepository"
           />
-          <p v-if="removedRepositories.length > 0" class="audit-note" role="status">
-            Removed because they are not compatible with {{ state.release }}/{{ state.architecture }}: {{ removedRepositories.join(', ') }}
-          </p>
           <div class="step-actions"><a href="#system" @click.prevent="navigate('system')">{{ initialState.copy.actions.back }}</a><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.continue }}</a></div>
         </StepperSection>
 
@@ -273,13 +293,14 @@ const toggleRepository = (id: string, checked: boolean): Promise<void> => {
         >
           <p>{{ initialState.copy.trust.review }}</p>
           <ExportInterior
+            ref="exportInterior"
             :base-path="initialState.basePath"
             :copy="initialState.copy"
             :products="initialState.manifest.products"
             :site-origin="initialState.siteOrigin"
             :state="state"
           />
-          <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="submit" class="primary-action" @click="trackEvent('Config Exported', { release: state.release, repositories: state.repositories.length })">{{ initialState.copy.actions.export }}</button></div>
+          <div class="step-actions"><a href="#review" @click.prevent="navigate('review')">{{ initialState.copy.actions.back }}</a><button type="button" class="primary-action" @click="exportPlan">{{ initialState.copy.actions.export }}</button></div>
         </StepperSection>
       </form>
     </main>

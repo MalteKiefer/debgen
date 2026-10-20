@@ -85,7 +85,7 @@ describe('Structured Workbench page', () => {
     expect(html).toContain('<input type="checkbox" name="suite" value="security"')
     expect(html).toContain('<input type="checkbox" name="component" value="main"')
     expect(html).toContain('<input id="repository-search" type="search" name="q"')
-    expect(html).toContain('<button type="submit" class="primary-action">Export plan</button>')
+    expect(html).toContain('<button type="button" class="primary-action">Export plan</button>')
     expect(html).toContain('<script type="module" src="/assets/client-test.js" defer></script>')
   })
 

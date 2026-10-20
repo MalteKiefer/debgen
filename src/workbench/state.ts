@@ -113,12 +113,22 @@ export function reduceWorkbenchState(state: WorkbenchState, action: WorkbenchAct
       }, getRelease(state.release)))
     case 'set-system': {
       const release = getRelease(action.release)
+      const previous = getRelease(state.release)
+      const defaults = createStateForRelease(release)
+      // A choice the previous release could not offer falls back to the new release's default,
+      // so passing through sid or bullseye does not silently drop security updates or firmware.
       return reconcile(normalizeForRelease({
         ...state,
         release: release.codename,
         architecture: action.architecture,
         format: action.format,
-        components: [...state.components],
+        includeSecurity: previous.capabilities.security ? state.includeSecurity : defaults.includeSecurity,
+        includeUpdates: previous.capabilities.updates ? state.includeUpdates : defaults.includeUpdates,
+        includeBackports: previous.capabilities.backports ? state.includeBackports : defaults.includeBackports,
+        components: [
+          ...state.components,
+          ...defaults.components.filter((component) => !previous.components.includes(component)),
+        ],
         repositories: [...state.repositories],
       }, release))
     }
