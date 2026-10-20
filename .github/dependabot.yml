@@ -17,3 +17,8 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # typescript-eslint supports only typescript <6.1.0; drop once it supports 7.x.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
