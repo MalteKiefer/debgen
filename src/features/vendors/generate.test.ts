@@ -213,8 +213,8 @@ describe('vendor artifact generation', () => {
 
     expect(elasticArtifacts).toHaveLength(1)
     expect(elasticArtifacts[0]?.riskNotes).toEqual([
-      'elastic-agent-enrollment',
-      'elastic-stack-resource-requirements',
+      'Elastic Agent must be enrolled with a trusted Fleet or Elasticsearch deployment.',
+      'Elastic Stack services require deliberate memory, storage, and security configuration.',
     ])
     expect(nginxArtifacts.filter(({ filename }) => filename === 'nginx.pref')).toHaveLength(1)
     expect(syncthingArtifacts.filter(({ filename }) => filename === 'syncthing.pref')).toHaveLength(1)
@@ -255,7 +255,7 @@ describe('vendor artifact generation', () => {
 
     expect(generatePackageInstallCommand(selectedConfig)).toBe("apt-get install -y -- 'alpha' 'beta' 'shared'\n")
     expect(script.content.match(/https:\/\/vendor\.example\/key\.asc/g)).toHaveLength(1)
-    expect(script.content.match(/# Signaturschlüssel für/g)).toHaveLength(1)
+    expect(script.content.match(/# Signing key for/g)).toHaveLength(1)
   })
 
   it('deduplicates identical auxiliary and preference destinations and rejects conflicts', () => {
@@ -287,7 +287,7 @@ describe('vendor artifact generation', () => {
     const artifacts = generateRepositoryArtifacts(selectedConfig)
 
     expect(artifacts.filter(({ filename }) => filename === 'shared-priority.pref')).toHaveLength(1)
-    expect(generateInstallScript(selectedConfig, artifacts).content.match(/# Zusätzliche Vertrauensdatei onepassword-policy/g))
+    expect(generateInstallScript(selectedConfig, artifacts).content.match(/# Auxiliary trust file onepassword-policy/g))
       .toHaveLength(1)
 
     const conflictingPreferences = catalog([alpha, beta], [
@@ -314,7 +314,7 @@ describe('vendor artifact generation', () => {
       {
         filename: 'example-tool.sources',
         mediaType: 'text/plain',
-        description: 'Paketquelle für Example Tool',
+        description: 'Package source for Example Tool',
         content: [
           'Types: deb',
           'URIs: https://vendor.example/debian',
@@ -393,7 +393,7 @@ describe('vendor artifact generation', () => {
 
   it('rejects unknown and incompatible product selections', () => {
     expect(() => generateVendorArtifacts(config({ productIds: ['missing'] }))).toThrow(/unknown.*missing/i)
-    expect(() => generateVendorArtifacts(config({ architecture: 'arm64' }))).toThrow(/arm64.*nicht unterstützt/i)
+    expect(() => generateVendorArtifacts(config({ architecture: 'arm64' }))).toThrow(/arm64.*not supported/i)
   })
 
   it('rejects an unsafe product ID before deriving its deterministic filename', () => {
@@ -422,7 +422,7 @@ describe('vendor artifact generation', () => {
     expect(script).toMatchObject({
       filename: 'install-vendor-repositories.sh',
       mediaType: 'text/x-shellscript',
-      description: 'Installationsanweisungen für ausgewählte Herstellerquellen',
+      description: 'Installation steps for the selected vendor sources',
       riskNotes: ['Dienst aktiviert Netzwerkzugriff.'],
     })
     expect(script.content).toContain('#!/usr/bin/env bash\nset -euo pipefail\n')
@@ -431,7 +431,7 @@ describe('vendor artifact generation', () => {
     expect(script.content).toContain('gpg --show-keys --with-colons "$temporary_key"')
     expect(script.content).toContain('if grep -q -- \'-----BEGIN PGP PUBLIC KEY BLOCK-----\' "$temporary_key"; then')
     expect(script.content).toContain("apt-get install -y -- 'vendor-tool' 'vendor-tools-extra'")
-    expect(script.content).toContain('# WARNUNG: Dienst aktiviert Netzwerkzugriff.')
+    expect(script.content).toContain('# WARNING: Dienst aktiviert Netzwerkzugriff.')
     expect(script.content).not.toMatch(/curl[^\n]*\|\s*(ba)?sh/i)
     expect(script.content).not.toContain('apt-key')
     expect(script.content.endsWith('\n')).toBe(true)
@@ -476,8 +476,8 @@ describe('vendor artifact generation', () => {
     }]
     const script = generateInstallScript(selectedConfig, artifacts)
 
-    expect(script.content).toContain('# Signaturschlüssel für Example Tool rm -rf /')
-    expect(script.content).toContain('# WARNUNG: Prüfen rm -rf /')
+    expect(script.content).toContain('# Signing key for Example Tool rm -rf /')
+    expect(script.content).toContain('# WARNING: Prüfen rm -rf /')
     expect(script.content).not.toContain('\nrm -rf /\n#')
     expect(script.content).toContain("<<'DEBGEN_ARTIFACT_0_1'\nDEBGEN_ARTIFACT_0\nrm -rf /\nDEBGEN_ARTIFACT_0_1")
   })
@@ -494,7 +494,7 @@ describe('vendor artifact generation', () => {
     expect(script.content).toContain('actual_fingerprints="$(printf')
     expect(script.content).toContain('LC_ALL=C sort -u')
     expect(script.content).toContain('if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then')
-    expect(script.content).toContain('Die Fingerprints der Signaturschlüssel stimmen nicht mit den erwarteten Werten überein.')
+    expect(script.content).toContain('The signing key fingerprints do not match the expected values.')
     expect(script.content).not.toContain('Expected exactly one primary signing key.')
     expect(script.content).not.toContain('Signing-key fingerprint verification failed.')
   })
@@ -538,8 +538,8 @@ describe('vendor artifact generation', () => {
     }
     const script = generateInstallScript(selectedConfig, generateVendorArtifacts(selectedConfig))
 
-    expect(script.content.match(/# Zusätzliche Vertrauensdatei onepassword-policy/g)).toHaveLength(1)
-    expect(script.content.match(/# Zusätzliche Vertrauensdatei onepassword-keyring/g)).toHaveLength(1)
+    expect(script.content.match(/# Auxiliary trust file onepassword-policy/g)).toHaveLength(1)
+    expect(script.content.match(/# Auxiliary trust file onepassword-keyring/g)).toHaveLength(1)
     expect(script.content).toContain("install -d -m 0755 '/etc/debsig/policies/AC2D62742012EA22'")
     expect(script.content).toContain("install -m 0644 \"$temporary_auxiliary\" '/etc/debsig/policies/AC2D62742012EA22/1password.pol'")
     expect(script.content).toContain("install -d -m 0755 '/usr/share/debsig/keyrings/AC2D62742012EA22'")
@@ -597,7 +597,7 @@ describe('vendor artifact generation', () => {
     const payload = entries.sort().join('\n====\n')
     expect(entries).toHaveLength(170)
     expect(createHash('sha256').update(payload).digest('hex'))
-      .toBe('d54e57305b0d24a9b14585dac3520ac32b80583ee500473086657575a532598e')
+      .toBe('1e22486d8526d58a9bf4121ac0de57e45c3bd5885e997fee78103094b5a90fd8')
   })
 
   it.each([
@@ -631,11 +631,12 @@ describe('vendor artifact generation', () => {
     expect(script.content).not.toContain('temporary_key="$(mktemp)"')
   })
 
-  it('updates apt package indexes exactly once after installing repository files', () => {
+  it('refreshes apt package indexes before installing prerequisites and after installing repository files', () => {
     const script = generateInstallScript(config(), generateVendorArtifacts(config()))
 
-    expect(script.content.match(/^apt-get update$/gm)).toHaveLength(1)
-    expect(script.content.indexOf('apt-get update')).toBeGreaterThan(
+    expect(script.content.match(/^apt-get update$/gm)).toHaveLength(2)
+    expect(script.content.indexOf('apt-get update')).toBeLessThan(script.content.indexOf('apt-get install -y -- ca-certificates curl gpg'))
+    expect(script.content.lastIndexOf('apt-get update')).toBeGreaterThan(
       script.content.indexOf("cat > '/etc/apt/sources.list.d/example-tool.sources'"),
     )
   })

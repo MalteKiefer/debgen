@@ -10,6 +10,8 @@ export interface SiteCopy {
     back: string
     copy: string
     download: string
+    copied: string
+    downloaded: string
     export: string
   }
   errors: {
@@ -47,7 +49,7 @@ export interface SiteCopy {
 
 export const en = {
   steps: { system: 'System & sources', repositories: 'Repositories', review: 'Review', export: 'Export' },
-  actions: { continue: 'Continue', back: 'Back', copy: 'Copy', download: 'Download', export: 'Export plan' },
+  actions: { continue: 'Continue', back: 'Back', copy: 'Copy', download: 'Download', copied: 'Copied.', downloaded: 'Downloaded.', export: 'Export plan' },
   errors: { invalidSelection: 'The selected configuration is not valid.', copyFailed: 'Copy failed. Copy the content manually.', downloadFailed: 'Download failed. Save the file manually.' },
   audit: { source: 'Source', operator: 'Operator', repository: 'Repository', signingKey: 'Signing key', fingerprint: 'Fingerprint', compatibility: 'Compatibility', lastVerified: 'Last verified' },
   search: { label: 'Search repositories', placeholder: 'Search software, packages, or repository hosts', empty: 'No repositories match your search.' },

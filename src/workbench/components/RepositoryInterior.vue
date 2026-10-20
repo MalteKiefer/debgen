@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  change: [repositories: readonly string[]]
+  toggle: [id: string, checked: boolean]
 }>()
 
 const query = ref('')
@@ -139,6 +139,11 @@ watch([query, categoryFilter], () => {
   currentPage.value = 1
 })
 
+// A release or architecture change can remove the selected category; fall back to all categories.
+watch(categories, (available) => {
+  if (categoryFilter.value !== '' && !(available as readonly string[]).includes(categoryFilter.value)) categoryFilter.value = ''
+})
+
 watch([filteredProducts, pageSize], () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
@@ -156,11 +161,8 @@ const selectedCount = computed(() => props.state.repositories.length)
 
 const toggleRepository = (id: string, event: Event): void => {
   const checked = (event.currentTarget as unknown as { checked: boolean }).checked
-  const repositories = checked
-    ? [...props.state.repositories, id]
-    : props.state.repositories.filter(repository => repository !== id)
   if (checked) trackEvent('Repository Selected', { repository: id })
-  emit('change', repositories)
+  emit('toggle', id, checked)
 }
 
 const onQueryInput = (event: Event): void => {

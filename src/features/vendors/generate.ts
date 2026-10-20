@@ -4,6 +4,7 @@ import type { GeneratedArtifact, RepositoryKey, RepositorySource, SystemArchitec
 import { REPOSITORY_SOURCES } from './sources'
 import type { ReleaseCodename } from '../sources/model'
 import { auxiliaryTrustDestinationPath, normalizeOpenPgpFingerprint, validateRepositoryCatalog } from './validate'
+import { interfaceEn } from '../../i18n/messages/interface'
 
 export interface VendorGenerationCatalog {
   readonly products: readonly VendorProduct[]
@@ -22,14 +23,7 @@ export interface GeneratedRepositoryArtifact extends GeneratedArtifact {
   readonly sourceId: string
 }
 
-const warningText: Readonly<Record<string, string>> = {
-  'proton-vpn-supported-environment': 'Offiziell unterstützt werden nur die aktuelle stabile Debian-Version mit GNOME und kein Headless-Betrieb.',
-  'tor-not-browser': 'Dieses Repository liefert Tor-Daemon und -Client, nicht den Tor Browser.',
-  'docker-firewall': 'Docker kann Firewall-Regeln verändern und dadurch Firewall-Regeln umgehen.',
-  'nvidia-container-toolkit-prerequisites': 'Erfordert eine unterstützte NVIDIA-GPU, einen installierten NVIDIA-Treiber und eine unterstützte Container-Laufzeit.',
-  'mariadb-no-setup-script': 'Die offizielle MariaDB-Einrichtung per Setup-Skript wird nicht ausgeführt; nur das geprüfte Repository wird verwendet.',
-  'clickhouse-generic-debian': 'Das ClickHouse-Repository ist distributionsunabhängig; die Kompatibilität bezieht sich auf die bereitgestellten Paketarchitekturen.',
-}
+const warningText: Readonly<Record<string, string>> = interfaceEn.warnings
 const trailing = (content: string): string => content.replace(/\n+$/, '') + '\n'
 const compare = (left: string, right: string): number => left < right ? -1 : left > right ? 1 : 0
 const quote = (value: string): string => `'${value.replace(/'/g, "'\"'\"'")}'`
@@ -77,7 +71,7 @@ function selectedProducts(config: VendorGenerationConfig, products: readonly Ven
     const compatibility = getVendorCompatibility(product, config.release, config.architecture)
     if (!compatibility.compatible) {
       const reason = compatibility.reason
-      throw new Error(reason?.code === 'unsupported-architecture' ? `Die Architektur „${reason.architecture}“ wird nicht unterstützt.` : reason?.code === 'unsupported-release' ? `Das Release „${reason.release}“ wird nicht unterstützt.` : 'Unsupported vendor product.')
+      throw new Error(reason?.code === 'unsupported-architecture' ? `Architecture "${reason.architecture}" is not supported.` : reason?.code === 'unsupported-release' ? `Release "${reason.release}" is not supported.` : 'Unsupported vendor product.')
     }
     return product
   }).sort((left, right) => compare(left.id, right.id))
@@ -124,14 +118,14 @@ function sourceContent(source: RepositorySource, config: VendorGenerationConfig)
 function sourceArtifact(product: VendorProduct, config: VendorGenerationConfig, sources: readonly RepositorySource[]): GeneratedArtifact {
   const source = sourceFor(product, sources); const notes = riskNotes(product, source)
   return {
-    filename: `${product.id}.sources`, mediaType: 'text/plain', description: `Paketquelle für ${product.name}`,
+    filename: `${product.id}.sources`, mediaType: 'text/plain', description: `Package source for ${product.name}`,
     content: sourceContent(source, config),
     category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}),
   }
 }
 function preferenceArtifacts(product: VendorProduct, source: RepositorySource): readonly GeneratedArtifact[] {
   const notes = riskNotes(product, source)
-  return source.preferenceFiles.map((file) => ({ filename: `${file.id}.pref`, mediaType: 'text/plain', description: `Paketpriorität für ${product.name}`, content: trailing(file.content), category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}) }))
+  return source.preferenceFiles.map((file) => ({ filename: `${file.id}.pref`, mediaType: 'text/plain', description: `Package priority for ${product.name}`, content: trailing(file.content), category: product.category, productId: product.id, productName: product.name, ...(notes ? { riskNotes: notes } : {}) }))
 }
 export function generateVendorArtifacts(config: VendorGenerationConfig): GeneratedArtifact[] {
   const catalog = generationCatalog(config)
@@ -205,7 +199,7 @@ export function generateRepositoryArtifacts(config: VendorGenerationConfig): Gen
     return {
       filename: `${source.id}.sources`,
       mediaType: 'text/plain',
-      description: `Paketquelle für ${source.name}`,
+      description: `Package source for ${source.name}`,
       content: sourceContent(source, config),
       category: representative.category,
       productId: representative.id,
@@ -232,7 +226,7 @@ export function generateRepositoryArtifacts(config: VendorGenerationConfig): Gen
       preferences.set(filename, {
         filename,
         mediaType: 'text/plain',
-        description: `Paketpriorität für ${source.name}`,
+        description: `Package priority for ${source.name}`,
         content,
         category: representative.category,
         productId: representative.id,
@@ -255,8 +249,8 @@ function legacyPackageCommand(products: readonly VendorProduct[]): string {
 }
 export function generatePackageInstallCommand(config: VendorGenerationConfig): string { const catalog = generationCatalog(config); return packageCommand(selectedProducts(config, catalog.products)) }
 function keyCommands(key: RepositoryKey, productName: string, index: number): string[] {
-  const lines = [`# Signaturschlüssel für ${comment(productName)}`, `temporary_key="$temporary_directory/key-${index}"`, `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_key" ${quote(key.url)}`]
-  if (key.fingerprints.length) { const expected = key.fingerprints.map(normalizeOpenPgpFingerprint).sort(compare).join('\n'); lines.push(`expected_fingerprints=${quote(expected)}`, 'key_metadata="$(gpg --show-keys --with-colons "$temporary_key")"', 'actual_fingerprints="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"', 'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then', '  echo "Die Fingerprints der Signaturschlüssel stimmen nicht mit den erwarteten Werten überein." >&2', '  exit 1', 'fi') }
+  const lines = [`# Signing key for ${comment(productName)}`, `temporary_key="$temporary_directory/key-${index}"`, `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_key" ${quote(key.url)}`]
+  if (key.fingerprints.length) { const expected = key.fingerprints.map(normalizeOpenPgpFingerprint).sort(compare).join('\n'); lines.push(`expected_fingerprints=${quote(expected)}`, 'key_metadata="$(gpg --show-keys --with-colons "$temporary_key")"', 'actual_fingerprints="$(printf \'%s\\n\' "$key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"', 'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then', '  echo "The signing key fingerprints do not match the expected values." >&2', '  exit 1', 'fi') }
   if (key.keyringPath.endsWith('.gpg')) lines.push('if grep -q -- \'-----BEGIN PGP PUBLIC KEY BLOCK-----\' "$temporary_key"; then', `  dearmored_key="$temporary_directory/key-${index}.gpg"`, '  gpg --dearmor --yes --output "$dearmored_key" "$temporary_key"', `  install -m 0644 "$dearmored_key" ${quote(key.keyringPath)}`, 'else', `  install -m 0644 "$temporary_key" ${quote(key.keyringPath)}`, 'fi')
   else lines.push(`install -m 0644 "$temporary_key" ${quote(key.keyringPath)}`)
   return [...lines, '']
@@ -304,7 +298,7 @@ function auxiliaryTrustCommands(sources: readonly RepositorySource[]): string[] 
       const directory = destination.slice(0, destination.lastIndexOf('/'))
       const temporaryPath = `$temporary_directory/auxiliary-${sourceIndex}-${fileIndex}`
       lines.push(
-        `# Zusätzliche Vertrauensdatei ${comment(file.id)}`,
+        `# Auxiliary trust file ${comment(file.id)}`,
         `install -d -m 0755 ${quote(directory)}`,
         `temporary_auxiliary="${temporaryPath}"`,
         `curl --fail --location --proto '=https' --tlsv1.2 --output "$temporary_auxiliary" ${quote(file.url)}`,
@@ -315,7 +309,7 @@ function auxiliaryTrustCommands(sources: readonly RepositorySource[]): string[] 
           'auxiliary_key_metadata="$(gpg --show-keys --with-colons "$temporary_auxiliary")"',
           'actual_fingerprints="$(printf \'%s\\n\' "$auxiliary_key_metadata" | awk -F: \'$1 == "pub" { want_fingerprint = 1; next } $1 == "sub" { want_fingerprint = 0 } $1 == "fpr" && want_fingerprint { print toupper($10); want_fingerprint = 0 }\' | LC_ALL=C sort -u)"',
           'if [ "$actual_fingerprints" != "$expected_fingerprints" ]; then',
-          '  echo "Der Fingerprint der zusätzlichen Vertrauensdatei stimmt nicht mit dem erwarteten Wert überein." >&2',
+          '  echo "The auxiliary trust file fingerprint does not match the expected value." >&2',
           '  exit 1',
           'fi',
           `dearmored_auxiliary="${temporaryPath}.gpg"`,
@@ -349,11 +343,13 @@ export function generateInstallScript(config: VendorGenerationConfig, artifacts:
   const installPackages = usesLegacyAliasArtifact ? legacyPackageCommand(products) : packageCommand(products)
   const repositorySetup = hasRepositorySetup
     ? [
+        'apt-get update',
         'apt-get install -y -- ca-certificates curl gpg',
         'install -d -m 0755 /etc/apt/keyrings',
         'umask 077',
         'temporary_directory="$(mktemp -d)"',
         'trap \'rm -rf "$temporary_directory"\' EXIT',
+        'umask 022',
         '',
         ...selectedKeys(selections, config.release)
           .flatMap(({ key, productName }, index) => keyCommands(key, productName, index)),
@@ -365,12 +361,12 @@ export function generateInstallScript(config: VendorGenerationConfig, artifacts:
     '#!/usr/bin/env bash',
     'set -euo pipefail',
     '',
-    '# Prüfen Sie diese Befehle und Dateien vor der Ausführung.',
-    ...warnings.map((warning) => `# WARNUNG: ${comment(warning)}`),
+    '# Review these commands and files before running them.',
+    ...warnings.map((warning) => `# WARNING: ${comment(warning)}`),
     ...(warnings.length ? [''] : []),
     ...repositorySetup,
     'apt-get update',
     ...(products.length && options.includePackageInstallation !== false ? [installPackages.trimEnd()] : []),
   ].join('\n'))
-  return { filename: 'install-vendor-repositories.sh', mediaType: 'text/x-shellscript', description: 'Installationsanweisungen für ausgewählte Herstellerquellen', content, ...(warnings.length ? { riskNotes: warnings } : {}) }
+  return { filename: 'install-vendor-repositories.sh', mediaType: 'text/x-shellscript', description: 'Installation steps for the selected vendor sources', content, ...(warnings.length ? { riskNotes: warnings } : {}) }
 }
