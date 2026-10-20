@@ -1,6 +1,6 @@
 import { VENDOR_PRODUCTS } from '../../src/features/vendors/catalog'
 import { RELEASES } from '../../src/features/sources/releases'
-import { en } from '../../src/site/locales/en'
+import { getSiteCopyForBuild } from '../../src/site/locales'
 import { toWorkbenchHydrationProduct, type WorkbenchHydrationPayload } from '../../src/workbench/types'
 
 export const testPayload: WorkbenchHydrationPayload = {
@@ -8,7 +8,7 @@ export const testPayload: WorkbenchHydrationPayload = {
   path: '/en/',
   basePath: '/',
   siteOrigin: 'https://debgen.org',
-  copy: en,
+  copy: getSiteCopyForBuild('en'),
   state: {
     activeStep: 'review',
     release: 'trixie',

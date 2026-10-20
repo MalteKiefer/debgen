@@ -1,5 +1,7 @@
+import { VENDOR_PRODUCTS } from '../../features/vendors/catalog'
+import { REPOSITORY_SOURCES } from '../../features/vendors/sources'
 import { SUPPORTED_LOCALES, type SupportedLocale } from '../../i18n/locales'
-import type { WorkbenchStep } from '../../workbench/state'
+import { fill } from '../../workbench/text'
 import { renderIcon } from '../icons'
 import type { SiteCopy } from '../locales'
 import type { SitePage } from '../model'
@@ -13,18 +15,21 @@ export interface WorkbenchPageContext {
   workbenchHtml: string
   serializedState: string
   clientScript: string
-  activeStep?: WorkbenchStep
   root?: boolean
 }
 
-const renderLanguageControl = (locale: SupportedLocale, root: boolean): string => {
+const REPOSITORY_URL = 'https://github.com/MalteKiefer/debgen'
+
+const BRAND_MARK = '<svg class="brand__mark" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15.5 8.5a4.6 4.6 0 1 0-1.3 6.9"></path><path d="M12 3a9 9 0 1 0 8.6 11.6"></path></svg>'
+
+const renderLanguageControl = (locale: SupportedLocale, copy: SiteCopy, root: boolean): string => {
+  const { names, label } = copy.ui.locale
   const links = SUPPORTED_LOCALES.map((supportedLocale) => {
     const current = !root && supportedLocale === locale ? ' aria-current="page"' : ''
-    return `<li><a href="${escapeHtml(sitePath(supportedLocale))}" hreflang="${supportedLocale}" lang="${supportedLocale}"${current}>${supportedLocale}</a></li>`
+    return `<li><a href="${escapeHtml(sitePath(supportedLocale))}" hreflang="${supportedLocale}" lang="${supportedLocale}"${current}>${escapeHtml(names[supportedLocale])}</a></li>`
   }).join('')
 
-  const currentLocale = root ? '' : ` <strong>${escapeHtml(locale)}</strong>`
-  return `<details class="language-control"><summary>Language${currentLocale}</summary><nav aria-label="Language"><ul>${links}</ul></nav></details>`
+  return `<details class="language-control"><summary><span class="visually-hidden">${escapeHtml(label)}: </span>${escapeHtml(names[locale])}</summary><nav aria-label="${escapeHtml(label)}"><ul>${links}</ul></nav></details>`
 }
 
 export const renderWorkbenchPage = ({
@@ -33,7 +38,6 @@ export const renderWorkbenchPage = ({
   workbenchHtml,
   serializedState,
   clientScript,
-  activeStep = 'system',
   root = false,
 }: WorkbenchPageContext): SitePage => {
   const path = root ? '/' : sitePath(locale)
@@ -54,15 +58,16 @@ export const renderWorkbenchPage = ({
         ],
       }
     : localizedMetadata
+  const catalog = fill(copy.footer.catalog, { products: VENDOR_PRODUCTS.length, sources: REPOSITORY_SOURCES.length })
 
-  const body = `<a class="skip-link" href="#workbench">Skip to Workbench</a>
+  const body = `<a class="skip-link" href="#setup">${escapeHtml(copy.skipLink)}</a>
 <header class="site-header">
-<a class="brand" href="${escapeHtml(path)}" aria-label="DebGen home"><strong>DebGen</strong><span>Workbench</span></a>
-<p class="current-step"><span>Current step</span><strong>${escapeHtml(copy.steps[activeStep])}</strong></p>
-<nav class="utility-nav" aria-label="Utilities"><a href="https://github.com/MalteKiefer/debgen#readme">Docs</a><a href="/api/v1/catalog.json">API</a><a href="https://github.com/MalteKiefer/debgen">GitHub ${renderIcon('external')}</a></nav>
-${renderLanguageControl(locale, root)}
+<a class="brand" href="${escapeHtml(path)}">${BRAND_MARK}<strong>DebGen</strong></a>
+<nav class="site-nav" aria-label="DebGen"><a href="${REPOSITORY_URL}#readme">Docs</a><a href="/api/v1/catalog.json">API</a><a href="${REPOSITORY_URL}">GitHub ${renderIcon('external')}</a></nav>
+${renderLanguageControl(locale, copy, root)}
 </header>
-<div id="workbench" tabindex="-1">${workbenchHtml}</div>
+<div id="workbench">${workbenchHtml}</div>
+<footer class="site-footer"><p>${escapeHtml(copy.footer.notAffiliated)}</p><p>${escapeHtml(catalog)}</p><p><a href="${REPOSITORY_URL}">${escapeHtml(copy.footer.source)}</a></p><p><a href="${REPOSITORY_URL}/issues/new">${escapeHtml(copy.footer.report)}</a></p></footer>
 <script id="workbench-state" type="application/json">${serializedState}</script>`
 
   return { ...metadata, lang: locale, path, body, scripts: [clientScript] }

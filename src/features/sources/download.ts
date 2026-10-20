@@ -18,7 +18,7 @@ export async function copyText(
 
 export function downloadText(
   filename: string,
-  text: string,
+  content: string | Uint8Array<ArrayBuffer>,
   environment: DownloadEnvironment = {
     document: globalThis.document,
     Blob: globalThis.Blob,
@@ -30,7 +30,7 @@ export function downloadText(
   const contentType = mediaType.startsWith('text/') && !/;\s*charset=/i.test(mediaType)
     ? `${mediaType};charset=utf-8`
     : mediaType
-  const blob = new environment.Blob([text], { type: contentType })
+  const blob = new environment.Blob([content], { type: contentType })
   const objectUrl = environment.createObjectURL(blob)
 
   try {

@@ -30,6 +30,17 @@ export interface BuildManifest {
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const clientManifestPath = join('.vite', 'manifest.json')
+
+// Fonts are self-hosted so the site makes no third-party requests at runtime.
+const FONT_SUBSETS: Readonly<Record<string, readonly string[]>> = {
+  'fraunces': ['latin', 'latin-ext'],
+  'nunito-sans': ['latin', 'latin-ext', 'cyrillic'],
+  'jetbrains-mono': ['latin', 'latin-ext', 'cyrillic'],
+}
+const FONT_FILES = Object.entries(FONT_SUBSETS).flatMap(([family, subsets]) => subsets.map(subset => ({
+  source: join(projectRoot, 'node_modules', '@fontsource-variable', family, 'files', `${family}-${subset}-wght-normal.woff2`),
+  asset: `assets/fonts/${family}-${subset}.woff2`,
+})))
 const serverEntryPath = join('.ssr', 'server.js')
 
 interface ViteManifestEntry {
@@ -144,9 +155,10 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
   const locales = [...siteLocales]
   const pages = locales.map(locale => `${locale}/index.html`)
   const workbenchBuild = await readWorkbenchBuild(resolvedOutputDir, renderer)
-  const assets = ['assets/site.css', 'favicon.ico', 'favicon.svg', 'apple-touch-icon.png', ...workbenchBuild.assets]
+  const assets = ['assets/site.css', ...FONT_FILES.map(font => font.asset), 'favicon.ico', 'favicon.svg', 'apple-touch-icon.png', ...workbenchBuild.assets]
 
-  await mkdir(join(resolvedOutputDir, 'assets'), { recursive: true })
+  await mkdir(join(resolvedOutputDir, 'assets', 'fonts'), { recursive: true })
+  await Promise.all(FONT_FILES.map(font => copyFile(font.source, join(resolvedOutputDir, font.asset))))
   await copyFile(
     join(projectRoot, 'src', 'site', 'styles', 'workbench.css'),
     join(resolvedOutputDir, 'assets', 'site.css'),
@@ -176,7 +188,6 @@ export async function buildSite({ outputDir, baseUrl, renderer }: BuildSiteOptio
       workbenchHtml: rendered.html,
       serializedState: rendered.serializedState,
       clientScript: workbenchBuild.clientScript,
-      activeStep: payload.state.activeStep,
       root,
     })), basePath)
   }

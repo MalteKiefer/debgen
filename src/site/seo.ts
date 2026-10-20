@@ -1,6 +1,6 @@
 import type { SeoMetadata } from './model'
 import { canonicalUrl, sitePath, buildAlternates, SITE_ORIGIN } from './routes'
-import type { SiteCopy } from './locales/en'
+import type { SiteCopy } from './locales'
 import type { SupportedLocale } from '../i18n/locales'
 
 export interface SitemapEntry {
