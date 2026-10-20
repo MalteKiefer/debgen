@@ -5,13 +5,23 @@ updates:
     target-branch: master
     schedule:
       interval: weekly
+    # Only propose releases that have been public for at least 7 days.
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: npm
     directory: /
     target-branch: master
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
+      # vue and @vue/* must move together; mixed versions break SSR rendering.
+      vue:
+        patterns:
+          - vue
+          - '@vue/*'
       development-dependencies:
         dependency-type: development
         update-types:
