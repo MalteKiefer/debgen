@@ -23,7 +23,7 @@
     "@mdi/font": "7.4.47",
     "vue": "3.5.44",
     "vue-i18n": "11.4.14",
-    "vuetify": "4.2.5"
+    "vuetify": "4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
