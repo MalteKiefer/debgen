@@ -22,7 +22,7 @@
   "dependencies": {
     "@mdi/font": "7.4.47",
     "vue": "3.5.44",
-    "vue-i18n": "11.4.14",
+    "vue-i18n": "11.4.16",
     "vuetify": "4.2.5"
   },
   "devDependencies": {
